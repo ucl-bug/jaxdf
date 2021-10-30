@@ -57,7 +57,7 @@ result_on_grid = jit(op_on_grid)(
 
 # Define a differentiable loss function
 def loss(u_params):
-    op_output = jit(op_on_grid)(global_params, {"u": u_fourier_params})
+    op_output = jit(op_on_grid)(global_params, {"u": u_params})
     return jnp.mean(jnp.abs(op_output)**2)
 
 gradient = grad(loss)(u_fourier_params)
