@@ -2,10 +2,13 @@
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![codecov](https://codecov.io/gh/astanziola/jaxdf/branch/main/graph/badge.svg?token=6J03OMVJS1)](https://codecov.io/gh/astanziola/jaxdf)
-![Continous Integration](https://github.com/astanziola/jaxdf/actions/workflows/ci-build.yml/badge.svg)
+![Continous Integration](https://github.com/ucl-bug/jaxdf/actions/workflows/ci-build.yml/badge.svg)
 
 [**Overview**](#overview)
+| [**Example**](#example)
 | [**Installation**](#installation)
+
+<br/>
 
 ## Overview
 
@@ -13,18 +16,19 @@ jaxdf is a [JAX](https://jax.readthedocs.io/en/stable/)-based package defining a
 
 The intended use is to build numerical models of physical systems, such as wave propagation, or the numerical solution of partial differential equations, that are easy to customize to the user's research needs. Such models are pure functions that can be included into arbitray differentiable programs written in [JAX](https://jax.readthedocs.io/en/stable/). For example, they can be used as layers of neural networks, or to build a physics loss function.
 
+<br/>
+
 ## Example
 
-The following script builds the non-linear operator $(\nabla^2 + \sin) u$, using a Fourier spectral discretization on a square 2D domain. The output is given over the whole collocation grid.
+The following script builds the non-linear operator **(∇<sup>2</sup> + sin)**, using a Fourier spectral discretization on a square 2D domain. The output is given over the whole collocation grid.
 
 
 ```python
 from jaxdf import operators as jops
-from jaxdf.core import operator, Field
+from jaxdf.core import operator
 from jaxdf.geometry import Domain
-from jaxdf.utils import join_dicts
 from jax import numpy as jnp
-import jax
+from jax import jit, grad
 
 # Defining operator
 @operator()
@@ -46,11 +50,20 @@ op_on_grid = result.get_field_on_grid()
 global_params = result.get_global_params() # This contains the Fourier filters
 
 # Compile and use the pure function
-result_on_grid = jax.jit(op_on_grid)(
+result_on_grid = jit(op_on_grid)(
     global_params,
     {"u": u_fourier_params}
 )
+
+# Define a differentiable loss function
+def loss(u_params):
+    op_output = jit(op_on_grid)(global_params, {"u": u_fourier_params})
+    return jnp.mean(jnp.abs(op_output)**2)
+
+gradient = grad(loss)(u_fourier_params)
 ```
+
+<br/>
 
 ## Installation
 
@@ -66,6 +79,8 @@ If you want to run the notebooks, you should also install the following packages
 ```bash
 pip install jupyterlab, tqdm
 ```
+
+<br/>
 
 ## Related projects
 
