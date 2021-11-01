@@ -243,9 +243,22 @@ class GridBased(Linear):
 
 
 class FiniteDifferences(GridBased):
-    def __init__(self, domain):
+    def __init__(self, domain, dims=1, accuracy=4):
+        assert accuracy % 2 == 0
         self.domain = domain
         self.is_field_complex = True
+        self.accuracy = accuracy
+        self.dims = dims
+
+    def get_field_on_grid(self):
+        def _sample_on_grid(field_params):
+            return field_params
+
+        return _sample_on_grid
+
+    def gradient(self, u):
+        return pr.FDGradient(accuracy=self.accuracy)(u)
+
 
 
 class RealFiniteDifferences(FiniteDifferences):
