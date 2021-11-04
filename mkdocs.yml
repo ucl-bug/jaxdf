@@ -1,0 +1,55 @@
+site_name: j-Wave
+
+# Project info
+site_name: jaxdf
+site_author: Antonio Stanziola, Biomedical Ultrasound Group
+site_description: >-
+  Differentiable numerical discretizations of operators in JAX
+site_url: https://bug.medphys.ucl.ac.uk
+
+theme:
+  name: "material"
+  features:
+    - navigation.tabs
+    - navigation.instant
+
+nav:
+  - Home: index.md
+  - Tutorials:
+    - Quick start: notebooks/quickstart.ipynb
+plugins:
+  - mkdocs-jupyter
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: false 
+      custom_templates: templates
+      watch:
+        - jwave
+  - search
+  - mermaid2
+
+markdown_extensions:
+  - toc:
+      toc_depth: 5
+  - markdown_katex:
+      no_inline_svg: True
+      insert_fonts_css: True
+  - pymdownx.highlight
+  - pymdownx.superfences:
+       custom_fences:
+         - name: mermaid
+           class: mermaid
+           format: !!python/name:pymdownx.superfences.fence_div_format
+
+  - admonition
+  - attr_list
+  - footnotes
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+    - https://unpkg.com/mermaid/dist/mermaid.min.js

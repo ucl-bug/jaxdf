@@ -176,8 +176,11 @@ class Field(object):
         return self + other
 
     def __sub__(self, other):
-        other = jops.invert(other)
-        return self + other
+        if is_numeric(other):
+            return jops.add_scalar(self, -other)
+        else:
+            other = jops.invert(other)
+            return self + other
 
     def __repr__(self):
         return f"Field :: {self.discretization}, {self.name}"

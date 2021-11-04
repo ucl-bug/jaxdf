@@ -10,7 +10,7 @@ def no_init(*args, **kwargs):
     raise RuntimeError("Can't initialize a field resulting from applying an operator")
 
 
-class Operator(NamedTuple):
+class Operation(NamedTuple):
     """A concrete operation of the computational graph"""
 
     fun: Callable
@@ -74,7 +74,7 @@ class Primitive(object):
         # Adds primitive to the tracer and returns output field
         u_name = f"_{tracer.counter()}"
         outfield = TracedField(output_discretization, params, tracer, u_name)
-        op = Operator(fun, args, name, param_kind, outfield)
+        op = Operation(fun, args, name, param_kind, outfield)
         tracer.add_operation(op)
 
         return outfield
@@ -117,7 +117,7 @@ class BinaryPrimitive(Primitive):
         # Adds primitive to the tracer and returns output field
         u_name = f"_{tracer.counter()}"
         outfield = TracedField(output_discretization, params, tracer, u_name)
-        op = Operator(fun, args, name, param_kind, outfield)
+        op = Operation(fun, args, name, param_kind, outfield)
         tracer.add_operation(op)
 
         return outfield
@@ -214,7 +214,6 @@ class AddFieldLinearSame(BinaryPrimitive):
 
         new_discretization = field_1.discretization
         return None, new_discretization
-
 
 class MultiplyFields(BinaryPrimitive):
     def __init__(self, name="MultiplyFields", independent_params=True):
@@ -501,8 +500,8 @@ class FDGradient(Primitive):
 
             # Make kernel the right size
             field_dimensions = field_params.ndim - 1
-            axis = list(range(field_dimensions-1))
-            kernel = jnp.expand_dims(kernel, axis=axis)# Kernel on the last axis
+            for ax in range(field_dimensions-1):
+                kernel = jnp.expand_dims(kernel, axis=0)# Kernel on the last axis
 
             # Convolve in each dimension
             outs = []
@@ -516,6 +515,50 @@ class FDGradient(Primitive):
                 out = jsp.signal.convolve(f[...,0], k, mode="same")
                 outs.append(out)
             return jnp.stack(outs, axis=-1)
+
+        f.__name__ = self.name
+        return f
+
+class FDLaplacian(Primitive):
+    def __init__(self, name="FDLaplacian", independent_params=True, accuracy=4):
+        super().__init__(name, independent_params)
+        self.accuracy = accuracy
+
+    def setup(self, field):
+        coeffs = {
+            "2": [1, -2, 1],
+            "4": [1 / 12, -2 / 3, 0, 2 / 3, -1 / 12],
+            "6": [1/90, -3/20, 3/2, -49/18, 3/2, -3/20, 1/90],
+            "8": [-1/560, 8/315, -1/5, 8/5, -205/72, 8/5, -1/5, 8/315, -1/560]
+        }
+        kernel = jnp.asarray(coeffs[str(self.accuracy)])
+        parameters = {"laplacian_kernel": kernel}
+        new_discretization = field.discretization
+        return parameters, new_discretization
+    
+    def discrete_transform(self):
+
+        def f(op_params, field_params):
+            kernel = op_params["laplacian_kernel"]
+
+            # Make kernel the right size
+            field_dimensions = field_params.ndim - 1
+            for ax in range(field_dimensions-1):
+                kernel = jnp.expand_dims(kernel, axis=0)# Kernel on the last axis
+
+
+            # Convolve in each dimension
+            outs = []
+            for i in range(field_dimensions):
+                k = jnp.moveaxis(kernel, -1, i)
+                
+                pad = [(0, 0)] * field_params.ndim
+                pad[i] = (len(kernel)//2, len(kernel)//2)
+                f = jnp.pad(field_params, pad, mode="constant")
+
+                out = jsp.signal.convolve(f[...,0], k, mode="same")
+                outs.append(out)
+            return jnp.expand_dims(sum(outs), -1)
 
         f.__name__ = self.name
         return f

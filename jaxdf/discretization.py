@@ -259,11 +259,14 @@ class FiniteDifferences(GridBased):
     def gradient(self, u):
         return pr.FDGradient(accuracy=self.accuracy)(u)
 
+    def laplacian(self, u):
+        return pr.FDLaplacian(accuracy=self.accuracy)(u)
+
 
 
 class RealFiniteDifferences(FiniteDifferences):
-    def __init__(self, domain):
-        super().__init__(domain)
+    def __init__(self, domain, dims=1, accuracy=4):
+        super().__init__(domain, dims, accuracy)
         self.is_field_complex = False
 
 

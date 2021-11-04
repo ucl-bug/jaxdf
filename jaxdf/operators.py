@@ -1,5 +1,6 @@
 from typing import Callable
 from jaxdf.geometry import Staggered
+from jaxdf.core import operator
 
 
 class Operator(object):
@@ -18,6 +19,13 @@ class Operator(object):
 
         raise RuntimeError(f"Operator {self.name} not found")
 
+    def eval(self, *args, **kwargs):
+        # Wrap it with an @operator decorator
+        @operator(debug=False)
+        def _eval(*args, **kwargs):
+            return self(*args, **kwargs)
+        
+        return _eval(*args, **kwargs)
 
 add = Operator("add")
 add_scalar = Operator("add_scalar")
