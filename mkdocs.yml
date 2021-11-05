@@ -28,7 +28,7 @@ plugins:
             show_source: false 
       custom_templates: templates
       watch:
-        - jwave
+        - jaxdf
   - search
   - mermaid2
 
