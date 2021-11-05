@@ -82,7 +82,22 @@ pip install jupyterlab, tqdm
 
 <br/>
 
-## Related projects
+## Citation
+
+This package will be presented at the [Differentiable Programming workshop](https://diffprogramming.mit.edu/) at NeurIPS 2021.
+
+```bibtex
+@article{stanziola2021jaxdf,
+    author={Stanziola, Antonio and Arridge, Simon and Cox, Ben T. and Treeby, Bradley E.},
+    title={A research framework for writing differentiable PDE discretizations in JAX},
+    year={2021},
+    journal={Differentiable Programming workshop at Neural Information Processing Systems 2021}
+}
+```
+
+<br/>
+
+### Related projects
 
 1. [`odl`](https://github.com/odlgroup/odl) Operator Discretization Library (ODL) is a python library for fast prototyping focusing on (but not restricted to) inverse problems.
 3. [`deepXDE`](https://deepxde.readthedocs.io/en/latest/): a TensorFlow and PyTorch library for scientific machine learning.
