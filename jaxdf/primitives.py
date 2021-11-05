@@ -358,6 +358,23 @@ class ElementwiseOnGrid(Primitive):
         new_discretization = field_1.discretization
         return None, new_discretization
 
+class ProjectOnGrid(Primitive):
+    def __init__(self, input_discretization, target_discretization, name="ProjectOnGrid", independent_params=True):
+        super().__init__(name, independent_params)
+        self.input_discretization = input_discretization
+        self.target_discretization = target_discretization
+    
+    def discrete_transform(self):
+        def f(op_params, field_params):
+            new_params = self.input_discretization.get_field_on_grid()(field_params)
+            return new_params
+
+        f.__name__ = self.name
+        return f
+    
+    def setup(self, field):
+        new_discretization = self.target_discretization
+        return None, new_discretization
 
 class DivideByScalar(Primitive):
     def __init__(self, scalar, name="DivideByScalar", independent_params=True):

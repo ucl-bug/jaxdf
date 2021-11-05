@@ -1,6 +1,6 @@
 from typing import Callable
 from jaxdf.geometry import Staggered
-from jaxdf.core import operator
+from jaxdf.core import operator, Field
 
 
 class Operator(object):
@@ -39,6 +39,8 @@ power = Operator("power")
 power_scalar = Operator("power_scalar")
 reciprocal = Operator("reciprocal")
 
+project = Operator("project")
+
 gradient = Operator("gradient")
 nabla_dot = Operator("nabla_dot")
 diag_jacobian = Operator("diag_jacobian")
@@ -63,9 +65,6 @@ def staggered_diag_jacobian(c_ref: float, dt: float, direction: Staggered):
     return OperatorWithArgs(
         "staggered_diag_jacobian", c_ref=c_ref, dt=dt, direction=direction
     )
-
-def project(u: float, discretization):
-    return OperatorWithArgs("project", u=u, discretization=discretization)
 
 class elementwise(Operator):
     def __init__(self, func: Callable):

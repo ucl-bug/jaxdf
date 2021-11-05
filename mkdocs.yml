@@ -17,6 +17,7 @@ nav:
   - Home: index.md
   - Tutorials:
     - Quick start: notebooks/quickstart.ipynb
+    - Optimize acoustic simulations: notebooks/simulate_helmholtz_equation.ipynb
 plugins:
   - mkdocs-jupyter
   - mkdocstrings:

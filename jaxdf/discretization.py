@@ -128,7 +128,7 @@ class UniformField(Arbitrary):
 
     def from_scalar(self, scalar, name):
         params = scalar
-        field = Field(self, params, name)
+        field = Field(self, name, params)
         return params, field
 
     def get_field(self):
@@ -241,6 +241,18 @@ class GridBased(Linear):
             values = jnp.expand_dims(values, -1)
         return values, Field(self, name, values)
 
+    def get_field_on_grid(self):
+        def _sample_on_grid(field_params):
+            return field_params
+
+        return _sample_on_grid
+
+    def project(self, into: Field, field: Field):
+        return pr.ProjectOnGrid(
+            input_discretization=field.discretization,
+            target_discretization=into.discretization,
+        )(field)
+
 
 class FiniteDifferences(GridBased):
     def __init__(self, domain, dims=1, accuracy=4):
@@ -249,12 +261,6 @@ class FiniteDifferences(GridBased):
         self.is_field_complex = True
         self.accuracy = accuracy
         self.dims = dims
-
-    def get_field_on_grid(self):
-        def _sample_on_grid(field_params):
-            return field_params
-
-        return _sample_on_grid
 
     def gradient(self, u):
         return pr.FDGradient(accuracy=self.accuracy)(u)

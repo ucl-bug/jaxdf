@@ -45,7 +45,7 @@ fourier_discr = FourierSeries(domain)
 u_fourier_params, u = fourier_discr.empty_field(name='u')
 
 # Discretizing operators: getting pure functions and parameters
-result = helmholtz(u=u)
+result = custom_op(u=u)
 op_on_grid = result.get_field_on_grid()
 global_params = result.get_global_params() # This contains the Fourier filters
 
