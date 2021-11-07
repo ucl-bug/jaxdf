@@ -84,7 +84,9 @@ pip install jupyterlab, tqdm
 
 ## Citation
 
-This package will be presented at the [Differentiable Programming workshop](https://diffprogramming.mit.edu/) at NeurIPS 2021.
+This package will be presented at the [Differentiable Programming workshop](https://diffprogramming.mit.edu/) at NeurIPS 2021. 
+
+A preprint will be uploaded to Arxiv soon.
 
 ```bibtex
 @article{stanziola2021jaxdf,
