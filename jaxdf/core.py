@@ -91,12 +91,14 @@ class Tracer(object):
         return f
 
     @staticmethod
-    def _filter_unneded_ops(operations: dict, out_fields: List[str]):
+    def _filter_unneded_ops(operations: dict, out_fields: List[str], debug=False):
         op_keys = [k for k in operations.keys()]
         op_args = [k.inputs for k in operations.values()]
         stack = out_fields
         out_set = []
         while stack:
+            if debug:
+                print(out_set)
             x = stack.pop()
             out_set.append(x)
             # if is not an input or constant
@@ -174,8 +176,11 @@ class Field(object):
         return self + other
 
     def __sub__(self, other):
-        other = jops.invert(other)
-        return self + other
+        if is_numeric(other):
+            return jops.add_scalar(self, -other)
+        else:
+            other = jops.invert(other)
+            return self + other
 
     def __repr__(self):
         return f"Field :: {self.discretization}, {self.name}"
@@ -218,6 +223,11 @@ class TracedField(Field):
         wrapped_f.__name__ = f.__name__
         return wrapped_f
 
+def evaluate(op):
+    @operator(debug=False)
+    def _eval(*args, **kwargs):
+        return op(*args, **kwargs)
+    return _eval
 
 class DiscretizedOperator(object):
     def __init__(
@@ -321,8 +331,9 @@ def operator(has_aux=False, debug=False):
             p_func = []
             fields = []
             for out in out_names:
-                sorted_graph = tracer._filter_unneded_ops(tracer.operations, [out])
+                sorted_graph = tracer._filter_unneded_ops(tracer.operations, [out], debug=debug)
                 if debug:
+                    print(tracer.operations)
                     print(f"Sorted graph for {out}:\n{sorted_graph}\n")
                 pf = tracer.construct_function(sorted_graph, [out])
 

@@ -3,6 +3,11 @@
 *.vscode
 *.egg-info
 *__pycache__
+*wandb/
+*.pyc
+
+# Paper images
+docs/notebooks/img/*.png
 
 # Misc
 *.DS_Store
