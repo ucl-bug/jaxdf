@@ -10,11 +10,13 @@ from typing import Callable
 
 
 class Arbitrary(Discretization):
-    def __init__(self, domain: Domain, get_fun: Callable, init_params: Callable, dims=1):
+    def __init__(
+        self, domain: Domain, get_fun: Callable, init_params: Callable, dims=1
+    ):
         self._get_fun = get_fun
         self._init_params = init_params
         self.domain = domain
-        self.dims=1
+        self.dims = 1
 
     @staticmethod
     def add_scalar(u, scalar, independent_params=True):
@@ -128,7 +130,7 @@ class UniformField(Arbitrary):
 
     def from_scalar(self, scalar, name):
         params = scalar
-        field = Field(self, params, name)
+        field = Field(self, name, params)
         return params, field
 
     def get_field(self):
@@ -241,16 +243,37 @@ class GridBased(Linear):
             values = jnp.expand_dims(values, -1)
         return values, Field(self, name, values)
 
+    def get_field_on_grid(self):
+        def _sample_on_grid(field_params):
+            return field_params
+
+        return _sample_on_grid
+
+    def project(self, into: Field, field: Field):
+        return pr.ProjectOnGrid(
+            input_discretization=field.discretization,
+            target_discretization=into.discretization,
+        )(field)
+
 
 class FiniteDifferences(GridBased):
-    def __init__(self, domain):
+    def __init__(self, domain, dims=1, accuracy=4):
+        assert accuracy % 2 == 0
         self.domain = domain
         self.is_field_complex = True
+        self.accuracy = accuracy
+        self.dims = dims
+
+    def gradient(self, u):
+        return pr.FDGradient(accuracy=self.accuracy)(u)
+
+    def laplacian(self, u):
+        return pr.FDLaplacian(accuracy=self.accuracy)(u)
 
 
 class RealFiniteDifferences(FiniteDifferences):
-    def __init__(self, domain):
-        super().__init__(domain)
+    def __init__(self, domain, dims=1, accuracy=4):
+        super().__init__(domain, dims, accuracy)
         self.is_field_complex = False
 
 

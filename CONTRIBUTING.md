@@ -1,4 +1,4 @@
-# Contributing to jWave
+# Contributing to jaxdf
 We would love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
 - Reporting a bug
@@ -21,7 +21,7 @@ Pull requests are the best way to propose changes to the codebase (we use [Githu
 6. Issue that pull request!
 
 ## Report bugs using [Issues](https://github.com/briandk/transcriptase-atom/issues)
-We use issues to track public bugs. Report a bug by [opening a new issue](https://bug.medphys.ucl.ac.uk:10080/astanziola/jwave/-/issues/new?issue); it's that easy!
+We use issues to track public bugs. Report a bug by [opening a new issue](https://bug.medphys.ucl.ac.uk:10080/astanziola/jaxdf/-/issues/new?issue); it's that easy!
 
 ## Write bug reports with detail, background, and sample code
 [This is an example](http://stackoverflow.com/q/12488905/180626) of a bug report, and I think it's not a bad model. Here's [another example from Craig Hockenberry](http://www.openradar.me/11905408).
@@ -31,7 +31,7 @@ We use issues to track public bugs. Report a bug by [opening a new issue](https:
 - A quick summary and/or background
 - Steps to reproduce
   - Be specific!
-  - Give sample code if you can, such that *anyone* with `jwave` installed can run to reproduce what you see
+  - Give sample code if you can, such that *anyone* with `jaxdf` installed can run to reproduce what you see
 - What you expected would happen
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
@@ -46,7 +46,7 @@ pip install -r _setup/dev_requirements.txt
 # Python syntax errors or undefined names
 flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 # Static type checking
-mypy jwave/*.py
+mypy jaxdf/*.py
 # Testing
 pytest
 ```
