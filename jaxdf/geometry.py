@@ -8,7 +8,7 @@ from enum import IntEnum
 
 class Domain(NamedTuple):
     r"""Domain class describing a rectangular domain
-    
+
     Attributes:
         size (Tuple[int]): The size of the domain in absolute units.
         dx (Tuple(float)): The unit of measure
@@ -32,7 +32,7 @@ class Domain(NamedTuple):
 
         Returns:
             int: The number of dimensions of the domain
-        
+
         """
         return len(self.N)
 
@@ -52,8 +52,9 @@ class Domain(NamedTuple):
 
         Returns:
             Tuple[jnp.array]: The spatial axis of the domain
-        
+
         """
+
         def _make_axis(n, delta):
             if n % 2 == 0:
                 return jnp.arange(0, n) * delta - delta * n / 2
@@ -67,7 +68,7 @@ class Domain(NamedTuple):
     @property
     def boundary_sampler(self):
         r"""Returns a function that samples a point on the boundary of the domain
-        
+
         Returns:
             Callable: A function that samples a point on the boundary of the domain.
                 This function takes a seed and an integer number of samples and returns
@@ -92,22 +93,23 @@ class Domain(NamedTuple):
             ```
 
         """
-        L  = jnp.asarray(self.size)/2
+        L = jnp.asarray(self.size) / 2
+
         def sample(seed):
             seeds = random.split(seed, 3)
-            first = 2*jnp.expand_dims(random.uniform(seeds[0]), 0) -1
-            others = 2*random.bernoulli(seeds[1], shape=(self.ndim-1,)) - 1
+            first = 2 * jnp.expand_dims(random.uniform(seeds[0]), 0) - 1
+            others = 2 * random.bernoulli(seeds[1], shape=(self.ndim - 1,)) - 1
             sample = jnp.concatenate([first, others]).astype(jnp.float32)
             random_perm = random.permutation(seeds[2], sample)
-            sample = random_perm*L
+            sample = random_perm * L
             return sample
-        
+
         def multi_samples(seed, num_samples: int):
             seeds = random.split(seed, num_samples)
             return jax.vmap(sample)(seeds)
 
         return multi_samples
-    
+
     @property
     def domain_sampler(self):
         r"""Returns a function that samples a point in the domain
@@ -115,8 +117,8 @@ class Domain(NamedTuple):
         Returns:
             Callable: A function that samples a point in the domain.
                 This function takes a seed and an integer number of samples and returns
-                a list of samples.  
-        
+                a list of samples.
+
         !!! example
             ```python
             >>> domain = Domain((10, 10), (0.1, 0.1))
@@ -132,19 +134,20 @@ class Domain(NamedTuple):
                          [ 0.05011427, -0.17267668],
                          [-0.39805043, -0.05386746],
                          [ 0.46900105,  0.21520817]], dtype=float32)
-            
+
             ```
 
         """
-        L  = jnp.asarray(self.size)/2
+        L = jnp.asarray(self.size) / 2
+
         def sample(seed):
-            sample = 2*random.uniform(seed, shape=(self.ndim,))-1
-            return sample*L
+            sample = 2 * random.uniform(seed, shape=(self.ndim,)) - 1
+            return sample * L
 
         def multi_samples(seed, num_samples: int):
             seeds = random.split(seed, num_samples)
             return jax.vmap(sample)(seeds)
-        
+
         return multi_samples
 
     @property
@@ -163,7 +166,7 @@ class Domain(NamedTuple):
 
         Returns:
             jnp.array: A grid of spatial position
-        
+
         """
         axis = self.spatial_axis
         return self._make_grid_from_axis(axis)

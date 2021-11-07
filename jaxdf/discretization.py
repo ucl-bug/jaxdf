@@ -10,11 +10,13 @@ from typing import Callable
 
 
 class Arbitrary(Discretization):
-    def __init__(self, domain: Domain, get_fun: Callable, init_params: Callable, dims=1):
+    def __init__(
+        self, domain: Domain, get_fun: Callable, init_params: Callable, dims=1
+    ):
         self._get_fun = get_fun
         self._init_params = init_params
         self.domain = domain
-        self.dims=1
+        self.dims = 1
 
     @staticmethod
     def add_scalar(u, scalar, independent_params=True):
@@ -267,7 +269,6 @@ class FiniteDifferences(GridBased):
 
     def laplacian(self, u):
         return pr.FDLaplacian(accuracy=self.accuracy)(u)
-
 
 
 class RealFiniteDifferences(FiniteDifferences):

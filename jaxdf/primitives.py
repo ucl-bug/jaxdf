@@ -33,11 +33,11 @@ class Primitive(object):
         self.independent_params = independent_params
 
     def discrete_transform(self):
-        """To be implemented in childs"""
+        # To be implemented in childs
         return Callable
 
     def setup(self, field):
-        """To be implemented in childs"""
+        # To be implemented in childs
         return dict, Discretization
 
     def __call__(self, field):
@@ -129,6 +129,8 @@ class AddScalar(Primitive):
         self.scalar = scalar
 
     def discrete_transform(self):
+        r""""""
+
         def f(op_params, field_params):
             return [field_params, op_params["scalar"]]
 
@@ -136,7 +138,6 @@ class AddScalar(Primitive):
         return f
 
     def setup(self, field):
-        """New arbitrary discretization"""
         parameters = {"scalar": self.scalar}
 
         def get_field(p_joined, x):
@@ -163,7 +164,6 @@ class AddScalarLinear(Primitive):
         return f
 
     def setup(self, field):
-        """Same discretization family as the input"""
         new_discretization = field.discretization
         parameters = {"scalar": self.scalar}
         return parameters, new_discretization
@@ -214,6 +214,7 @@ class AddFieldLinearSame(BinaryPrimitive):
 
         new_discretization = field_1.discretization
         return None, new_discretization
+
 
 class MultiplyFields(BinaryPrimitive):
     def __init__(self, name="MultiplyFields", independent_params=True):
@@ -358,12 +359,19 @@ class ElementwiseOnGrid(Primitive):
         new_discretization = field_1.discretization
         return None, new_discretization
 
+
 class ProjectOnGrid(Primitive):
-    def __init__(self, input_discretization, target_discretization, name="ProjectOnGrid", independent_params=True):
+    def __init__(
+        self,
+        input_discretization,
+        target_discretization,
+        name="ProjectOnGrid",
+        independent_params=True,
+    ):
         super().__init__(name, independent_params)
         self.input_discretization = input_discretization
         self.target_discretization = target_discretization
-    
+
     def discrete_transform(self):
         def f(op_params, field_params):
             new_params = self.input_discretization.get_field_on_grid()(field_params)
@@ -371,10 +379,11 @@ class ProjectOnGrid(Primitive):
 
         f.__name__ = self.name
         return f
-    
+
     def setup(self, field):
         new_discretization = self.target_discretization
         return None, new_discretization
+
 
 class DivideByScalar(Primitive):
     def __init__(self, scalar, name="DivideByScalar", independent_params=True):
@@ -425,10 +434,11 @@ class DivideByScalarLinear(Primitive):
 class ArbitraryGradient(Primitive):
     def __init__(self, name="ArbitraryGradient", independent_params=True):
         super().__init__(name, independent_params)
-    
+
     def discrete_transform(self):
         def f(op_params, field_params):
             return field_params
+
         f.__name__ = self.name
         return f
 
@@ -440,12 +450,13 @@ class ArbitraryGradient(Primitive):
             f = field.discretization.get_field()
             f_jac = jax.jacfwd(f, argnums=(1,))
             return f_jac(p, x)[0]
-        
+
         new_discretization = discretization.Arbitrary(
             field.discretization.domain, get_field, no_init
         )
 
         return None, new_discretization
+
 
 class ArbitraryDiagJacobian(Primitive):
     def __init__(self, name="ArbitraryDiagJacobian", independent_params=True):
@@ -454,6 +465,7 @@ class ArbitraryDiagJacobian(Primitive):
     def discrete_transform(self):
         def f(op_params, field_params):
             return field_params
+
         f.__name__ = self.name
         return f
 
@@ -464,12 +476,13 @@ class ArbitraryDiagJacobian(Primitive):
             f = field.discretization.get_field()
             f_jac = jax.jacfwd(f, argnums=(1,))
             return jax.vmap(jnp.diag)(f_jac(p, x)[0])
-        
+
         new_discretization = discretization.Arbitrary(
             field.discretization.domain, get_field, no_init
         )
 
         return None, new_discretization
+
 
 class SumOverDims(Primitive):
     def __init__(self, name="SumOverDims", independent_params=True):
@@ -478,6 +491,7 @@ class SumOverDims(Primitive):
     def discrete_transform(self):
         def f(op_params, field_params):
             return field_params
+
         f.__name__ = self.name
         return f
 
@@ -485,7 +499,9 @@ class SumOverDims(Primitive):
         """New arbitrary discretization"""
 
         def get_field(p, x):
-            return jnp.sum(field.discretization.get_field()(p, x), axis=-1, keepdims=False)
+            return jnp.sum(
+                field.discretization.get_field()(p, x), axis=-1, keepdims=False
+            )
 
         new_discretization = discretization.Arbitrary(
             field.discretization.domain, get_field, no_init
@@ -493,17 +509,28 @@ class SumOverDims(Primitive):
 
         return None, new_discretization
 
+
 class FDGradient(Primitive):
     def __init__(self, name="FDGradient", independent_params=True, accuracy=4):
         super().__init__(name, independent_params)
         self.accuracy = accuracy
-    
+
     def setup(self, field):
         coeffs = {
             "2": [-0.5, 0, 0.5],
             "4": [-1 / 12, 2 / 3, 0, -2 / 3, 1 / 12],
             "6": [-1 / 60, 3 / 20, -3 / 4, 0, 3 / 4, -3 / 20, 1 / 60],
-            "8": [1/280, -4/105, 1/5, -4/5, 0, 4/5, -1/5, 4/105, -1/280]
+            "8": [
+                1 / 280,
+                -4 / 105,
+                1 / 5,
+                -4 / 5,
+                0,
+                4 / 5,
+                -1 / 5,
+                4 / 105,
+                -1 / 280,
+            ],
         }
         kernel = jnp.asarray(coeffs[str(self.accuracy)])
         parameters = {"gradient_kernel": kernel}
@@ -511,30 +538,30 @@ class FDGradient(Primitive):
         return parameters, new_discretization
 
     def discrete_transform(self):
-        
         def f(op_params, field_params):
-            kernel =op_params["gradient_kernel"]
+            kernel = op_params["gradient_kernel"]
 
             # Make kernel the right size
             field_dimensions = field_params.ndim - 1
-            for ax in range(field_dimensions-1):
-                kernel = jnp.expand_dims(kernel, axis=0)# Kernel on the last axis
+            for ax in range(field_dimensions - 1):
+                kernel = jnp.expand_dims(kernel, axis=0)  # Kernel on the last axis
 
             # Convolve in each dimension
             outs = []
             for i in range(field_dimensions):
                 k = jnp.moveaxis(kernel, -1, i)
-                
+
                 pad = [(0, 0)] * field_params.ndim
-                pad[i] = (len(kernel)//2, len(kernel)//2)
+                pad[i] = (len(kernel) // 2, len(kernel) // 2)
                 f = jnp.pad(field_params, pad, mode="constant")
 
-                out = jsp.signal.convolve(f[...,0], k, mode="same")
+                out = jsp.signal.convolve(f[..., 0], k, mode="same")
                 outs.append(out)
             return jnp.stack(outs, axis=-1)
 
         f.__name__ = self.name
         return f
+
 
 class FDLaplacian(Primitive):
     def __init__(self, name="FDLaplacian", independent_params=True, accuracy=4):
@@ -545,40 +572,49 @@ class FDLaplacian(Primitive):
         coeffs = {
             "2": [1, -2, 1],
             "4": [1 / 12, -2 / 3, 0, 2 / 3, -1 / 12],
-            "6": [1/90, -3/20, 3/2, -49/18, 3/2, -3/20, 1/90],
-            "8": [-1/560, 8/315, -1/5, 8/5, -205/72, 8/5, -1/5, 8/315, -1/560]
+            "6": [1 / 90, -3 / 20, 3 / 2, -49 / 18, 3 / 2, -3 / 20, 1 / 90],
+            "8": [
+                -1 / 560,
+                8 / 315,
+                -1 / 5,
+                8 / 5,
+                -205 / 72,
+                8 / 5,
+                -1 / 5,
+                8 / 315,
+                -1 / 560,
+            ],
         }
         kernel = jnp.asarray(coeffs[str(self.accuracy)])
         parameters = {"laplacian_kernel": kernel}
         new_discretization = field.discretization
         return parameters, new_discretization
-    
-    def discrete_transform(self):
 
+    def discrete_transform(self):
         def f(op_params, field_params):
             kernel = op_params["laplacian_kernel"]
 
             # Make kernel the right size
             field_dimensions = field_params.ndim - 1
-            for ax in range(field_dimensions-1):
-                kernel = jnp.expand_dims(kernel, axis=0)# Kernel on the last axis
-
+            for ax in range(field_dimensions - 1):
+                kernel = jnp.expand_dims(kernel, axis=0)  # Kernel on the last axis
 
             # Convolve in each dimension
             outs = []
             for i in range(field_dimensions):
                 k = jnp.moveaxis(kernel, -1, i)
-                
+
                 pad = [(0, 0)] * field_params.ndim
-                pad[i] = (len(kernel)//2, len(kernel)//2)
+                pad[i] = (len(kernel) // 2, len(kernel) // 2)
                 f = jnp.pad(field_params, pad, mode="constant")
 
-                out = jsp.signal.convolve(f[...,0], k, mode="same")
+                out = jsp.signal.convolve(f[..., 0], k, mode="same")
                 outs.append(out)
             return jnp.expand_dims(sum(outs), -1)
 
         f.__name__ = self.name
         return f
+
 
 class FFTGradient(Primitive):
     def __init__(self, real=False, name="FFTGradient", independent_params=False):
@@ -640,11 +676,15 @@ class FFTLaplacian(Primitive):
             def single_grad(axis, u):
                 u = jnp.moveaxis(u, axis, -1)
                 Fx = ffts[0](u, axis=-1)
-                iku = - Fx * k_vec[axis]**2
+                iku = -Fx * k_vec[axis] ** 2
                 du = ffts[1](iku, axis=-1, n=u.shape[-1])
                 return jnp.moveaxis(du, -1, axis)
 
-            return jnp.sum(jnp.stack([single_grad(i, u) for i in range(ndim)], axis=-1), axis=-1, keepdims=True)
+            return jnp.sum(
+                jnp.stack([single_grad(i, u) for i in range(ndim)], axis=-1),
+                axis=-1,
+                keepdims=True,
+            )
 
         f.__name__ = self.name
 
@@ -1000,4 +1040,3 @@ class PowerScalarLinear(Primitive):
         new_discretization = field.discretization
         parameters = {"scalar": self.scalar}
         return parameters, new_discretization
-

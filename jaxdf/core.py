@@ -1,6 +1,6 @@
 from jaxdf.geometry import Domain
 from jaxdf import operators as jops
-from typing import List, Any
+from typing import List, Any, Set
 from collections.abc import Iterable
 from hashids import Hashids
 
@@ -91,11 +91,11 @@ class Tracer(object):
         return f
 
     @staticmethod
-    def _filter_unneded_ops(operations: dict, out_fields: List[str], debug=False):
+    def _filter_unneded_ops(operations: dict, out_fields: List[str], debug=False) -> Set:
         op_keys = [k for k in operations.keys()]
         op_args = [k.inputs for k in operations.values()]
         stack = out_fields
-        out_set = []
+        out_set : List = []
         while stack:
             if debug:
                 print(out_set)
@@ -223,11 +223,14 @@ class TracedField(Field):
         wrapped_f.__name__ = f.__name__
         return wrapped_f
 
+
 def evaluate(op):
     @operator(debug=False)
     def _eval(*args, **kwargs):
         return op(*args, **kwargs)
+
     return _eval
+
 
 class DiscretizedOperator(object):
     def __init__(
@@ -331,7 +334,9 @@ def operator(has_aux=False, debug=False):
             p_func = []
             fields = []
             for out in out_names:
-                sorted_graph = tracer._filter_unneded_ops(tracer.operations, [out], debug=debug)
+                sorted_graph = tracer._filter_unneded_ops(
+                    tracer.operations, [out], debug=debug
+                )
                 if debug:
                     print(tracer.operations)
                     print(f"Sorted graph for {out}:\n{sorted_graph}\n")
