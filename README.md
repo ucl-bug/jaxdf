@@ -1,7 +1,7 @@
 # jaxdf - JAX-based Discretization Framework
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-[![codecov](https://codecov.io/gh/astanziola/jaxdf/branch/main/graph/badge.svg?token=6J03OMVJS1)](https://codecov.io/gh/ucl-bug/jaxdf)
+[![codecov](https://codecov.io/gh/ucl-bug/jaxdf/branch/main/graph/badge.svg?token=FIUYOCFDYL)](https://codecov.io/gh/ucl-bug/jaxdf)
 ![Continous Integration](https://github.com/ucl-bug/jaxdf/actions/workflows/ci-build.yml/badge.svg)
 
 [**Overview**](#overview)
