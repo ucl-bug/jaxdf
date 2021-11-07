@@ -223,6 +223,11 @@ class TracedField(Field):
         wrapped_f.__name__ = f.__name__
         return wrapped_f
 
+def evaluate(op):
+    @operator(debug=False)
+    def _eval(*args, **kwargs):
+        return op(*args, **kwargs)
+    return _eval
 
 class DiscretizedOperator(object):
     def __init__(

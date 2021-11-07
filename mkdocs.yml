@@ -18,6 +18,17 @@ nav:
   - Tutorials:
     - Quick start: notebooks/quickstart.ipynb
     - Optimize acoustic simulations: notebooks/simulate_helmholtz_equation.ipynb
+    - How discretizations work: notebooks/api_discretization.ipynb
+  - API Reference:
+    - core: core.md
+    - discretization: discretization.md
+    - geometry: geometry.md
+    - ode: ode.md
+    - operators: operators.md
+    - primitives: primitives.md
+    - spectral: spectral.md
+    - utils: utils.md
+    
 plugins:
   - mkdocs-jupyter
   - mkdocstrings:
@@ -26,7 +37,6 @@ plugins:
         python:
           rendering:
             show_source: false 
-      custom_templates: templates
       watch:
         - jaxdf
   - search

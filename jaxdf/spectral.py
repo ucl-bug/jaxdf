@@ -21,7 +21,7 @@ def rfft_interp(
         k (jnp.ndarray): [description]
         spectrum (jnp.ndarray): [description]
         x (jnp.ndarray): [description]
-        first_dim_size (int): [description]
+        last_dim_size (int): [description]
 
     Returns:
         The field value
@@ -69,9 +69,17 @@ def fft_interp(k: jnp.ndarray, spectrum: jnp.ndarray, x: jnp.ndarray) -> float:
 
 
 def make_filter_fun(domain: Domain, axis: Union[int, Tuple[int]]):
-    r"""If axis is an integer, filtering is applied along the given axis. If
-    instead axis is None, standard Fourier filtering is used. The size of the
-    kernel should be 1D or ND accordingly.
+    r"""Returns a function that takes an input array and a parameter,
+    and returns their convolution via FFT.
+
+    Args:
+        domain (Domain): The domain of the input array
+        axis (Union[int, Tuple[int]]): The axis along which the convolution is performed;
+            if None, the convolution is performed over all axes.
+
+    Returns:
+        Callable[jnp.ndarray, jnp.ndarray]: The filter function. The first
+            input signal, while the second one is the "kernel"
     """
 
     # if single axis, move it to the back and use broadcasting
