@@ -17,8 +17,10 @@ nav:
   - Home: index.md
   - Tutorials:
     - Quick start: notebooks/quickstart.ipynb
+    - Physics informed neural networks: notebooks/pinn_burgers.ipynb
     - Optimize acoustic simulations: notebooks/simulate_helmholtz_equation.ipynb
     - How discretizations work: notebooks/api_discretization.ipynb
+    - Helmholtz equation with PINNs: notebooks/helmholtz_pinn.ipynb
   - API Reference:
     - core: core.md
     - discretization: discretization.md
