@@ -451,7 +451,7 @@ class ArbitraryDerivative(Primitive):
         def get_field(p, x):
             f = field.discretization.get_field()
             f_jac = jax.jacfwd(f, argnums=(1,))
-            return f_jac(p, x)[0][...,self.axis]
+            return f_jac(p, x)[0][:,self.axis]
 
         new_discretization = discretization.Arbitrary(
             field.discretization.domain, get_field, no_init
@@ -936,7 +936,7 @@ class Invert(Primitive):
         """New arbitrary discretization"""
 
         def get_field(p, x):
-            return 1.0 / field.discretization.get_field()(p, x)
+            return - field.discretization.get_field()(p, x)
 
         new_discretization = discretization.Arbitrary(
             field.discretization.domain, get_field, no_init
