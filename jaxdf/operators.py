@@ -43,6 +43,7 @@ reciprocal = Operator("reciprocal")
 
 project = Operator("project")
 
+derivative = Operator("derivative")
 gradient = Operator("gradient")
 nabla_dot = Operator("nabla_dot")
 diag_jacobian = Operator("diag_jacobian")

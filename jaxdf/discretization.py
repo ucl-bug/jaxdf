@@ -93,6 +93,10 @@ class Arbitrary(Discretization):
         return primitive(u)
 
     @staticmethod
+    def derivative(u: Field, axis: int):
+        return pr.ArbitraryDerivative(axis=axis)(u)
+
+    @staticmethod
     def gradient(u, independent_params=True):
         return pr.ArbitraryGradient()(u)
 

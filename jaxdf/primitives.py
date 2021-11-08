@@ -431,6 +431,34 @@ class DivideByScalarLinear(Primitive):
         return parameters, new_discretization
 
 
+
+class ArbitraryDerivative(Primitive):
+    def __init__(self, axis, name="ArbitraryDerivative", independent_params=True):
+        super().__init__(name, independent_params)
+        self.axis = axis
+
+    def discrete_transform(self):
+        def f(op_params, field_params):
+            return field_params
+
+        f.__name__ = self.name
+        return f
+
+    def setup(self, field):
+        """New arbitrary discretization"""
+        assert field.discretization.dims == 1
+
+        def get_field(p, x):
+            f = field.discretization.get_field()
+            f_jac = jax.jacfwd(f, argnums=(1,))
+            return f_jac(p, x)[0][...,self.axis]
+
+        new_discretization = discretization.Arbitrary(
+            field.discretization.domain, get_field, no_init
+        )
+
+        return None, new_discretization
+
 class ArbitraryGradient(Primitive):
     def __init__(self, name="ArbitraryGradient", independent_params=True):
         super().__init__(name, independent_params)
