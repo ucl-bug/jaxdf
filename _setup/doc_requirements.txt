@@ -1,5 +1,8 @@
-mkdocs-material
-mkdocs-jupyter
-mkdocstrings
-mkdocs-mermaid2-plugin
-markdown-katex
+mkdocs==1.2.3
+mkdocs-autorefs==0.3.0
+mkdocs-jupyter==0.18.2
+mkdocs-material==7.3.6
+mkdocs-material-extensions==1.0.3
+mkdocs-mermaid2-plugin==0.5.2
+mkdocstrings==0.16.2
+markdown-katex==202109.1033
