@@ -10,7 +10,6 @@ def make_polynomial():
 
     def p_n(theta, x):
         i = jnp.arange(N)
-        powers = x**i
         return jnp.sum(theta*(x**i))
 
     def init_params(seed, domain):
