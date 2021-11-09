@@ -4,14 +4,22 @@ site_name: j-Wave
 site_name: jaxdf
 site_author: Antonio Stanziola, Biomedical Ultrasound Group
 site_description: >-
-  Differentiable numerical discretizations of operators in JAX
-site_url: https://bug.medphys.ucl.ac.uk
+  A JAX-based research framework for writing differentiable numerical simulators with arbitrary discretizations
+site_url: https://ucl-bug.github.io/jaxdf/
+
+# Repository
+repo_url: https://github.com/ucl-bug/jaxdf
+repo_name: ucl-bug/jaxdf
 
 theme:
   name: "material"
   features:
     - navigation.tabs
     - navigation.instant
+  language: en
+  font:
+    text: Roboto
+    code: Roboto Mono
 
 nav:
   - Home: index.md
@@ -43,6 +51,15 @@ plugins:
         - jaxdf
   - search
   - mermaid2
+
+
+# Customization
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ucl-bug
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ucl_ultrasound
 
 markdown_extensions:
   - toc:
