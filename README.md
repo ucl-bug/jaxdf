@@ -8,6 +8,8 @@
 | [**Example**](#example)
 | [**Installation**](#installation)
 
+## ⚠️ This library is still in development. Breaking changes may occur.
+
 <br/>
 
 ## Overview
