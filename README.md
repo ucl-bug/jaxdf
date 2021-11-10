@@ -50,7 +50,7 @@ u_fourier_params, u = fourier_discr.empty_field(name='u')
 
 # Discretizing operators: getting pure functions and parameters
 result = custom_op(u=u)
-op_on_grid = result.get_field_on_grid()
+op_on_grid = result.get_field_on_grid(0)
 global_params = result.get_global_params() # This contains the Fourier filters
 
 # Compile and use the pure function
@@ -88,9 +88,9 @@ pip install jupyterlab, tqdm
 
 ## Citation
 
-This package will be presented at the [Differentiable Programming workshop](https://diffprogramming.mit.edu/) at NeurIPS 2021. 
+[![arXiv](https://img.shields.io/badge/arXiv-2111.05218-b31b1b.svg?style=flat)]https://arxiv.org/abs/2111.05218)
 
-A preprint will be uploaded to Arxiv soon.
+This package will be presented at the [Differentiable Programming workshop](https://diffprogramming.mit.edu/) at NeurIPS 2021. 
 
 ```bibtex
 @article{stanziola2021jaxdf,
