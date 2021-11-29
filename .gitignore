@@ -9,6 +9,10 @@
 htmlcov
 .coverage
 
+# Build 
+build
+dist
+
 # Paper images
 docs/notebooks/img/*.png
 

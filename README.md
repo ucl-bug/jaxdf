@@ -73,15 +73,10 @@ gradient = grad(loss)(u_fourier_params)
 
 Before installing `jaxdf`, make sure that [you have installed JAX](https://github.com/google/jax#installation). Follow the instruction to install JAX with NVidia GPU support if you want to use `jaxdf` on the GPUs. 
 
-Install jaxdf by `cd` in the repo folder an run
+Install jaxdf by cloning the repository or downloading and extracting the compressed archive. Then navigate in the root folder in a terminal, and run
 ```bash
 pip install -r requirements.txt
 pip install .
-```
-
-If you want to run the notebooks, you should also install the following packages
-```bash
-pip install jupyterlab, tqdm
 ```
 
 <br/>

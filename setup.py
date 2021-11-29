@@ -5,6 +5,7 @@ _dct = {}
 with open("jaxdf/version.py") as f:
     exec(f.read(), _dct)
 __version__ = _dct["__version__"]
+__status = _dct["__status"]
 
 setup(
     name="jaxdf",
@@ -19,9 +20,15 @@ setup(
     extras_require={
         "dev": open("_setup/dev_requirements.txt", "r").readlines(),
     },
-    url="https://bug.medphys.ucl.ac.uk/",
+    url="https://github.com/ucl-bug/jaxdf",
     license="GNU Lesser General Public License (LGPL)",
+    keywords=[
+        "jax","pde","discretization","differential-equation",
+        "simulation", "differentiable-programming"],
     classifiers=[
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        __status,
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9"
