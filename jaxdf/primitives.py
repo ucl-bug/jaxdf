@@ -836,15 +836,15 @@ class FFTStaggeredGrad(Primitive):
             ]
 
             # Perform directional gradients with a single Forward FFT
-            # NOTE: This could have done better with are real FFT
-            P = jnp.fft.fftn(field_params)
+            # NOTE: This could have done better with real FFT
+            P = jnp.fft.fftn(field_params[...,0])
 
             def make_dx(FP, axis):
                 FdP = jnp.moveaxis(jnp.moveaxis(FP, axis, -1) * k_vec[axis], -1, axis)
-                return jnp.fft.ifftn(FdP * kspaceop).real
+                return jnp.fft.ifftn(FdP * kspaceop[...,0]).real
 
             ndim = len(field_params.shape) - 1
-            dp = jnp.concatenate([make_dx(P, ax) for ax in range(ndim)], axis=-1)
+            dp = jnp.stack([make_dx(P, ax) for ax in range(ndim)], axis=-1)
 
             return dp
 
