@@ -2,7 +2,7 @@ coverage==6.2
 flake8==4.0.1
 mypy==0.910
 pytest==6.2.5
-matplotlib==3.5.0
+matplotlib==3.5.1
 mkdocs==1.2.3
 mkdocs-autorefs==0.3.0
 mkdocs-jupyter==0.19.0
