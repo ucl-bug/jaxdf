@@ -5,4 +5,4 @@ mkdocs-material==8.1.3
 mkdocs-material-extensions==1.0.3
 mkdocs-mermaid2-plugin==0.5.2
 mkdocstrings==0.16.2
-markdown-katex==202109.1033
+markdown-katex==202112.1034
