@@ -1,6 +1,6 @@
 coverage==6.2
 flake8==4.0.1
-mypy==0.920
+mypy==0.930
 pytest==6.2.5
 matplotlib==3.5.1
 mkdocs==1.2.3
