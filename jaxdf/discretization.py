@@ -8,7 +8,6 @@ from jax import random, vmap
 from jax import numpy as jnp
 from typing import Callable
 
-
 class Arbitrary(Discretization):
     def __init__(
         self, domain: Domain, get_fun: Callable, init_params: Callable, dims=1

@@ -3,6 +3,8 @@ from jaxdf import operators as jops
 from typing import List, Any, Set
 from collections.abc import Iterable
 from hashids import Hashids
+from plum import dispatch
+from functools import wraps
 
 
 class Discretization(object):
@@ -291,6 +293,10 @@ class DiscretizedOperator(object):
                 return [f(all_new_params[i]) for i, f in enumerate(f_all)]
 
             return wrapped_f
+
+def bind_primitive(f):
+    return wraps(f)(dispatch(f))
+
 
 
 def operator(has_aux=False, debug=False):
