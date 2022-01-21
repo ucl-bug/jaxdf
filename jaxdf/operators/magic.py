@@ -2,7 +2,7 @@ from jaxdf.core import operator, Params, params_map
 from jaxdf.discretization import *
 from jax import tree_util
 from jaxdf.discretization import OnGrid
-from jax import ShapedArray
+from jax import eval_shape
 
 """
 This file contains the operators that are
@@ -19,6 +19,19 @@ def __add__(x: OnGrid, y, params=Params):
   new_params = params_map(lambda x: x+y, x.params)
   return x.replace_params(new_params)
 
+@operator
+def __add__(x: Continuous, y:Continuous, params=Params):
+  assert x.domain == y.domain
+  def f(p, coord):
+    return x.get_field(p[0], coord) + y.get_field(p[1], coord)
+  return Continuous.from_fun_and_params([x.params, y.params], x.domain, f)
+
+@operator(precedence=-1)
+def __add__(x: Continuous, y, params=Params):
+  assert x.domain == y.domain
+  def f(p, coord):
+    return x.get_field(p[0], coord) + y
+  return Continuous.from_fun_and_params(x.params, x.domain, f)
 
 ## __bool__
 @operator
@@ -48,7 +61,7 @@ def __float__(x: OnGrid, params=Params):
 def __mul__(x: OnGrid, y: OnGrid, params=Params):
   return params_map(lambda x, y: x*y, x, y)
 
-@operator(precedence=1)
+@operator(precedence=-1)
 def __mul__(x: Linear, y, params=Params):
   new_params = params_map(lambda x: x*y, x.params)
   return x.replace_params(new_params)
@@ -65,7 +78,7 @@ def __neg__(x: Linear, params=Params):
 def __pow__(x: OnGrid, y: OnGrid, params=Params):
   return params_map(lambda x, y: x**y, x, y)
 
-@operator(precedence=1)
+@operator(precedence=-1)
 def __pow__(x: OnGrid, y, params=Params):
   new_params = params_map(lambda x: x**y, x.params)
   return x.replace_params(new_params)

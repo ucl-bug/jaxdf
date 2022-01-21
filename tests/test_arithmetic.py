@@ -5,9 +5,17 @@ import numpy as np
 
 ATOL=1e-6
 
+domain = geometry.Domain()
+
 # Fields on grid
-x = OnGrid(1.0, 'domain')
-y = OnGrid(2.0, 'domain')
+x = OnGrid(1.0, domain)
+y = OnGrid(2.0, domain)
+
+# Continuous fields
+def f(p, x):
+  return p + x
+a = Continuous.from_fun_and_params(5.0, domain, f)
+b = Continuous.from_fun_and_params(6.0, domain, f)
 
 def test_add():
   z = x + y
@@ -16,6 +24,18 @@ def test_add():
   
   z = x + 5.
   assert z.params == 6.0
+  
+def test_add_continuous():
+  z = a + b
+  z_val = z.get_field(z.params, domain.origin)
+  assert np.allclose(z_val, [11., 11.])
+  
+def test_jit_continuous():
+  @jit
+  def f(a, b):
+    return a + b
+
+  z = f(a,b)
 
 def test_sub():
   z = x - y
@@ -28,7 +48,7 @@ def test_sub():
 def test_jit():
   @jit
   def prod(x, y):
-    return x * y
+    return x + y
   return prod(x, y)
 
 def test_jit_with_float():
@@ -45,3 +65,5 @@ if __name__ == '__main__':
     test_sub()
     test_jit()
     test_jit_with_float()
+    test_add_continuous()
+    test_jit_continuous()
