@@ -1,9 +1,6 @@
-from jaxdf.core import *
-from jaxdf import discretization
-from jaxdf import geometry
-from jaxdf import ode
+from jaxdf.core import operator, parametrized_operator, Params
+from jaxdf.discretization import *
 from jaxdf import operators
-from jaxdf import primitives
-from jaxdf import spectral
-from jaxdf import utils
-from jaxdf import version
+
+# Must be imported after discretization
+from jaxdf.operators.arithmetic import *

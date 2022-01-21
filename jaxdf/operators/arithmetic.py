@@ -1,16 +1,28 @@
+from jaxdf.core import operator, parametrized_operator, Params
 from jaxdf.discretization import *
-from jaxdf.primitives import *
-from plum import dispatch
+from jax import tree_util
+from jaxdf.discretization import OnGrid
+from jax import ShapedArray
+
+## __add__ 
+@operator
+def __add__(x: OnGrid, y: OnGrid, params=Params):
+  assert type(x) == type(y)
+  return tree_util.tree_multimap(lambda x, y: x+y, x, y)
+
+@operator
+def __add__(x: OnGrid, y, params=Params):
+  new_params = tree_util.tree_multimap(lambda x: x+y, x.params)
+  return x.replace_params(new_params)
 
 
-@dispatch
-def __add__(x: Arbitrary, y: Arbitrary, lift_params=False):
-    return AddField()(x, y)
+## __mul__
+@operator
+def __mul__(x: OnGrid, y: OnGrid, params=Params):
+  assert type(x) == type(y)
+  return tree_util.tree_multimap(lambda x, y: x*y, x, y)
 
-@dispatch
-def __add__(x: Arbitrary, y: float):
-    return AddScalar()(x, y)
-
-@dispatch
-def __add__(x: float, y: Arbitrary):
-    return AddScalar()(y, x)
+@operator
+def __mul__(x: OnGrid, y, params=Params):
+  new_params = tree_util.tree_multimap(lambda x: x*y, x.params)
+  return x.replace_params(new_params)
