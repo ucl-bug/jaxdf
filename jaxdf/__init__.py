@@ -1,6 +1,7 @@
-from jaxdf.core import operator, parametrized_operator, Params
+from jaxdf.core import operator, Params
 from jaxdf.discretization import *
 from jaxdf import operators
 
 # Must be imported after discretization
-from jaxdf.operators.arithmetic import *
+from jaxdf.operators.magic import *
+import jaxdf.operators as operators

@@ -1,4 +1,4 @@
-from jaxdf.core import operator, parametrized_operator, Params
+from jaxdf.core import operator, Params
 from jaxdf.discretization import FiniteDifferences, OnGrid
 from jax import jit
 import jax
