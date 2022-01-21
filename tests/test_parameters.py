@@ -1,5 +1,7 @@
+from re import A
 from jaxdf import *
-from jax import jit, make_jaxpr
+from jax import jit, make_jaxpr, grad
+from jax import numpy as jnp
 import inspect
 
 # Fields on grid
@@ -27,8 +29,19 @@ def test_get_params():
   
   z = jit(f)(x, op_params)
   assert z.params == 3.0
-
+  
+def test_grad():
+  def loss(x, y):
+    z = x**2 + y * 5 + x*y
+    return jnp.sum(z.params)
+  
+  gradfn = grad(loss, argnums=(0, 1))
+  x_grad, y_grad = gradfn(x, y)
+  assert x_grad.params == 4.0
+  assert y_grad.params == 6.0
+  
 if __name__ == '__main__':
   test_paramfun()
   test_jit_paramfun()
   test_get_params()
+  test_grad()
