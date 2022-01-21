@@ -1,8 +1,5 @@
 from jaxdf.core import operator, Params, params_map
 from jaxdf.discretization import *
-from jax import tree_util
-from jaxdf.discretization import OnGrid
-from jax import eval_shape
 
 """
 This file contains the operators that are
