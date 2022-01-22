@@ -28,7 +28,7 @@ def test_add():
   
 def test_add_continuous():
   z = a + b
-  z_val = z.get_field(z.params, domain.origin)
+  z_val = z.get_field(domain.origin)
   assert np.allclose(z_val, [11., 11.])
   
 def test_jit_continuous():

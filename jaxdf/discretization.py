@@ -53,9 +53,6 @@ class Continuous(Field):
   ):
     return self.__class__(params, self.domain, get_field)
   
-  def get_field(self, params, x):
-    return self.aux["get_field"](params, x)
-  
   @classmethod
   def from_function(
     cls, 
@@ -71,9 +68,11 @@ class Continuous(Field):
       params,
       domain=domain,
       dims=dims,
-      aux={"get_field": get_field},
-      
+      aux={"get_field": get_field}
     )
+    
+  def get_field(self, x):
+    return self.aux["get_field"](self.params, x)
   
   
       
@@ -93,7 +92,7 @@ class OnGrid(Linear):
   def from_grid(cls, grid_values, domain):
     return cls(grid_values, domain, grid_values.shape[-1])
   
-@new_discretization
-class FiniteDifferences(OnGrid):
   def get_field_on_grid(self):
     return self.params
+  
+  

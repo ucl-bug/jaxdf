@@ -45,7 +45,7 @@ def test_get_params():
   
   def f(x, coord, op_params):
     b = operators.dummy(x, params=op_params)
-    return b.get_field(b.params, coord)
+    return b.get_field(coord)
   
   z = jit(f)(a, 1.0, op_params)
   print(make_jaxpr(f)(a, 1.0, op_params))

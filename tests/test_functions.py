@@ -23,7 +23,7 @@ def test_compose_continuous():
   z = operators.compose(a)(jnp.exp)
   
   assert np.allclose(
-    z.get_field(z.params, domain.origin), jnp.exp(jnp.asarray([5.0, 5.0]))
+    z.get_field(domain.origin), jnp.exp(jnp.asarray([5.0, 5.0]))
   )
   
 def test_compose_ongrid():
