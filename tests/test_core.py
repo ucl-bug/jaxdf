@@ -3,6 +3,7 @@ from jax import jit, make_jaxpr
 import inspect
 import numpy as np
 from jax import numpy as jnp
+import jax
 
 ATOL=1e-6
 
@@ -15,8 +16,8 @@ y = OnGrid(2.0, domain)
 # Continuous fields
 def f(p, x):
   return p + x
-a = Continuous.from_fun_and_params(5.0, domain, f)
-b = Continuous.from_fun_and_params(6.0, domain, f)
+a = Continuous(5.0, domain, f)
+b = Continuous(6.0, domain, f)
 
 def test_override_operator():
   z = operators.compose(x)(jnp.exp)
@@ -33,4 +34,5 @@ def test_override_operator():
   
     
 if __name__ == '__main__':
-  test_override_operator()
+  with jax.checking_leaks():
+    test_override_operator()

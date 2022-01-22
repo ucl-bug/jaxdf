@@ -2,6 +2,7 @@ from jaxdf import *
 from jax import jit, make_jaxpr
 import inspect
 import numpy as np
+import jax
 
 ATOL=1e-6
 
@@ -14,8 +15,8 @@ y = OnGrid(2.0, domain)
 # Continuous fields
 def f(p, x):
   return p + x
-a = Continuous.from_fun_and_params(5.0, domain, f)
-b = Continuous.from_fun_and_params(6.0, domain, f)
+a = Continuous(5.0, domain, f)
+b = Continuous(6.0, domain, f)
 
 def test_add():
   z = x + y
@@ -36,6 +37,7 @@ def test_jit_continuous():
     return a + b
 
   z = f(a,b)
+  print(z)
 
 def test_sub():
   z = x - y
@@ -46,6 +48,7 @@ def test_sub():
   assert z.params == -1.0
 
 def test_jit():
+  
   @jit
   def prod(x, y):
     return x + y
@@ -59,8 +62,11 @@ def test_jit_with_float():
   _ = add(x,y)
   _ = add(x, 6.0)
   _ = add(-5.0, x)
+  _ = add(a,b)
     
 if __name__ == '__main__':
+  with jax.checking_leaks():
+    test_jit_continuous()
     test_add()
     test_sub()
     test_jit()

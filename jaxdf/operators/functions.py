@@ -8,10 +8,11 @@ from typing import Callable
 ## compose
 @operator
 def compose(x: Continuous, params=Params):
+  get_x = x.aux['get_field']
   def decorator(fun):
     def new_fun(p, coord):
-      return fun(x.get_field(p, coord))
-    return Continuous.from_fun_and_params(x.params, x.domain, new_fun)
+      return fun(get_x(p, coord))
+    return Continuous(x.params, x.domain, new_fun)
   return decorator
 
 @operator

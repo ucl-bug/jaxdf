@@ -2,35 +2,68 @@ from jaxdf.core import operator, Params
 from jaxdf.discretization import FiniteDifferences, OnGrid
 from jax import jit
 import jax
+from plum import dispatch
 
-def setup_fun(x):
-    return {"k": 3}
+class Number(object):
+  def __init__(self, value, aux):
+    self.value = value
+    self.aux= aux
+    
+  def __repr__(self):
+    return f"Number {self.value}"
+  
+  def __str__(self):
+    return self.__repr__()
+    
+def tree_flatten(v):
+  children = (v.value,)
+  aux_data = (v.aux,)
+  return (children, aux_data)
 
-@jit
-@parametrized_operator(setup_fun)
-def f(x, params=Params):
-    return params["k"]*x
+def tree_unflatten(aux_data, children):
+  value = children[0]
+  aux = aux_data[0]
+  return Number(value, aux)
 
-def setup(x, y):
-    return {"k": 3}
+jax.tree_util.register_pytree_node(Number, tree_flatten, tree_unflatten)
 
-@jit
-@parametrized_operator(setup)
-def addp(x: OnGrid, y = 3.2, params=Params):
-  return jax.tree_util.tree_multimap(lambda x: x+params["k"] + y, x)
+class Fraction(object):
+  def __init__(self, numerator, denominator, aux):
+    self.numerator = numerator
+    self.denominator = denominator
+    self.aux = aux
+    
+  def __repr__(self) -> str:
+      return f"Fraction({self.numerator}, {self.denominator})"
+    
+def tree_flatten(v):
+  children = (v.numerator, v.denominator)
+  aux_data = (v.aux,)
+  return (children, aux_data)
 
-@jit
-@operator
-def foo(x: OnGrid, params=Params):
-  new_params = x.params * 2 + 100
-  y = x.replace_params(new_params)
-  return y
+def tree_unflatten(aux_data, children):
+  numerator = children[0]
+  denominator = children[1]
+  aux = aux_data[0]
+  return Fraction(numerator, denominator, aux)
 
-field = FiniteDifferences(3.0, 'dom')
+jax.tree_util.register_pytree_node(Fraction, tree_flatten, tree_unflatten)
 
-print('f(1) =', f(1))
-print('f(1.0) =', f(1.0))
-print(addp(field, 1.3))
-print(addp(field, 4.5))
-print(addp(field, y=2.11))
-print(foo(field))
+@dispatch
+def f(x: Number):
+  return Number(x.value+1, x.aux)
+
+@dispatch
+def f(x: Fraction):
+  return Fraction(x.numerator-1, x.denominator+1, x.aux)
+
+if __name__ == "__main__":
+  with jax.checking_leaks():
+    x = Number(1, {"a": 1})
+    y = Fraction(2, 3, {"b": 2})
+    z = f(x)
+    print(z)
+    z = f(y)
+    print(z)
+    q = f(z)
+    print(q)
