@@ -66,7 +66,6 @@ def test_jit_with_float():
     
 if __name__ == '__main__':
   with jax.checking_leaks():
-    test_jit_continuous()
     test_add()
     test_sub()
     test_jit()

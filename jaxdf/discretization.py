@@ -1,6 +1,6 @@
 from typing import Callable
 from jax.random import PRNGKey
-from jax import eval_shape
+from jax import eval_shape, vmap
 from jax.tree_util import register_pytree_node, register_pytree_node_class
 from jax import tree_util
 from jaxdf.core import operator, Params, Field, new_discretization
@@ -74,7 +74,14 @@ class Continuous(Field):
   def get_field(self, x):
     return self.aux["get_field"](self.params, x)
   
-  
+  def get_field_on_grid(self):
+    """V-maps the get_field function over a grid of values"""
+    fun = self.aux["get_field"]
+    ndims = len(self.domain.N)
+    for _ in range(ndims):
+        fun = vmap(fun, in_axes=(None, 0))
+        
+    return fun(self.params, self.domain.grid)
       
 @new_discretization
 class OnGrid(Linear):

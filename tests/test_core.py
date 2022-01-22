@@ -32,7 +32,17 @@ def test_override_operator():
   z = operators.compose(x)(jnp.exp)
   assert z.params == jnp.exp(1.0) + 100
   
+def test_jit_get_field():
+  @jit
+  def f(x):
+    q = x + 2
+    return q.get_field(domain.origin)
+  
+  z = f(a)
+  print(z)
+  assert np.allclose(z, [1.0, 1.0])
     
 if __name__ == '__main__':
   with jax.checking_leaks():
     test_override_operator()
+    test_jit_get_field()
