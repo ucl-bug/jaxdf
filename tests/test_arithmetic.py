@@ -14,7 +14,7 @@ y = OnGrid(jnp.asarray([2.0]), domain)
 
 # Continuous fields
 def f(p, x):
-  return jnp.sum(p*(x**2))
+  return jnp.expand_dims(jnp.sum(p*(x**2)), -1)
 a = Continuous(5.0, domain, f)
 b = Continuous(6.0, domain, f)
 
@@ -28,8 +28,9 @@ def test_add():
   
 def test_add_continuous():
   z = a + b
-  z_val = z.get_field(domain.origin)
-  assert np.allclose(z_val, [11., 11.])
+  z_val = z.get_field(domain.origin + 1)
+  print(z_val)
+  assert np.allclose(z_val, [22.])
   
 def test_jit_continuous():
   @jit

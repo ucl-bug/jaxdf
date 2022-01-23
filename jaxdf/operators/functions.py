@@ -26,5 +26,10 @@ def compose(x: OnGrid, params=Params):
 def sum_over_dims(x: Continuous, params = None):
   get_x = x.aux['get_field']
   def fun(p, coords):
-    return jnp.sum(get_x(p, coords), axis=-1, keepdims=False)
+    return jnp.sum(get_x(p, coords), axis=-1, keepdims=True)
   return x.update_fun_and_params(x.params, fun), None
+
+@operator
+def sum_over_dims(x: OnGrid, params = None):
+  new_params = jnp.sum(x.params, axis=-1, keepdims=True)
+  return x.replace_params(new_params), None

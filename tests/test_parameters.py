@@ -13,7 +13,7 @@ x = OnGrid(jnp.asarray([1.0]), domain)
 y = OnGrid(jnp.asarray([2.0]), domain)
 
 def f(p, x):
-  return jnp.sum(p*(x**2))
+  return jnp.expand_dims(jnp.sum(p*(x**2)), -1)
 a = Continuous(5.0, domain, f)
 b = Continuous(6.0, domain, f)
 

@@ -15,7 +15,7 @@ y = OnGrid(jnp.asarray([2.0]), domain)
 
 # Continuous fields
 def f(p, x):
-  return jnp.sum(p*(x**2))
+  return jnp.expand_dims(jnp.sum(p*(x**2)), -1)
 a = Continuous(5.0, domain, f)
 b = Continuous(6.0, domain, f)
 
@@ -39,7 +39,7 @@ def test_jit_get_field():
     return q.get_field(domain.origin)
   
   z = f(a)
-  assert np.allclose(z, [7.0, 7.0])
+  assert np.allclose(z, [2.])
     
 if __name__ == '__main__':
   with jax.checking_leaks():
