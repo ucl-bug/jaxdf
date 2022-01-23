@@ -7,6 +7,7 @@ from jax.tree_util import register_pytree_node, register_pytree_node_class, tree
 from numpy import issubdtype
 
 from plum import dispatch
+from setuptools import setup
 
 from jaxdf import util
 
@@ -26,45 +27,26 @@ class Parameters(object):
   @classmethod
   def tree_unflatten(cls, aux_data, children):
     return cls(children[0])
-  
-def _operator(evaluate, setup_fun, precedence=0):
-   
+
+def _operator(evaluate, precedence):
   @wraps(evaluate)
   def wrapper(*args, **kwargs): 
-    
-    if 'params' in kwargs.keys():
-      ext_params = kwargs['params']
-      del kwargs['params']
-      
-      op_params = setup_fun(*args, **kwargs)
-      
-      op_params = util.update_dictionary(op_params, ext_params)
-      
-      # Runs the parametrized function
-      field = evaluate(*args, **kwargs, params = op_params)
-      return field
-    else:
-      op_params = setup_fun(*args, **kwargs)
-      return evaluate(*args, **kwargs, params = op_params)
-      
-  f = dispatch(wrapper, precedence=precedence)
+    field, op_params = evaluate(*args, **kwargs)
+    field._op_params = op_params
+    return field
   
-  # Attach the parameter setup function
-  f.get_params = setup_fun
+  f = dispatch(wrapper, precedence=precedence)
   return f
 
-def operator(evaluate=None, setup_fun=None, precedence=0):
-  if setup_fun is None:
-    setup_fun = lambda *args, **kwargs: None
-    
+def operator(evaluate=None, precedence=0):
   if evaluate is None:
     # Returns the decorator
     def decorator(evaluate):
-      return _operator(evaluate, setup_fun, precedence)
+      return _operator(evaluate, precedence)
     return decorator
   else:
-    return _operator(evaluate, setup_fun, precedence)
-
+    return _operator(evaluate, precedence)
+  
 # Lifted jax functions for convenience
 def params_map(f, field, *rest):
   r'''Maps a function to the parameters of a Field. 

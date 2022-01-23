@@ -9,8 +9,8 @@ import jax
 domain = geometry.Domain()
 
 # Fields on grid
-x = OnGrid(1.0, domain)
-y = OnGrid(2.0, domain)
+x = OnGrid(jnp.asarray([1.0]), domain)
+y = OnGrid(jnp.asarray([2.0]), domain)
 
 def f(p, x):
   return p + x
@@ -27,7 +27,7 @@ def test_jit_paramfun():
   _ = f(x)
 
 def test_get_params():
-  op_params = operators.dummy.get_params(x)
+  op_params = operators.dummy(x)._op_params
   assert op_params['k'] == 3
   
   def f(x, op_params):
@@ -39,17 +39,17 @@ def test_get_params():
   z = jit(f)(x, op_params)
   assert z.params == 3.0
   
-  op_params = operators.dummy.get_params(a)
+  op_params = operators.dummy(x)._op_params
   z = jit(f)(a, op_params)
-  print(z)
+  _ = (z)
   
   def f(x, coord, op_params):
     b = operators.dummy(x, params=op_params)
     return b.get_field(coord)
   
   z = jit(f)(a, 1.0, op_params)
-  print(make_jaxpr(f)(a, 1.0, op_params))
-  print(z)
+  _ = (make_jaxpr(f)(a, 1.0, op_params))
+  _ = (z)
   
 def test_grad():
   def loss(x, y):
@@ -58,7 +58,7 @@ def test_grad():
   
   gradfn = grad(loss, argnums=(0, 1))
   x_grad, y_grad = gradfn(x, y)
-  print(x_grad)
+  _ = (x_grad)
   assert x_grad.params == 4.0
   assert y_grad.params == 6.0
   

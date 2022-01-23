@@ -10,8 +10,8 @@ ATOL=1e-6
 domain = geometry.Domain()
 
 # Fields on grid
-x = OnGrid(1.0, domain)
-y = OnGrid(2.0, domain)
+x = OnGrid(jnp.asarray([1.0]), domain)
+y = OnGrid(jnp.asarray([2.0]), domain)
 
 # Continuous fields
 def f(p, x):
@@ -27,7 +27,7 @@ def test_override_operator():
   def compose(x: OnGrid, params=Params):
     def decorator(fun):
       return x.replace_params(fun(x.params) + 100)
-    return decorator
+    return decorator, None
   
   z = operators.compose(x)(jnp.exp)
   assert z.params == jnp.exp(1.0) + 100
@@ -39,8 +39,7 @@ def test_jit_get_field():
     return q.get_field(domain.origin)
   
   z = f(a)
-  print(z)
-  assert np.allclose(z, [1.0, 1.0])
+  assert np.allclose(z, [7.0, 7.0])
     
 if __name__ == '__main__':
   with jax.checking_leaks():

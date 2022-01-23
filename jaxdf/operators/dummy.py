@@ -3,18 +3,18 @@ from jaxdf.discretization import *
 from jax import jit
 
 
-def setup_dummy(x: OnGrid):
-  return {"k": 3}
-
-@operator(setup_fun=setup_dummy)
+@operator
 def dummy(x: OnGrid, params=Params):
-  return params["k"]*x
+  if params == Params:
+    params = {"k": 3}
+  return params["k"]*x, params
 
-
-@operator(setup_fun=setup_dummy)
+@operator
 def dummy(x: Continuous, params=Params):
+  if params == Params:
+    params = {"k": 3}
   get_x = x.aux['get_field']
   def get_fun(p__par, coords):
     p, params = p__par
     return get_x(p, coords) + params['k']
-  return x.update_fun_and_params([x.params, params], get_fun)
+  return x.update_fun_and_params([x.params, params], get_fun), params

@@ -9,8 +9,8 @@ ATOL=1e-6
 domain = geometry.Domain()
 
 # Fields on grid
-x = OnGrid(1.0, domain)
-y = OnGrid(2.0, domain)
+x = OnGrid(jnp.asarray([1.0]), domain)
+y = OnGrid(jnp.asarray([2.0]), domain)
 
 # Continuous fields
 def f(p, x):
@@ -37,7 +37,6 @@ def test_jit_continuous():
     return a + b
 
   z = f(a,b)
-  print(z)
 
 def test_sub():
   z = x - y
