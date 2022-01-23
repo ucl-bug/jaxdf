@@ -15,7 +15,7 @@ def __add__(x: Linear, y: Linear, params=Params):
   return x.replace_params(new_params), None
 
 @operator(precedence=-1)
-def __add__(x: OnGrid, y, params=Params):
+def __add__(x: OnGrid, y: object, params=Params):
   new_params = params_map(lambda x: x+y, x.params)
   return x.replace_params(new_params), None
 

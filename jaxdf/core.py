@@ -92,7 +92,7 @@ class Field(object):
     
   def __repr__(self):#
     classname = self.__class__.__name__
-    return f"Field {classname}\n - Params:{self.params}\n"
+    return f"Field {classname}"
   
   def __str__(self):
     return self.__repr__()

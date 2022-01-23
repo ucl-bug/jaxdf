@@ -172,3 +172,25 @@ class FourierSeries(OnGrid):
   @property
   def _freq_grid(self):
     return jnp.stack(jnp.meshgrid(*self._freq_axis, indexing="ij"), axis=-1)
+  
+@register_pytree_node_class
+class FiniteDifferences(OnGrid):
+  def __init__(
+    self,
+    params,
+    domain
+  ):
+    dims = params.shape[-1]
+    super().__init__(params, domain)
+    
+  def tree_flatten(self):
+    children = (self.params,)
+    aux_data = (self.domain,)
+    return (children, aux_data)
+
+  @classmethod
+  def tree_unflatten(cls, aux_data, children):
+    params = children[0]
+    domain = aux_data[0]
+    a = cls(params, domain=domain)
+    return a

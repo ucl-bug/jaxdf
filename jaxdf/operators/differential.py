@@ -3,6 +3,8 @@ from jaxdf.discretization import *
 from .functions import sum_over_dims
 from jax import numpy as jnp
 import jax
+from jax import scipy as jsp
+
 
 def _get_ffts(x):
   if x.real:
@@ -86,3 +88,36 @@ def laplacian(x: FourierSeries, params=None):
         keepdims=True,
     )
   return FourierSeries(new_params, x.domain), params
+
+@operator
+def laplacian(x: FiniteDifferences, params=None, accuracy=4):
+  if params == None:
+    coeffs = {
+      2: [1, -2, 1],
+      4: [-1 / 12, 4 / 3, -5/2, 4 / 3, -1 / 12],
+      6: [1 / 90, -3 / 20, 3 / 2, -49 / 18, 3 / 2, -3 / 20, 1 / 90],
+    }
+    params = {"laplacian_kernel": jnp.asarray(coeffs[accuracy])}
+
+  kernel = params["laplacian_kernel"]
+  
+  # Make kernel the right size
+  extra_pad = (len(kernel) // 2, len(kernel) // 2)
+  for ax in range(x.ndim-1):
+    kernel = jnp.expand_dims(kernel, axis=0)  # Kernel on the last axis
+  
+  # Convolve in each dimension
+  outs = []
+  img = x.params[...,0]
+  for i in range(x.ndim):
+    k = jnp.moveaxis(kernel, -1, i)
+
+    pad = [(0, 0)] * x.ndim
+    pad[i] = extra_pad
+    f = jnp.pad(img, pad, mode="constant")
+
+    out = jsp.signal.convolve(f, k, mode="valid")*x.domain.dx[i]
+    outs.append(out)
+  
+  new_params = jnp.expand_dims(sum(outs), -1)
+  return FiniteDifferences(new_params, x.domain), params
