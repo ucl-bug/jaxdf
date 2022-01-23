@@ -83,7 +83,7 @@ class Continuous(Field):
         fun = vmap(fun, in_axes=(None, 0))
         
     return fun(self.params, self.domain.grid)
-      
+
 @register_pytree_node_class
 class OnGrid(Linear):
   def __init__(

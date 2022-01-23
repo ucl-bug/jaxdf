@@ -14,7 +14,7 @@ y = OnGrid(jnp.asarray([2.0]), domain)
 
 # Continuous fields
 def f(p, x):
-  return p + x
+  return jnp.sum(p*(x**2))
 a = Continuous(5.0, domain, f)
 b = Continuous(6.0, domain, f)
 

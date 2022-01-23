@@ -20,3 +20,11 @@ def compose(x: OnGrid, params=Params):
   def decorator(fun):
     return x.replace_params(fun(x.params))
   return decorator, None
+
+## sum_over_dims
+@operator
+def sum_over_dims(x: Continuous, params = None):
+  get_x = x.aux['get_field']
+  def fun(p, coords):
+    return jnp.sum(get_x(p, coords), axis=-1, keepdims=False)
+  return x.update_fun_and_params(x.params, fun), None
