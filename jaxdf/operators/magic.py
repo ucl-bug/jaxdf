@@ -25,14 +25,14 @@ def __add__(x: Continuous, y: Continuous, params=Params):
   get_y = y.aux['get_field']
   def get_fun(p, coords):
     return get_x(p[0], coords) + get_y(p[1], coords)
-  return x.update_fun_and_params([x.params, y.params], get_fun), None
+  return Continuous([x.params, y.params], x.domain, get_fun), None
 
 @operator
 def __add__(x: Continuous, y, params=Params):
   get_x = x.aux['get_field']
   def get_fun(p, coords):
     return get_x(p, coords) + y
-  return x.update_fun_and_params(x.params, get_fun), None
+  return Continuous(x.params, x.domain, get_fun), None
 
 ## __bool__
 @operator

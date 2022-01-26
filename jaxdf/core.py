@@ -66,6 +66,9 @@ def params_map(f, field, *rest):
   '''
   return tree_map(f, field, *rest)
 
+new_discretization = register_pytree_node_class
+
+'''
 def new_discretization(cls):
   
   def tree_flatten(v):
@@ -81,7 +84,9 @@ def new_discretization(cls):
   
   register_pytree_node(cls, tree_flatten, tree_unflatten)
   return cls
+'''
 
+@new_discretization
 class Field(object):
   def __init__(self, 
     params,
@@ -93,7 +98,19 @@ class Field(object):
     self.domain = domain
     self.dims = dims
     self.aux = aux
-    
+  
+  def tree_flatten(self):
+    children = (self.params,)
+    aux_data = (self.dims, self.domain, self.aux)
+    return (children, aux_data)
+
+  @classmethod
+  def tree_unflatten(cls, aux_data, children):
+    params = children[0]
+    dims, domain, aux = aux_data
+    a = cls(params, dims=dims, domain=domain, aux=aux)
+    return a
+  
   def __repr__(self):#
     classname = self.__class__.__name__
     return f"Field {classname}"

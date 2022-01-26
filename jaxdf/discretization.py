@@ -66,11 +66,15 @@ class Continuous(Field):
                       domain)
     x = domain.origin
     return cls(params, domain=domain, get_fun=get_field)
+  
+  def __call__(self, x):
+    return self.get_field(x)
     
   def get_field(self, x):
     return self.aux["get_field"](self.params, x)
   
-  def get_field_on_grid(self):
+  @property
+  def on_grid(self):
     """V-maps the get_field function over a grid of values"""
     fun = self.aux["get_field"]
     ndims = len(self.domain.N)
@@ -125,7 +129,8 @@ class OnGrid(Linear):
   def replace_params(self, new_params):
     return self.__class__(new_params, self.domain)
   
-  def get_field_on_grid(self):
+  @property
+  def on_grid(self):
     return self.params
   
   

@@ -41,7 +41,19 @@ def test_jit_get_field():
   z = f(a)
   assert np.allclose(z, [2.])
     
+def test_call_field():
+  z = a(domain.origin)
+  
+  @jit
+  def f(u):
+    return u(domain.origin)
+  
+  _ = f(a)
+  print(make_jaxpr(f)(a))
+  
+  
 if __name__ == '__main__':
   with jax.checking_leaks():
+    test_call_field()
     test_override_operator()
     test_jit_get_field()
