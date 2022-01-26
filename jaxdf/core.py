@@ -57,9 +57,13 @@ def params_map(f, field, *rest):
   Returns a field with the same time of `field`, with updated
   parameters
   '''
+  '''
   if len(rest) > 0:
     for a in rest:
-      assert type(a) == type(field)
+      if not(type(a) == type(field)):
+        print(type(a), type(field))
+        assert False
+  '''
   return tree_map(f, field, *rest)
 
 def new_discretization(cls):
@@ -128,6 +132,12 @@ class Field(object):
   
   def __rpow__(self, other):
     return __rpow__(self, other)
+  
+  def __truediv__(self, other):
+    return __truediv__(self, other)
+  
+  def __rtruediv__(self, other):
+    return __rtruediv__(self, other)
 
 @operator
 def __add__(self, other, params=Params):
@@ -163,4 +173,12 @@ def __pow__(self, other, params=Params):
 
 @operator
 def __rpow__(self, other, params=Params):
+  raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
+
+@operator
+def __truediv__(self, other, params=Params):
+  raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
+
+@operator
+def __rtruediv__(self, other, params=Params):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")

@@ -62,15 +62,10 @@ class Continuous(Field):
     get_field: Callable,
     seed
   ):
-    params = init_fun(seed)
+    params = init_fun(seed, 
+                      domain)
     x = domain.origin
-    dims = eval_shape(get_field, params, x).shape
-    return cls(
-      params,
-      domain=domain,
-      dims=dims,
-      aux={"get_field": get_field}
-    )
+    return cls(params, domain=domain, get_fun=get_field)
     
   def get_field(self, x):
     return self.aux["get_field"](self.params, x)
