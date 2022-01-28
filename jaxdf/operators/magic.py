@@ -60,7 +60,6 @@ def __float__(x: OnGrid, params=Params):
   return x.replace_params(new_params), None
 
 
-
 ## __mul__
 @operator
 def __mul__(x: OnGrid, y: OnGrid, params=Params):
@@ -92,6 +91,13 @@ def __mul__(x: Continuous, y, params=Params):
 def __neg__(x: Linear, params=Params):
   new_params = params_map(lambda x: -x, x.params)
   return x.replace_params(new_params), None
+
+@operator
+def __neg__(x: Continuous, params=Params):
+  get_x = x.aux['get_field']
+  def get_fun(p, coords):
+    return -get_x(p, coords)
+  return Continuous(x.params, x.domain, get_fun), None
   
 
 ## __pow__
@@ -104,6 +110,14 @@ def __pow__(x: OnGrid, y: OnGrid, params=Params):
 def __pow__(x: OnGrid, y: object, params=Params):
   new_params = params_map(lambda x: x**y, x.params)
   return x.replace_params(new_params), None
+
+@operator
+def __pow__(x: Continuous, y: Continuous, params=Params):
+  get_x = x.aux['get_field']
+  get_y = y.aux['get_field']
+  def get_fun(p, coords):
+    return get_x(p[0], coords) ** get_y(p[1], coords)
+  return x.update_fun_and_params([x.params, y.params], get_fun), None
 
 @operator
 def __pow__(x: Continuous, y: object, params=Params):
@@ -153,7 +167,7 @@ def __rtruediv__(x: Continuous, y: object, params=Params):
   get_x = x.aux['get_field']
   def get_fun(p, coords):
     return y / get_x(p, coords)
-  return x.update_fun_and_params(x.params, get_fun), None
+  return Continuous(x.params, x.domain, get_fun), None
 
 ## __sub__
 @operator
@@ -173,14 +187,14 @@ def __truediv__(x: Continuous, y: Continuous, params=Params):
   get_y = y.aux['get_field']
   def get_fun(p, coords):
     return get_x(p[0], coords) / get_y(p[1], coords)
-  return x.update_fun_and_params([x.params, y.params], get_fun), None
+  return Continuous([x.params, y.params], x.domain, get_fun), None
 
 @operator
-def __truediv__(x: Continuous, y, params=Params):
+def __truediv__(x: Continuous, y: object, params=Params):
   get_x = x.aux['get_field']
   def get_fun(p, coords):
     return get_x(p, coords) / y
-  return x.update_fun_and_params(x.params, get_fun), None
+  return Continuous(x.params, x.domain, get_fun), None
 
 @operator
 def __truediv__(x: OnGrid, y: OnGrid, params=Params):

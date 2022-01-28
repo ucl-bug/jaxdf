@@ -31,6 +31,54 @@ def gradient(x: Continuous, params=Params):
     return f_jac(p, coords)[0][0]
   return x.update_fun_and_params(x.params, grad_fun), None
 
+
+def _convolve_kernel(x, kernel):
+  # Make kernel the right size
+  extra_pad = (len(kernel) // 2, len(kernel) // 2)
+  for ax in range(x.ndim-1):
+    kernel = jnp.expand_dims(kernel, axis=0)  # Kernel on the last axis
+  
+  # Convolve in each dimension
+  outs = []
+  img = x.params[...,0]
+  for i in range(x.ndim):
+    k = jnp.moveaxis(kernel, -1, i)
+
+    pad = [(0, 0)] * x.ndim
+    pad[i] = extra_pad
+    f = jnp.pad(img, pad, mode="constant")
+
+    out = jsp.signal.convolve(f, k, mode="valid")*x.domain.dx[i]
+    outs.append(out)
+  
+  new_params = jnp.expand_dims(sum(outs), -1)
+  return new_params
+
+@operator
+def gradient(x: FiniteDifferences, params=None, accuracy=4):
+  if params is None:
+    coeffs = {
+      2: [-0.5, 0, 0.5],
+      4: [-1 / 12, 2 / 3, 0, -2 / 3, 1 / 12],
+      6: [-1 / 60, 3 / 20, -3 / 4, 0, 3 / 4, -3 / 20, 1 / 60],
+      8: [
+          1 / 280,
+          -4 / 105,
+          1 / 5,
+          -4 / 5,
+          0,
+          4 / 5,
+          -1 / 5,
+          4 / 105,
+          -1 / 280,
+      ]
+    }
+    params = {"gradient_kernel": jnp.asarray(coeffs[accuracy])}
+  
+  kernel = params["gradient_kernel"]
+  new_params = _convolve_kernel(x, kernel)
+  return FiniteDifferences(new_params, x.domain), params
+    
 @operator
 def gradient(x: FourierSeries, params=None):
   if params == None:
@@ -95,7 +143,6 @@ def laplacian(x: Continuous, params=None):
   return x.update_fun_and_params(x.params, grad_fun), None
 
 
-
 @operator
 def laplacian(x: FourierSeries, params=None):
   if params == None:
@@ -131,24 +178,5 @@ def laplacian(x: FiniteDifferences, params=None, accuracy=4):
     params = {"laplacian_kernel": jnp.asarray(coeffs[accuracy])}
 
   kernel = params["laplacian_kernel"]
-  
-  # Make kernel the right size
-  extra_pad = (len(kernel) // 2, len(kernel) // 2)
-  for ax in range(x.ndim-1):
-    kernel = jnp.expand_dims(kernel, axis=0)  # Kernel on the last axis
-  
-  # Convolve in each dimension
-  outs = []
-  img = x.params[...,0]
-  for i in range(x.ndim):
-    k = jnp.moveaxis(kernel, -1, i)
-
-    pad = [(0, 0)] * x.ndim
-    pad[i] = extra_pad
-    f = jnp.pad(img, pad, mode="constant")
-
-    out = jsp.signal.convolve(f, k, mode="valid")*x.domain.dx[i]
-    outs.append(out)
-  
-  new_params = jnp.expand_dims(sum(outs), -1)
+  new_params = _convolve_kernel(x, kernel)
   return FiniteDifferences(new_params, x.domain), params
