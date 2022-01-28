@@ -1,9 +1,7 @@
 from jaxdf.core import operator, Params, params_map
 from jaxdf.discretization import *
-from jax import tree_util
 from jaxdf.discretization import OnGrid
-from jax import eval_shape
-from typing import Callable
+from jax import numpy as jnp
 
 ## compose
 @operator
@@ -20,6 +18,7 @@ def compose(x: OnGrid, params=Params):
   def decorator(fun):
     return x.replace_params(fun(x.params))
   return decorator, None
+
 
 ## sum_over_dims
 @operator
