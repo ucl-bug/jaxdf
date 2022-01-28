@@ -28,7 +28,7 @@ def __add__(x: Continuous, y: Continuous, params=Params):
   return Continuous([x.params, y.params], x.domain, get_fun), None
 
 @operator
-def __add__(x: Continuous, y, params=Params):
+def __add__(x: Continuous, y: object, params=Params):
   get_x = x.aux['get_field']
   def get_fun(p, coords):
     return get_x(p, coords) + y
@@ -104,6 +104,14 @@ def __pow__(x: OnGrid, y: OnGrid, params=Params):
 def __pow__(x: OnGrid, y: object, params=Params):
   new_params = params_map(lambda x: x**y, x.params)
   return x.replace_params(new_params), None
+
+@operator
+def __pow__(x: Continuous, y: object, params=Params):
+  get_x = x.aux['get_field']
+  def get_fun(p, coords):
+    return get_x(p, coords) ** y
+  return Continuous(x.params, x.domain, get_fun), None
+
 
 ## __radd__
 @operator(precedence=-1)
