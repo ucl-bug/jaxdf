@@ -1,7 +1,7 @@
 
 import inspect
 from functools import partial, wraps
-from typing import get_type_hints, Any, NewType, TypeVar
+from typing import Callable
 
 from jax.tree_util import register_pytree_node, register_pytree_node_class, tree_map, tree_multimap
 from numpy import issubdtype
@@ -13,21 +13,6 @@ from jaxdf import util
 
 Params = None
 
-
-@register_pytree_node_class
-class Parameters(object):
-  def __init__(self, params):
-    self.params = params
-    
-  def tree_flatten(self):
-    children = (self.params,)
-    aux_data = None
-    return (children, aux_data)
-
-  @classmethod
-  def tree_unflatten(cls, aux_data, children):
-    return cls(children[0])
-
 def _operator(evaluate, precedence):
   @wraps(evaluate)
   def wrapper(*args, **kwargs): 
@@ -38,7 +23,38 @@ def _operator(evaluate, precedence):
   f = dispatch(wrapper, precedence=precedence)
   return f
 
-def operator(evaluate=None, precedence=0):
+def operator(evaluate: Callable = None, precedence: int = 0):
+  r'''Decorator for defining operators using multiple dispatch. The type annotation of the
+  `evaluate` function are used to determine the dispatch rules.
+  
+  Generic inputs must have the type-hint `object`.
+  
+  Args:
+    evaluate (Callable): A function with the signature `evaluate(field, *args, **kwargs, params)`.
+      It must return a tuple, with the first element being a field and the second
+      element being the default parameters for the operator.
+    precedence (int): The precedence of the operator if an ambiguous match is found.
+  
+  Returns:
+    Callable: The operator function with signature `evaluate(field, *args, **kwargs, params)`.
+    
+  !!! example
+      ```python
+      from jaxdf import operator
+      
+      @operator(precedence=1)
+      def square_plus_two(x: OnGrid, params=2):
+        new_params = (x.params**2) + params
+        return x.replace_params(new_params), params
+        
+      @operator
+      def square_plus_two(x: Continuous, params=2):
+        get_x = x.aux['get_field']
+        def new_get_field(p, coords):
+          return get_x(p, coords)**2 + params
+        return Continuous(x.params, x.domain, new_get_field), params
+      ```
+  '''
   if evaluate is None:
     # Returns the decorator
     def decorator(evaluate):
@@ -46,48 +62,39 @@ def operator(evaluate=None, precedence=0):
     return decorator
   else:
     return _operator(evaluate, precedence)
-  
-# Lifted jax functions for convenience
-def params_map(f, field, *rest):
-  r'''Maps a function to the parameters of a Field. 
-  
-  Since a Field is a pytree, this is quivalent to (and implemented
-  using) `jax.tree_util.tree_map`
-  
-  Returns a field with the same time of `field`, with updated
-  parameters
-  '''
-  '''
-  if len(rest) > 0:
-    for a in rest:
-      if not(type(a) == type(field)):
-        print(type(a), type(field))
-        assert False
-  '''
-  return tree_map(f, field, *rest)
 
-new_discretization = register_pytree_node_class
-
-'''
 def new_discretization(cls):
+  r'''Wrapper around `jax.tree_util.register_pytree_node_class` that can
+  be used to register a new discretization.
   
-  def tree_flatten(v):
-    children = (v.params,)
-    aux_data = (v.dims, v.domain, v.aux)
-    return (children, aux_data)
-
-  def tree_unflatten(aux_data, children):
-    params = children[0]
-    dims, domain, aux = aux_data
-    a = cls(params, dims=dims, domain=domain, aux=aux)
-    return a
+  If the discretization doesn't have the same `__init__` function as the
+  parent class, the methods `tree_flatten` and `tree_unflatten` must be
+  present (see [Extending pytrees](https://jax.readthedocs.io/en/latest/pytrees.html)
+  in the JAX documentation).
   
-  register_pytree_node(cls, tree_flatten, tree_unflatten)
-  return cls
-'''
+  !!! example
+      ```python
+      @new_discretization
+      class Polynomial(Continuous):
+        @classmethod
+        def from_params(cls, params, domain):
+          def get_fun(params, x):
+            i = jnp.arange(len(params))
+            powers = x**i
+            return jnp.expand_dims(jnp.sum(params*(x**i)), -1)
+          return cls(params, domain, get_fun)
+      ```
+  '''
+  return register_pytree_node_class(cls)
 
 @new_discretization
 class Field(object):
+  r'''The base-class for all discretizations. This class is also responsible for binding the operators in `jaxdf.operators.magic` to
+  the magic methods of the discretization.
+  
+  Normally you should not use this class directly, but instead use the `new_discretization` decorator to register
+  a new discretization based on this class.
+  '''
   def __init__(self, 
     params,
     domain,
@@ -199,3 +206,28 @@ def __truediv__(self, other, params=Params):
 @operator
 def __rtruediv__(self, other, params=Params):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
+
+  # Lifted jax functions for convenience
+def params_map(
+  f: Callable, 
+  field: Field, 
+  *rest
+) -> Field:
+  r'''Maps a function to the parameters of a Field. 
+  
+  Since a Field is a pytree, this is equivalent to (and implemented
+  using) `jax.tree_util.tree_map`
+  
+  Returns a field with the same time of `field`, with updated
+  parameters
+  
+  Args:
+    f (Callable): A function that is applied to all the leaves of the
+      parameters of the input fields
+    field (Field): The field to map the function to
+    *rest: Optional additional fields to map the function to
+    
+  Returns:
+    Field: A field with the same discretization as `field`, with updated parameters.
+  '''
+  return tree_map(f, field, *rest)

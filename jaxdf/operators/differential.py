@@ -1,6 +1,5 @@
 from jaxdf.core import operator, Params, params_map
 from jaxdf.discretization import *
-from .functions import sum_over_dims
 from jax import numpy as jnp
 import jax
 from jax import scipy as jsp
@@ -180,3 +179,17 @@ def laplacian(x: FiniteDifferences, params=None, accuracy=4):
   kernel = params["laplacian_kernel"]
   new_params = _convolve_kernel(x, kernel)
   return FiniteDifferences(new_params, x.domain), params
+
+
+if __name__ == '__main__':
+  from jaxdf.util import _get_implemented
+  
+  funcs = [
+    derivative, diag_jacobian, gradient, laplacian,
+  ]
+
+  print('differential.py:')
+  print('----------------')
+  for f in funcs:
+    _get_implemented(f)
+  print('\n')

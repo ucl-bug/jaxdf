@@ -4,29 +4,58 @@ from jax import eval_shape, vmap
 from jax.tree_util import register_pytree_node, register_pytree_node_class
 from jax import tree_util
 from jax import numpy as jnp
-from jaxdf.core import operator, Params, Field, new_discretization
+from jaxdf.core import operator, Field, new_discretization
 
 @new_discretization
 class Linear(Field):
+  r'''This discretization assumes that the field is a linear function of the
+  parameters contained in `Linear.params`.'''
   def __init__(
     self,
     params,
     domain,
     dims=1,
     aux = None,
-    
   ):
     super().__init__(params, domain, dims, aux)
-               
 
 @register_pytree_node_class
 class Continuous(Field):
+  r'''A continous discretization, which is defined via a `get_field` function stored
+  in the `aux` parameters. This is the most general form of a discretization, and its
+  operation are implemented using function composition and autograd.
+  
+  Attributes:
+    params (PyTree): The parameters of the discretization. This must be a pytree
+      and is transformed by JAX transformations such as `jit` and `grad`.
+    domain (Domain): The domain of the discretization.
+    dims (int): The dimensionality of the field.
+    aux (dict): A dictionary of auxiliary data, containing the `get_field`
+      key. This is a function that takes a parameter vector and a point in
+      the domain and returns the field at that point. The signature of this
+      function is `get_field(params, x)`.
+      
+  An object of this class can be called as a function, returning the field at a
+  desired point.
+  '''
   def __init__(
     self,
     params,
     domain,
-    get_fun=lambda p,x: None 
+    get_fun: Callable
   ):
+    r'''Initializes a continuous discretization.
+    
+    Args:
+      params (PyTree): The parameters of the discretization.
+      domain (Domain): The domain of the discretization.
+      get_fun (Callable): A function that takes a parameter vector and a point in
+      the domain and returns the field at that point. The signature of this
+      function is `get_field(params, x)`.
+      
+    Returns:
+      Continuous: A continuous discretization.
+    '''  
     aux = {"get_field": get_fun}
     x = domain.origin
     dims = eval_shape(get_fun, params, x).shape
@@ -45,6 +74,15 @@ class Continuous(Field):
     return a
   
   def replace_params(self, new_params):
+    r'''Replaces the parameters of the discretization with new ones. The domain
+    and `get_field` function are not changed.
+    
+    Args:
+      new_params (PyTree): The new parameters of the discretization.
+      
+    Returns:
+      Continuous: A continuous discretization with the new parameters.
+    '''
     return self.__class__(new_params, self.domain, self.aux["get_field"])
   
   def update_fun_and_params(
@@ -52,6 +90,17 @@ class Continuous(Field):
     params,
     get_field
   ):
+    r'''Updates the parameters and the function of the discretization.
+    
+    Args:
+      params (PyTree): The new parameters of the discretization.
+      get_field (Callable): A function that takes a parameter vector and a point in
+        the domain and returns the field at that point. The signature of this
+        function is `get_field(params, x)`.
+    
+    Returns:
+      Continuous: A continuous discretization with the new parameters and function.
+    '''
     return self.__class__(params, self.domain, get_field)
   
   @classmethod
@@ -62,12 +111,34 @@ class Continuous(Field):
     get_field: Callable,
     seed
   ):
-    params = init_fun(seed, 
-                      domain)
-    x = domain.origin
+    r'''Creates a continuous discretization from a `get_field` function.
+    
+    Args:
+      domain (Domain): The domain of the discretization.
+      init_fun (Callable): A function that initializes the parameters of the
+        discretization. The signature of this function is `init_fun(rng, domain)`.
+      get_field (Callable): A function that takes a parameter vector and a point in
+        the domain and returns the field at that point. The signature of this
+        function is `get_field(params, x)`.
+      seed (int): The seed for the random number generator.
+    
+    Returns:
+      Continuous: A continuous discretization.
+    '''
+    params = init_fun(seed, domain)
     return cls(params, domain=domain, get_fun=get_field)
   
   def __call__(self, x):
+    r'''Same as the `get_field` function.
+    
+    !!! example
+        ```python
+        a = Continuous.from_function(init_params, domain, get_field)
+        
+        # Querying the field at the coordinate $`x=1.0`$
+        a(1.0)
+        ```
+    '''
     return self.get_field(x)
     
   def get_field(self, x):
@@ -75,7 +146,7 @@ class Continuous(Field):
   
   @property
   def on_grid(self):
-    """V-maps the get_field function over a grid of values"""
+    '''The field on the grid points of the domain.'''
     fun = self.aux["get_field"]
     ndims = len(self.domain.N)
     for _ in range(ndims):
@@ -85,11 +156,21 @@ class Continuous(Field):
 
 @register_pytree_node_class
 class OnGrid(Linear):
+  r'''A linear discretization on the grid points of the domain.'''
   def __init__(
     self,
     params,
     domain
   ):
+    r'''Initializes a linear discretization on the grid points of the domain.
+    
+    Args:
+      params (PyTree): The parameters of the discretization.
+      domain (Domain): The domain of the discretization.
+      
+    Returns:
+      OnGrid: A linear discretization on the grid points of the domain.
+    '''
     dims = params.shape[-1]
     super().__init__(params, domain, dims, None)
     
@@ -107,36 +188,57 @@ class OnGrid(Linear):
   
   @classmethod
   def empty(cls, domain, dims=1):
+    r'''Creates an empty OnGrid field (zero field).'''
     N = tuple(list(domain.N) + [1,])
     return cls(jnp.zeros(N), domain)
   
   @property
   def ndim(self):
+    r'''The number of dimensions of the field.'''
     return len(self.params.shape) - 1
   
   @property
   def is_field_complex(self):
+    r'''Whether the field is complex.'''
     return self.params.dtype == jnp.complex64 or self.params.dtype == jnp.complex128
   
   @property
   def real(self):
+    r'''Whether the field is real.'''
     return not self.is_field_complex
   
   @classmethod
   def from_grid(cls, grid_values, domain):
+    r'''Creates an OnGrid field from a grid of values.
+    
+    Args:
+      grid_values (ndarray): The grid of values.
+      domain (Domain): The domain of the discretization.
+    '''
     return cls(grid_values, domain)
   
   def replace_params(self, new_params):
+    r'''Replaces the parameters of the discretization with new ones. The domain
+    is not changed.
+    
+    Args:
+      new_params (PyTree): The new parameters of the discretization.
+    
+    Returns:
+      OnGrid: A linear discretization with the new parameters.
+    '''
     return self.__class__(new_params, self.domain)
   
   @property
   def on_grid(self):
+    r'''The field on the grid points of the domain.'''
     return self.params
   
   
 @register_pytree_node_class
 class FourierSeries(OnGrid):
-
+  r'''A Fourier series field defined on a collocation grid.'''
+  
   @property
   def _freq_axis(self):
     r'''Returns the frequency axis of the grid'''
@@ -175,12 +277,21 @@ class FourierSeries(OnGrid):
   
 @register_pytree_node_class
 class FiniteDifferences(OnGrid):
+  r'''A Finite Differences field defined on a collocation grid.'''
   def __init__(
     self,
     params,
     domain
   ):
-    dims = params.shape[-1]
+    r'''Initializes a Finite Differences field on a collocation grid.
+    
+    Args:
+      params (PyTree): The parameters of the discretization.
+      domain (Domain): The domain of the discretization.
+    
+    Returns:
+      FiniteDifferences: A Finite Differences field on a collocation grid.
+    '''
     super().__init__(params, domain)
     
   def tree_flatten(self):

@@ -5,6 +5,7 @@ from jax import jit
 
 @operator
 def dummy(x: OnGrid, params=Params):
+  r'''A dummy operator that is useful for debugging.'''
   if params == Params:
     params = {"k": 3}
   return params["k"]*x, params

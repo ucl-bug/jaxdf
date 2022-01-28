@@ -1,4 +1,6 @@
-::: jaxdf.utils
+# `jaxdf.util`
+
+::: jaxdf.util
     handler: python
     selection:
         filters:

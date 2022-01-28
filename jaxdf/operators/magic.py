@@ -132,15 +132,17 @@ def __pow__(x: Continuous, y: object, params=Params):
 def __radd__(x: OnGrid, y: object, params=Params):
   return x + y, None
 
+
+@operator(precedence=-1)
+def __radd__(x: Continuous, y: object, params=Params):
+  return x + y, None
+
+
 ## __rmul__
 @operator(precedence=-1)
 def __rmul__(x: Field, y: object, params=Params):
   return x * y, None
 
-
-@operator(precedence=-1)
-def __radd__(x: Continuous, y: object, params=Params):
-  return x + y, None
 
 
 ## __rpow__
@@ -211,3 +213,19 @@ def __truediv__(x: Linear, y, params=Params):
 def inverse(x: OnGrid, params=Params):
   new_params = params_map(lambda x: 1/x, x.params)
   return x.replace_params(new_params), None
+
+if __name__ == '__main__':
+  from jaxdf.util import _get_implemented
+  
+  magic = [
+    __add__, __bool__, __divmod__, __float__,
+    __mul__, __neg__, __pow__, __radd__,
+    __rmul__, __rpow__, __rsub__, __rtruediv__,
+    __sub__, __truediv__, inverse  
+  ]
+
+  print('magic.py:')
+  print('----------------')
+  for f in magic:
+    _get_implemented(f)
+  print('\n')
