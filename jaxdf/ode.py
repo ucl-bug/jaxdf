@@ -3,14 +3,27 @@ from jax import jit
 from functools import partial
 import jax
 from typing import Callable
+from jax.tree_util import tree_map
 
 def _unroll(x):
-  return tuple([x.replace_params(y) for y in x.params])
+  return tree_map(lambda leave: [leave.replace_params(y) for y in leave.params], x)
 
 def _identity(x):
     return x
 
-def euler_integration(f, x0, dt, output_steps):
+def variable_update_with_pml(x, dx_dt, k, dt):
+    x = k * (x * k + dt * dx_dt)
+    return x
+
+def euler_integration(
+  f, 
+  x0, 
+  dt,
+  output_steps,
+  measurement_operator=None,
+  alpha=1.0, 
+  checkpoint=True,
+):
   r"""Integrates the differential equation
 
   ```math
@@ -60,25 +73,22 @@ def euler_integration(f, x0, dt, output_steps):
       x_end, v_end = euler_integration(f, (x0,v0), dt, output_steps)
       ```
   """
-  
+  if measurement_operator is None:
+    measurement_operator = _identity
+
   def euler_step(i, x):
     dx_dt = f(x, i * dt)
-    return x + dt*dx_dt
+    x = variable_update_with_pml(x, dx_dt, alpha, dt)
+    samples = measurement_operator(x)
+    return x, samples
 
-  def euler_jump(x_t, i):
-    x = x_t[0]
-    start = x_t[1]
-    end = start + i
+  if checkpoint:
+    euler_step = jax.checkpoint(euler_step)
 
-    y = jax.lax.fori_loop(start, end, euler_step, x)
-    return (y, end), y
-
-  jumps = jnp.diff(output_steps)
-
-  _, ys = jax.lax.scan(euler_jump, (x0, 0.0), jumps)
+  _, ys = jax.lax.scan(euler_step, x0, output_steps)
   return _unroll(ys)
 
-def generalized_semi_implicit_euler(
+def semi_implicit_euler(
     f: Callable,
     g: Callable,
     measurement_operator: Callable,
@@ -173,65 +183,12 @@ def generalized_semi_implicit_euler(
     if measurement_operator is None:
         measurement_operator = _identity
 
-    if backprop:
-        return _generalized_semi_implicit_euler_with_vjp(
-            f,
-            g,
-            measurement_operator,
-            alpha,
-            x0,
-            y0,
-            dt,
-            output_steps,
-            checkpoint,
-        )
-    else:
-        return _generalized_semi_implicit_euler(
-            f, g, measurement_operator, alpha, x0, y0, dt, output_steps
-        )
-
-
-def variable_update_with_pml(x, dx_dt, k, dt):
-    x = k * (x * k + dt * dx_dt)
-    return x
-
-
-@partial(jit, static_argnums=(1, 2, 3))
-def _generalized_semi_implicit_euler(
-    f, g, measurement_operator, k, x0, y0, dt, output_steps
-):
-    def euler_step(i, conj_variables):
-        x, y = conj_variables
-        dx_dt = f(y, i * dt)
-        x = variable_update_with_pml(x, dx_dt, k, dt)
-        dy_dt = g(x, i * dt)
-        y = variable_update_with_pml(y, dy_dt, k, dt)
-        return (x, y)
-
-    def euler_jump(x_t, i):
-        x, start = x_t
-        end = start + i
-
-        y = jax.lax.fori_loop(
-            start, end, jax.named_call(euler_step, name="euler_step"), x
-        )
-        return (y, end), measurement_operator(y)
-
-    jumps = jnp.concatenate([jnp.diff(output_steps), jnp.array([1])])
-
-    _, ys = jax.lax.scan(euler_jump, ((x0, y0), 0.0), jumps)
-    return _unroll(ys)
-
-
-def _generalized_semi_implicit_euler_with_vjp(
-    params, f, g, measurement_operator, k, x0, y0, dt, output_steps, checkpoint
-):
     def step_without_measurements(carry, t):
         x, y = carry
-        dx_dt = f(params, y, t * dt)
-        x = variable_update_with_pml(x, dx_dt, k, dt)
-        dy_dt = g(params, x, t * dt)
-        y = variable_update_with_pml(y, dy_dt, k, dt)
+        dx_dt = f(y, t * dt)
+        x = variable_update_with_pml(x, dx_dt, alpha, dt)
+        dy_dt = g(x, t * dt)
+        y = variable_update_with_pml(y, dy_dt, alpha, dt)
         return (x, y)
 
     def single_step(carry, t):

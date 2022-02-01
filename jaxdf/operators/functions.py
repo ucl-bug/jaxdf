@@ -3,9 +3,10 @@ from jaxdf.discretization import *
 from jaxdf.discretization import OnGrid
 from jax import numpy as jnp
 
+
 ## compose
 @operator
-def compose(x: Continuous, params=Params):
+def compose(x: Continuous, params=None):
   get_x = x.aux['get_field']
   def decorator(fun):
     def new_fun(p, coord):
@@ -19,6 +20,13 @@ def compose(x: OnGrid, params=Params):
     return x.replace_params(fun(x.params))
   return decorator, None
 
+## shift_operator
+@operator
+def shift_operator(x: Continuous, dx: object, params=None):
+  get_x = x.aux['get_field']
+  def fun(p, coord):
+    return get_x(p, coord + dx)
+  return Continuous(x.params, x.domain, fun), None
 
 ## sum_over_dims
 @operator

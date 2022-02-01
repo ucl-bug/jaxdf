@@ -1,4 +1,5 @@
 
+from distutils.log import debug
 import inspect
 from functools import partial, wraps
 from typing import Callable
@@ -6,21 +7,29 @@ from typing import Callable
 from jax.tree_util import register_pytree_node, register_pytree_node_class, tree_map, tree_multimap
 from numpy import issubdtype
 
-from plum import dispatch
+from plum import Dispatcher
 from setuptools import setup
 
 from jaxdf import util
 
 Params = None
+_jaxdf_dispatch = Dispatcher()
+debug_config ={
+  "debug_dispatch": False,
+}
 
 def _operator(evaluate, precedence):
   @wraps(evaluate)
   def wrapper(*args, **kwargs): 
     field, op_params = evaluate(*args, **kwargs)
     field._op_params = op_params
+
+    if debug_config["debug_dispatch"]:
+      print(f"Dispatching {evaluate.__name__} with for types {evaluate.__annotations__}")
+
     return field
   
-  f = dispatch(wrapper, precedence=precedence)
+  f = _jaxdf_dispatch(wrapper, precedence=precedence)
   return f
 
 def operator(evaluate: Callable = None, precedence: int = 0):

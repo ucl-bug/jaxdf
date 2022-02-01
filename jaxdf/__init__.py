@@ -1,4 +1,4 @@
-from jaxdf.core import operator, Params
+from jaxdf.core import operator, Params, debug_config
 from jaxdf import util, geometry
 from jaxdf.discretization import *
 
