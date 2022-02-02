@@ -227,7 +227,7 @@ def params_map(
   Since a Field is a pytree, this is equivalent to (and implemented
   using) `jax.tree_util.tree_map`
   
-  Returns a field with the same time of `field`, with updated
+  Returns a field with the same type of `f`, with updated
   parameters
   
   Args:

@@ -7,6 +7,8 @@ from jax import numpy as jnp
 ## compose
 @operator
 def compose(x: Continuous, params=None):
+  r'''Applies function composition on the `get_fun` of the Continuous object.
+  '''
   get_x = x.aux['get_field']
   def decorator(fun):
     def new_fun(p, coord):
@@ -16,6 +18,19 @@ def compose(x: Continuous, params=None):
 
 @operator
 def compose(x: OnGrid, params=Params):
+  r'''Maps the given function over the pytree of parameters
+  of the `Field`.
+  
+  !!! example
+      ```python
+      x = OnGrid(params=-1.0, ...)
+      
+      # Applies the absolute value function to the parameters
+      y = compose(x)(jnp.abs)
+      
+      y.params # This is 1.0
+      ```
+  '''
   def decorator(fun):
     return x.replace_params(fun(x.params))
   return decorator, None
@@ -45,6 +60,8 @@ def sum_over_dims(x: OnGrid, params = None):
 if __name__ == '__main__':
   from jaxdf.util import _get_implemented
   
+  print(compose.__name__)
+  print(compose.__doc__)
   funcs = [
     compose, sum_over_dims
   ]

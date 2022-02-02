@@ -4,94 +4,79 @@
 
 The functions in this module override the corresponding magic methods of the `Field` class and derived classes.
 
-## Available Implementations
-
-```python
-magic.py:
-----------------
-__add__:
- ─ (x: OnGrid, y: object, params=None)
- ─ (x: Continuous, y: Continuous, params=None)
- ─ (x: Linear, y: Linear, params=None)
- ─ (x: Continuous, y: object, params=None)
-__bool__:
- ─ (x: OnGrid, params=None)
-__divmod__:
- ─ (x: OnGrid, y: OnGrid, params=None)
- ─ (x: Linear, y, params=None)
-__float__:
- ─ (x: OnGrid, params=None)
-__mul__:
- ─ (x: Continuous, y, params=None)
- ─ (x: Linear, y, params=None)
- ─ (x: Continuous, y: Continuous, params=None)
- ─ (x: OnGrid, y: OnGrid, params=None)
-__neg__:
- ─ (x: Linear, params=None)
- ─ (x: Continuous, params=None)
-__pow__:
- ─ (x: OnGrid, y: object, params=None)
- ─ (x: Continuous, y: Continuous, params=None)
- ─ (x: OnGrid, y: OnGrid, params=None)
- ─ (x: Continuous, y: object, params=None)
-__radd__:
- ─ (x: OnGrid, y: object, params=None)
- ─ (x: Continuous, y: object, params=None)
-__rmul__:
- ─ (x: jaxdf.core.Field, y: object, params=None)
-__rpow__:
- ─ (x: OnGrid, y: object, params=None)
-__rsub__:
- ─ (x: Linear, y: object, params=None)
-__rtruediv__:
- ─ (x: OnGrid, y: object, params=None)
- ─ (x: Continuous, y: object, params=None)
-__sub__:
- ─ (x: OnGrid, y: object, params=None)
- ─ (x: Linear, y: Linear, params=None)
-__truediv__:
- ─ (x: Linear, y, params=None)
- ─ (x: Continuous, y: Continuous, params=None)
- ─ (x: OnGrid, y: OnGrid, params=None)
- ─ (x: Continuous, y: object, params=None)
-inverse:
- ─ (x: OnGrid, params=None)
-```
-
-## Details of implementations
-
-
-
-
----
-
 ## `__add__`
 
-The `__add__` magic method is used to implement the `+` operator.
+Implements the `+` operator for fields.
 
-### `__add__(x: Linear, y: Linear, params=None)`
+{{ implementations('jaxdf.operators.magic', '__add__') }}
 
-Sums two `Linear` fields, returning a new `Linear` field where the `params` are
-the sum of the parameters of the two fields.
+## `__bool__`
 
-**Arguments**
+Implements the `bool()` operator for fields.
 
-| Name | Type | Description |
-| :--- | :--- | :--- |
-| `x` | `Linear` | The first field to be operated on |
-| `y` | `Linear` | The second field to be operated on |
-| `params` | `Optional[Dict[str, Any]]` | The parameters of the operator (unused) |
+## `__divmod__`
 
-Default parameters: `None`
+Implements the `divmod()` operator for fields, which for two fields $`u`$ and $`v`$ returns a pair of fields `(u // v, u % v)`.
 
-**Returns**
+{{ implementations('jaxdf.operators.magic', '__divmod__') }}
 
-| Name | Type | Description |
-| :--- | :--- | :--- |
-| `y` | `Linear` | The result of the operation |
 
-### `__add__(x: OnGrid, y: object, params=Params)`
+## `__float__`
 
-### ` __add__(x: Continuous, y: Continuous, params=Params)`
+Implements the `float()` operator for fields.
 
-### `__add__(x: Continuous, y: object, params=Params)`
+{{ implementations('jaxdf.operators.magic', '__float__') }}
+
+## `__mul__`
+
+Implements the `*` operator for fields.
+
+{{ implementations('jaxdf.operators.magic', '__mul__') }}
+
+## `__neg__`
+
+Given a field $`u`$, returns the field $`-u`$, using the syntax `-u`.
+
+{{ implementations('jaxdf.operators.magic', '__neg__') }}
+
+## `__pow__`
+
+Given a field $`u`$ and a generic $`c`$, returns the field $`u^c`$, using the syntax `u**c`.
+
+{{ implementations('jaxdf.operators.magic', '__pow__') }}
+
+## `__radd__`
+
+Implements the operation `x + u`, when `x` is **not** a field.
+
+{{ implementations('jaxdf.operators.magic', '__radd__') }}
+
+## `__rmul__`
+
+Implements the operation `x * u`, when `x` is **not** a field.
+
+{{ implementations('jaxdf.operators.magic', '__rmul__') }}
+
+## `__rsub__`
+
+Implements the operation `x - u`, when `x` is **not** a field.
+
+{{ implementations('jaxdf.operators.magic', '__rsub__') }}
+
+## `__rtruediv__`
+
+Implements the operation `x / u`, when `x` is **not** a field.
+
+{{ implementations('jaxdf.operators.magic', '__rtruediv__') }}
+
+## `__sub__`
+
+Implements the `-` operator for fields.
+
+{{ implementations('jaxdf.operators.magic', '__sub__') }}
+
+## `__truediv__`
+
+Implements the `/` operator for fields.
+
+{{ implementations('jaxdf.operators.magic', '__truediv__') }}
