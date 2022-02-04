@@ -9,7 +9,7 @@
 htmlcov
 .coverage
 
-# Build 
+# Build
 build
 dist
 
