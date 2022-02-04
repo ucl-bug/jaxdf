@@ -2,7 +2,7 @@
 
 ## `derivative`
 
-Given a field $`u`$, it returns the field 
+Given a field $`u`$, it returns the field
 
 ```math
 \frac{\partial}{\partial \epsilon} u, \qquad \epsilon \in \{x, y, \dots \}
@@ -18,7 +18,7 @@ Given a vector field $`u = (u_x,u_y,\dots)`$ with the same dimensions as the dim
 ```math
 \left( \frac{\partial u_x}{\partial x}, \frac{\partial u_y}{\partial y}, \dots \right)
 ```
-  
+
 {{ implementations('jaxdf.operators.differential', 'diag_jacobian') }}
 ## `gradient`
 

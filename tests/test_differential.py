@@ -1,10 +1,8 @@
-from re import A
-from jaxdf import *
-from jax import jit, make_jaxpr, grad
-from jax import numpy as jnp
-import inspect
 import jax
+from jax import jit, make_jaxpr
+from jax import numpy as jnp
 
+from jaxdf import *
 
 domain = geometry.Domain((8,8), (.5,.5))
 
@@ -31,19 +29,19 @@ def test_fourier_gradient():
   @jit
   def f(m):
     return operators.gradient(m)
-  
+
   _ = (f(m).params[...,0])
   _ = (f(m).params[...,1])
-  
+
   _ = (f(a))
   _ = (make_jaxpr(f)(a))
   _ = (make_jaxpr(f)(m))
-  
+
   op_params = operators.gradient(m)._op_params
   _ = ('op_params', op_params)
   z = operators.gradient(m, params=op_params)
   _ = (z.params[...,0])
-  
+
 def test_fourier_laplacian():
   _ = (m.params[...,0])
   z = operators.laplacian(m)
@@ -52,33 +50,33 @@ def test_fourier_laplacian():
   @jit
   def f(m):
     return operators.laplacian(m)
-  
+
   _ = (f(m).params[...,0])
-  
+
   op_params = operators.laplacian(m)._op_params
   _ = ('op_params', op_params)
   z = operators.laplacian(m, params=op_params)
   _ = (z.params[...,0])
-  
+
   @jit
   def f(m, op_params):
     return operators.laplacian(m, params=op_params)
   _ = (f(m, op_params).params[...,0])
-  
-  
+
+
 def test_continous_gradient():
   x = jnp.asarray([1.])
   z = operators.gradient(a)
   _ = (z)
   _ = (a.get_field(x), z.get_field(x))
-  
+
   @jit
   def f(a, op_params):
     return operators.gradient(a, params=op_params)
-  
+
   op_params = operators.gradient(a)._op_params
   _ = (f(a, op_params).params)
-  
+
 
 def test_continuous_laplacian():
   x = jnp.asarray([1.])
@@ -86,20 +84,20 @@ def test_continuous_laplacian():
   _ = (z)
   _ = (a.get_field(x), z.get_field(x))
   print(_)
-  
+
   @jit
   def f(a, op_params):
     return operators.laplacian(a, params=op_params)
-  
+
   op_params = operators.laplacian(a)._op_params
   _ = (f(a, op_params).params)
-  
-  
+
+
 def test_jit_continous_gradient():
   @jit
   def f(m, op_params):
     return operators.gradient(m, params=op_params)
-  
+
   op_params = operators.gradient(m)._op_params
   _ = (f(m, op_params).params[...,0])
 
@@ -107,7 +105,7 @@ def test_jit_continous_gradient():
   _ = (f(a, op_params_a).params)
   _ = (make_jaxpr(f)(a, op_params_a))
   _ = (make_jaxpr(f)(m, op_params))
-  
+
 if __name__ == '__main__':
   with jax.checking_leaks():
     test_fourier_laplacian()

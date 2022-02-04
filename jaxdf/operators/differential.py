@@ -1,8 +1,9 @@
-from jaxdf.core import operator, Params, params_map
-from jaxdf.discretization import *
-from jax import numpy as jnp
 import jax
+from jax import numpy as jnp
 from jax import scipy as jsp
+
+from jaxdf.core import operator
+from jaxdf.discretization import *
 
 
 def _get_ffts(x):
@@ -11,7 +12,7 @@ def _get_ffts(x):
   else:
     ffts = [jnp.fft.fft, jnp.fft.ifft]
   return ffts
-  
+
 ## derivative
 @operator
 def derivative(x: Continuous, axis=0, params=None):
@@ -23,7 +24,7 @@ def derivative(x: Continuous, axis=0, params=None):
 
 ## gradient
 @operator
-def gradient(x: Continuous, params=Params):
+def gradient(x: Continuous, params=None):
   get_x = x.aux['get_field']
   def grad_fun(p, coords):
     f_jac = jax.jacfwd(get_x, argnums=(1,))
@@ -36,7 +37,7 @@ def _convolve_kernel(x, kernel):
   extra_pad = (len(kernel) // 2, len(kernel) // 2)
   for ax in range(x.ndim-1):
     kernel = jnp.expand_dims(kernel, axis=0)  # Kernel on the last axis
-  
+
   # Convolve in each dimension
   outs = []
   img = x.params[...,0]
@@ -49,7 +50,7 @@ def _convolve_kernel(x, kernel):
 
     out = jsp.signal.convolve(f, k, mode="valid")*x.domain.dx[i]
     outs.append(out)
-  
+
   new_params = jnp.expand_dims(sum(outs), -1)
   return new_params
 
@@ -73,11 +74,11 @@ def gradient(x: FiniteDifferences, params=None, accuracy=4):
       ]
     }
     params = {"gradient_kernel": jnp.asarray(coeffs[accuracy])}
-  
+
   kernel = params["gradient_kernel"]
   new_params = _convolve_kernel(x, kernel)
   return FiniteDifferences(new_params, x.domain), params
-    
+
 @operator
 def gradient(x: FourierSeries, params=None):
   if params == None:
@@ -90,7 +91,7 @@ def gradient(x: FourierSeries, params=None):
     ffts = [jnp.fft.fft, jnp.fft.ifft]
   k_vec = params['k_vec']
   u = x.params[...,0]
-  
+
   def single_grad(axis, u):
     u = jnp.moveaxis(u, axis, -1)
     Fx = ffts[0](u, axis=-1)
@@ -114,10 +115,10 @@ def diag_jacobian(x: Continuous, params=None):
 def diag_jacobian(x: FourierSeries, params=None):
   if params == None:
     params = {'k_vec': x._freq_axis}
-  
+
   ffts = _get_ffts(x)
   k_vec = params["k_vec"]
-  
+
   new_params = jnp.zeros_like(x.params)
 
   def single_grad(axis, u):
@@ -147,11 +148,11 @@ def laplacian(x: FourierSeries, params=None):
   if params == None:
     params = {'k_vec': x._freq_axis}
   assert x.dims == 1 # Laplacian only defined for scalar fields
-  
+
   ffts = _get_ffts(x)
   k_vec = params["k_vec"]
   u = x.params[...,0]
-  
+
   def single_grad(axis, u):
     u = jnp.moveaxis(u, axis, -1)
     Fx = ffts[0](u, axis=-1)
@@ -183,7 +184,7 @@ def laplacian(x: FiniteDifferences, params=None, accuracy=4):
 
 if __name__ == '__main__':
   from jaxdf.util import _get_implemented
-  
+
   funcs = [
     derivative, diag_jacobian, gradient, laplacian,
   ]

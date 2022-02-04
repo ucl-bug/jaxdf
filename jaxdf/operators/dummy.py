@@ -1,18 +1,17 @@
-from jaxdf.core import operator, Params
+from jaxdf.core import operator
 from jaxdf.discretization import *
-from jax import jit
 
 
 @operator
-def dummy(x: OnGrid, params=Params):
+def dummy(x: OnGrid, params=None):
   r'''A dummy operator that is useful for debugging.'''
-  if params == Params:
+  if params is None:
     params = {"k": 3}
   return params["k"]*x, params
 
 @operator
-def dummy(x: Continuous, params=Params):
-  if params == Params:
+def dummy(x: Continuous, params=None):
+  if params is None:
     params = {"k": 3}
   get_x = x.aux['get_field']
   def get_fun(p__par, coords):

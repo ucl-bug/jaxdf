@@ -1,8 +1,8 @@
-from jaxdf import *
-from jax import jit, make_jaxpr
-import inspect
-import numpy as np
 import jax
+import numpy as np
+from jax import jit
+
+from jaxdf import *
 
 ATOL=1e-6
 
@@ -22,16 +22,16 @@ def test_add():
   z = x + y
   assert z.params == 3.0
   assert type(z) == OnGrid
-  
+
   z = x + 5.
   assert z.params == 6.0
-  
+
 def test_add_continuous():
   z = a + b
   z_val = z.get_field(domain.origin + 1)
   print(z_val)
   assert np.allclose(z_val, [22.])
-  
+
 def test_jit_continuous():
   @jit
   def f(a, b):
@@ -43,12 +43,12 @@ def test_sub():
   z = x - y
   assert z.params == -1.0
   assert type(z) == OnGrid
-  
+
   z = x - 2.0
   assert z.params == -1.0
 
 def test_jit():
-  
+
   @jit
   def prod(x, y):
     return x + y
@@ -58,12 +58,12 @@ def test_jit_with_float():
   @jit
   def add(x, y):
     return x + y * 10
-  
+
   _ = add(x,y)
   _ = add(x, 6.0)
   _ = add(-5.0, x)
   _ = add(a,b)
-    
+
 if __name__ == '__main__':
   with jax.checking_leaks():
     test_add()

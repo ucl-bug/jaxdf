@@ -1,9 +1,9 @@
+from functools import reduce
+from typing import Iterable, NamedTuple
+
+import jax
 from jax import numpy as jnp
 from jax import random
-import jax
-from functools import reduce
-from typing import NamedTuple, Tuple
-from enum import IntEnum
 
 
 class Domain(NamedTuple):
@@ -13,8 +13,8 @@ class Domain(NamedTuple):
         size (Tuple[int]): The size of the domain in absolute units.
         dx (Tuple(float)): The unit of measure
     """
-    N: Tuple[int] = (32,32)
-    dx: Tuple[float] = (1., 1.)
+    N: Iterable[int] = (32,32)
+    dx: Iterable[float] = (1., 1.)
 
     @property
     def size(self):

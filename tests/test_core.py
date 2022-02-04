@@ -1,9 +1,9 @@
-from jaxdf import *
-from jax import jit, make_jaxpr
-import inspect
-import numpy as np
-from jax import numpy as jnp
 import jax
+import numpy as np
+from jax import jit, make_jaxpr
+from jax import numpy as jnp
+
+from jaxdf import *
 
 ATOL=1e-6
 
@@ -22,36 +22,36 @@ b = Continuous(6.0, domain, f)
 def test_override_operator():
   z = operators.compose(x)(jnp.exp)
   assert z.params == jnp.exp(1.0)
-  
+
   @operator
-  def compose(x: OnGrid, params=Params):
+  def compose(x: OnGrid, params=None):
     def decorator(fun):
       return x.replace_params(fun(x.params) + 100)
     return decorator, None
-  
+
   z = operators.compose(x)(jnp.exp)
   assert z.params == jnp.exp(1.0) + 100
-  
+
 def test_jit_get_field():
   @jit
   def f(x):
     q = x + 2
     return q.get_field(domain.origin)
-  
+
   z = f(a)
   assert np.allclose(z, [2.])
-    
+
 def test_call_field():
   z = a(domain.origin)
-  
+
   @jit
   def f(u):
     return u(domain.origin)
-  
+
   _ = f(a)
   print(make_jaxpr(f)(a))
-  
-  
+
+
 if __name__ == '__main__':
   with jax.checking_leaks():
     test_call_field()

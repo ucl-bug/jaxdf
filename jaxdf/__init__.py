@@ -1,7 +1,8 @@
-from jaxdf.core import operator, Params, debug_config
-from jaxdf import util, geometry
-from jaxdf.discretization import *
+# nopycln: file
+from jaxdf.core import operator, debug_config   # isort:skip
+from jaxdf import util, geometry                        # isort:skip
+from jaxdf.discretization import *                      # isort:skip
 
 # Must be imported after discretization
-from jaxdf.operators.magic import *
-from jaxdf import operators
+from jaxdf.operators.magic import *                     # isort:skip
+from jaxdf import operators                             # isort:skip

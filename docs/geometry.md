@@ -1,5 +1,3 @@
-# `jaxdf.geometry`
-
 ::: jaxdf.geometry
     handler: python
     selection:
@@ -7,6 +5,6 @@
             - "!^_"
             - "__init__$"
     rendering:
-        show_root_heading: false
+        show_root_heading: true
         show_source: false
         show_object_full_path: True

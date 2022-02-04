@@ -1,9 +1,9 @@
-import jax.numpy as jnp
-from jax import jit
-from functools import partial
-import jax
 from typing import Callable
+
+import jax
+import jax.numpy as jnp
 from jax.tree_util import tree_map
+
 
 def _unroll(x):
   return tree_map(lambda leave: [leave.replace_params(y) for y in leave.params], x)
@@ -16,12 +16,12 @@ def variable_update_with_pml(x, dx_dt, k, dt):
     return x
 
 def euler_integration(
-  f, 
-  x0, 
+  f,
+  x0,
   dt,
   output_steps,
   measurement_operator=None,
-  alpha=1.0, 
+  alpha=1.0,
   checkpoint=True,
 ):
   r"""Integrates the differential equation
@@ -103,10 +103,10 @@ def semi_implicit_euler(
     r"""This functions works in the same way as the
     [`semi_implicit_euler`](#jaxdf.ode.semi_implicit_euler) integrator,
     with the difference that the update function accepts an extra
-    parameter $`\alpha`$ with the same pytree-structure as $`x`$ and 
-    $`y`$. 
+    parameter $`\alpha`$ with the same pytree-structure as $`x`$ and
+    $`y`$.
 
-    Variable update is performed as 
+    Variable update is performed as
     ```math
     \begin{dcases}
         x^{(n+1)} &= \alpha\left[\alpha x^{(n)}   + f\left(y^{(n)}, t^{(n)}\right)dt\cdot\right] \\
@@ -117,29 +117,29 @@ def semi_implicit_euler(
 
     $`M(x,y)`$ is an arbitrary measurement operator that is applied at
     the end of each timestep, for example it could evaluate the pressure intensity
-    or the field value at some specific locations. If `None`, defaults to the identity 
-    operator. 
-    The vector of measurements $`r`$=`r` is returned. 
+    or the field value at some specific locations. If `None`, defaults to the identity
+    operator.
+    The vector of measurements $`r`$=`r` is returned.
 
     !!! warning
         Calling this method with `backprop=True` allows to perform backpropagation.
         However, this requires storing the entire forward pass history and is therefore
         memory demanding. Alternatively, `backprop=False` allows to calculate
         derivatives using forward-propagation, or jacobian-vector products
-        with memory cost independent of the simulation length. 
+        with memory cost independent of the simulation length.
         Combined with `jax.vmap` or `jax.jaxfwd`, this makes easy to calculate
-        gradients for functions that have tall jacobians, such as simulations 
-        that depends on a small amount of parameters (e.g. delays, steering angle, 
+        gradients for functions that have tall jacobians, such as simulations
+        that depends on a small amount of parameters (e.g. delays, steering angle,
         etc)
 
     Args:
-        f (Callable): 
-        g (Callable): 
-        alpha (jnp.ndarray): 
-        x0 (jnp.ndarray): 
-        y0 (jnp.ndarray): 
+        f (Callable):
+        g (Callable):
+        alpha (jnp.ndarray):
+        x0 (jnp.ndarray):
+        y0 (jnp.ndarray):
         dt (float): [description]
-        output_steps (jnp.ndarray): 
+        output_steps (jnp.ndarray):
         measurement_operator ([type], optional): Defaults to `None`
         backprop (bool, optional): If true, the `vjp` operator can be evaluated, but requires
             a much larger memory footprint (all forward fields must be stored)
@@ -165,9 +165,9 @@ def semi_implicit_euler(
 
         # Integrate
         trajectory , _ = generalized_semi_implicit_euler(
-            f = f_1, 
-            g = f_2, 
-            measurement_operator = M, 
+            f = f_1,
+            g = f_2,
+            measurement_operator = M,
             alpha=0.0,
             x0 = p0,
             y0 = v0,

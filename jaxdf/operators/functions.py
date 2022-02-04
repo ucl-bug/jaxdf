@@ -1,7 +1,8 @@
-from jaxdf.core import operator, Params, params_map
+from jax import numpy as jnp
+
+from jaxdf.core import operator
 from jaxdf.discretization import *
 from jaxdf.discretization import OnGrid
-from jax import numpy as jnp
 
 
 ## compose
@@ -17,22 +18,35 @@ def compose(x: Continuous, params=None):
   return decorator, None
 
 @operator
-def compose(x: OnGrid, params=Params):
+def compose(x: OnGrid, params=None):
   r'''Maps the given function over the pytree of parameters
   of the `Field`.
-  
+
   !!! example
       ```python
       x = OnGrid(params=-1.0, ...)
-      
+
       # Applies the absolute value function to the parameters
       y = compose(x)(jnp.abs)
-      
+
       y.params # This is 1.0
       ```
   '''
   def decorator(fun):
     return x.replace_params(fun(x.params))
+  return decorator, None
+
+@operator
+def compose(x: object, params=None):
+  r'''For non-field objects, the composition is simply the
+  application of the `jax` function to the input.
+
+  ```
+  compose(x)(fun) == fun(x)
+  ```
+  '''
+  def decorator(fun):
+      return fun(x)
   return decorator, None
 
 ## shift_operator
@@ -59,7 +73,7 @@ def sum_over_dims(x: OnGrid, params = None):
 
 if __name__ == '__main__':
   from jaxdf.util import _get_implemented
-  
+
   print(compose.__name__)
   print(compose.__doc__)
   funcs = [

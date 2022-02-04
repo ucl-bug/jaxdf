@@ -1,10 +1,10 @@
 def update_dictionary(old: dict, new_entries: dict):
   r'''Update a dictionary with new entries.
-  
+
   Args:
     old (dict): The dictionary to update
     new_entries (dict): The new entries to add to the dictionary
-    
+
   Returns:
     dict: The updated dictionary
   '''
@@ -12,16 +12,36 @@ def update_dictionary(old: dict, new_entries: dict):
     old[key] = val
   return old
 
-def _get_implemented(f):  
+def _get_implemented(f):
+  r'''Prints the implemented methods of a function. For internal use.
+
+  Arguments:
+    f (function): The function to get the implemented methods of.
+
+  Returns:
+    None
+
+  !!! example
+      ```python
+      >>> from jaxdf.operators.magic import __add__
+      >>> jaxdf.util._get_implemented(__add__)
+      __add__:
+      ─ (x: Continuous, y: object, params=None)
+      ─ (x: OnGrid, y: object, params=None)
+      ─ (x: Linear, y: Linear, params=None)
+      ─ (x: Continuous, y: Continuous, params=None)
+      ```
+  '''
   from inspect import signature
+
   # TODO: Why there are more instances for the same types?
-  
+
   print(f.__name__ + ':')
   instances = []
   a = f.methods.values()
   for f_instance in a:
     instances.append(signature(f_instance[0]).__repr__()[11:-1])
-  
+
   instances = set(instances)
   for instance in instances:
     # if `self` is in the signature, skip

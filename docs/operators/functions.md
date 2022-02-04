@@ -33,5 +33,5 @@ Reduces a vector field $`u = (u_x, u_y, \dots)`$ to a scalar field by summing ov
 ```math
 v = \sum_{i \in \{x,y,\dots\}} u_i
 ```
-  
+
 {{ implementations('jaxdf.operators.functions', function='sum_over_dims') }}

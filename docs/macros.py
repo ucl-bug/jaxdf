@@ -1,35 +1,34 @@
-from resource import struct_rusage
-from sys import implementation
-from plum.function import Function
 import inspect
-from importlib import import_module
+
+from plum.function import Function
 from pygments import highlight
-from pygments.lexers import PythonLexer
 from pygments.formatters import HtmlFormatter
+from pygments.lexers import PythonLexer
+
 
 class Implementation(object):
   def __init__(self, name, params, docs):
     self.name = name
     self.params = params
     self.docs = docs
-  
+
   def __str__(self):
     return self.__repr__()
-  
+
   def __repr__(self):
     string = self._signature
     string += '\n\n'
     string += self.docs if self.docs else ''
     string += '\n'
     return string
-    
+
   @staticmethod
   def param_to_string(names, types, defaults):
     namestring = f'{names}'
     typestring = ': '+str(types.__name__) if types != inspect._empty else ''
     defaultstring = f' = {defaults}' if defaults != inspect._empty else ''
     return namestring + typestring + defaultstring
-  
+
   @property
   def _signature(self):
     string =  f'{self.name}('
@@ -42,7 +41,7 @@ class Implementation(object):
       counter += 1
     string += ')'
     string = highlight(string, PythonLexer(), HtmlFormatter())
-    
+
 
     # Change outer <div> form class "highlight" to class "highlight language-python
     string = string.replace('<div class="highlight">', '<code class="highlight language-python">')
@@ -50,7 +49,7 @@ class Implementation(object):
     string = string.replace('<pre>', '').replace('</pre>', '')
     # Update <div> closing tag
     string = string.replace('</div>', '</code>')
-    
+
     # Wrap around various containers
     string = '<h3 class="doc doc-heading operator-implementation">' + string + '</h3>'
 
@@ -59,14 +58,14 @@ class Implementation(object):
 def _extract_implementations(plum_func):
   name, function = plum_func
   implementations = []
-  
+
   for signature, method in zip(function.methods.keys(), function.methods.values()):
     method = method[0].__wrapped__
     params = inspect.signature(method).parameters
     docs = inspect.getdoc(method)
 
     implementations.append(Implementation(name, params, docs))
-  
+
   # Remove implementations with the same _signature
   # TODO: Understand why those duplicates exist at all..
   impl = {}
@@ -74,14 +73,14 @@ def _extract_implementations(plum_func):
     signature = i._signature
     if signature not in impl.keys():
       impl[signature] = i
-  
+
   # Sort dictionary by key
-  impl = {k: v for k, v in sorted(impl.items(), key=lambda item: item[0])}    
-  
+  impl = {k: v for k, v in sorted(impl.items(), key=lambda item: item[0])}
+
   implementations = list(impl.values())
   return implementations
-    
-    
+
+
 def mod_to_string(module_name, function=None):
   module_chain = module_name.split('.')
   mod, submodules = module_chain[0], module_chain[1:]
@@ -90,21 +89,21 @@ def mod_to_string(module_name, function=None):
   for att in submodules:
     mod = getattr(mod, att)
   operators = set(inspect.getmembers(mod, lambda x: isinstance(x, Function)))
-  
+
   if function is not None:
     # Keep only the operators whose first element is the same as the function
     operators = [op for op in operators if op[0] == function]
-  
+
   # Sort operators by name
   def keyfun(op):
     func = op[1].methods
     func = func[func.keys()[0]][0].__wrapped__.__name__
     return func
-  
+
   operators = [v for v in sorted(operators, key=lambda item: item[0])]
-  
+
   implementations = list(map(_extract_implementations, operators))
-  
+
   # Concatenate all implementations into a string
   text = ''
   for fun in implementations:
@@ -130,10 +129,6 @@ def define_env(env):
     @env.macro
     def implementations(module: str, function=None):
       return mod_to_string(module, function)
-    
-    @env.macro
-    def bar(x):
-        return (2.3 * x) + 7
 
 if __name__ == '__main__':
   _ = mod_to_string('jaxdf.operators.functions')
