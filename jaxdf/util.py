@@ -1,3 +1,9 @@
+from jax.numpy import expand_dims, ndarray
+
+
+def append_dimension(x: ndarray):
+  return expand_dims(x, -1)
+
 def update_dictionary(old: dict, new_entries: dict):
   r'''Update a dictionary with new entries.
 

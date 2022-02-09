@@ -115,6 +115,10 @@ class Field(object):
     aux_data = (self.dims, self.domain, self.aux)
     return (children, aux_data)
 
+  @property
+  def ndim(self):
+    return self.domain.ndim
+
   @classmethod
   def tree_unflatten(cls, aux_data, children):
     params = children[0]

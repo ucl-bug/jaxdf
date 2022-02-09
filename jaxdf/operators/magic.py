@@ -52,13 +52,6 @@ def __divmod__(x: Linear, y, params=None):
   return x.replace_params(new_params), None
 
 
-## __float__
-@operator
-def __float__(x: OnGrid, params=None):
-  new_params = params_map(lambda x: float(x), x.params)
-  return x.replace_params(new_params), None
-
-
 ## __mul__
 @operator
 def __mul__(x: OnGrid, y: OnGrid, params=None):

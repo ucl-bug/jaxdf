@@ -49,6 +49,12 @@ def compose(x: object, params=None):
       return fun(x)
   return decorator, None
 
+## get_component
+def get_component(x: OnGrid, dim: int):
+  new_params = jnp.expand_dims(x.params[..., dim], axis=-1)
+  return x.replace_params(new_params)
+
+
 ## shift_operator
 @operator
 def shift_operator(x: Continuous, dx: object, params=None):

@@ -21,12 +21,6 @@ Implements the `divmod()` operator for fields, which for two fields $`u`$ and $`
 {{ implementations('jaxdf.operators.magic', '__divmod__') }}
 
 
-## `__float__`
-
-Implements the `float()` operator for fields.
-
-{{ implementations('jaxdf.operators.magic', '__float__') }}
-
 ## `__mul__`
 
 Implements the `*` operator for fields.
