@@ -188,6 +188,15 @@ class OnGrid(Linear):
     a = cls(params, domain=domain)
     return a
 
+  def __getitem__(self, idx):
+    r'''Allow indexing when leading batch / time dimensions are
+    present in the parameters'''
+    if self.ndim + 1 == len(self.params.shape):
+      raise ValueError("Indexing is only supported if there's at least one batch / time dimension")
+
+    new_params = self.params[idx]
+    return self.__class__(new_params, self.domain)
+
   def __repr__(self):
     dims = self.dims
     size = self.domain.N
@@ -198,11 +207,6 @@ class OnGrid(Linear):
     r'''Creates an empty OnGrid field (zero field).'''
     N = tuple(list(domain.N) + [dims,])
     return cls(jnp.zeros(N), domain)
-
-  @property
-  def ndim(self):
-    r'''The number of dimensions of the field.'''
-    return len(self.params.shape) - 1
 
   @property
   def is_field_complex(self):
