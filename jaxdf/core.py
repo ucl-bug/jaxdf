@@ -16,8 +16,13 @@ debug_config ={
 def _operator(evaluate, precedence):
   @wraps(evaluate)
   def wrapper(*args, **kwargs):
-    field, op_params = evaluate(*args, **kwargs)
-    field._op_params = op_params
+    outs = evaluate(*args, **kwargs)
+    if isinstance(outs, tuple) and len(outs) > 1:
+      # Overload the field class with an extra attribute
+      field = outs[0]
+      field._op_params = outs[1]
+    else:
+      field = outs
 
     if debug_config["debug_dispatch"]:
       print(f"Dispatching {evaluate.__name__} with for types {evaluate.__annotations__}")
@@ -66,6 +71,7 @@ def operator(evaluate: Callable = None, precedence: int = 0):
     return decorator
   else:
     return _operator(evaluate, precedence)
+
 
 def new_discretization(cls):
   r'''Wrapper around `jax.tree_util.register_pytree_node_class` that can
