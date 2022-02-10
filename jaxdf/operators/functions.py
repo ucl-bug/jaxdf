@@ -49,6 +49,22 @@ def compose(x: object, params=None):
       return fun(x)
   return decorator, None
 
+
+@operator
+def functional(x: object):
+  r'''Maps a field to a scalar value.'''
+  def decorator(fun):
+    return fun(x)
+  return decorator
+
+@operator
+def functional(x: OnGrid):
+  r'''Maps a field to a scalar value.'''
+  def decorator(fun):
+    return fun(x.params)
+  return decorator
+
+
 ## get_component
 def get_component(x: OnGrid, dim: int):
   new_params = jnp.expand_dims(x.params[..., dim], axis=-1)
@@ -62,6 +78,7 @@ def shift_operator(x: Continuous, dx: object, params=None):
   def fun(p, coord):
     return get_x(p, coord + dx)
   return Continuous(x.params, x.domain, fun), None
+
 
 ## sum_over_dims
 @operator
