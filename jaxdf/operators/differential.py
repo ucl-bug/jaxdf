@@ -1,4 +1,5 @@
 import jax
+from findiff import coefficients as findif_coeff
 from jax import numpy as jnp
 from jax import scipy as jsp
 
@@ -48,34 +49,35 @@ def _convolve_kernel(x, kernel):
     pad[i] = extra_pad
     f = jnp.pad(img, pad, mode="constant")
 
-    out = jsp.signal.convolve(f, k, mode="valid")*x.domain.dx[i]
+    out = jsp.signal.convolve(f, k, mode="valid")/x.domain.dx[i]
     outs.append(out)
 
-  new_params = jnp.expand_dims(sum(outs), -1)
+  new_params = jnp.stack(outs, -1)
   return new_params
 
-@operator
-def gradient(x: FiniteDifferences, params=None, accuracy=4):
-  if params is None:
-    coeffs = {
-      2: [-0.5, 0, 0.5],
-      4: [-1 / 12, 2 / 3, 0, -2 / 3, 1 / 12],
-      6: [-1 / 60, 3 / 20, -3 / 4, 0, 3 / 4, -3 / 20, 1 / 60],
-      8: [
-          1 / 280,
-          -4 / 105,
-          1 / 5,
-          -4 / 5,
-          0,
-          4 / 5,
-          -1 / 5,
-          4 / 105,
-          -1 / 280,
-      ]
-    }
-    params = {"gradient_kernel": jnp.asarray(coeffs[accuracy])}
+def _fd_coefficients(
+  order: int = 1,
+  accuracy: int = 2,
+  staggered: str = 'center'
+):
+  fd_kernel = findif_coeff(order, accuracy)[staggered]
+  coeffs = fd_kernel['coefficients'].tolist()
+  offsets = fd_kernel['offsets']
 
-  kernel = params["gradient_kernel"]
+  # Add zeros if needed, to make it work with padding
+  if staggered == 'forward':
+    coeffs = [0.,]*offsets[-1] + coeffs
+  elif staggered == 'backward':
+    coeffs = coeffs + [0.,]*(-offsets[0])
+
+  return jnp.asarray(coeffs)
+
+@operator
+def gradient(x: FiniteDifferences, params=None, accuracy=2, staggered='center'):
+  if params is None:
+    params = _fd_coefficients(1, accuracy, staggered)
+
+  kernel = params
   new_params = _convolve_kernel(x, kernel)
   return FiniteDifferences(new_params, x.domain), params
 
@@ -110,6 +112,34 @@ def diag_jacobian(x: Continuous, params=None):
     f_jac = jax.jacfwd(get_x, argnums=(1,))
     return jnp.diag(f_jac(p, coords)[0])
   return x.update_fun_and_params(x.params, diag_fun), None
+
+@operator
+def diag_jacobian(x: FiniteDifferences, params=None, accuracy=2, staggered='center'):
+  if params is None:
+    params = _fd_coefficients(1, accuracy, staggered)
+
+  outs = []
+  img = x.params
+  kernel = params
+
+  # Make kernel the right size
+  extra_pad = (len(kernel) // 2, len(kernel) // 2)
+  for ax in range(x.ndim-1):
+    kernel = jnp.expand_dims(kernel, axis=0)  # Kernel on the last axis
+
+  for ax in range(x.ndim):
+    img_shifted = jnp.moveaxis(img[...,ax], ax, -1)
+    pad = [(0, 0)] * x.ndim
+    pad[-1] = extra_pad
+    f = jnp.pad(img_shifted, pad, mode="constant")
+    out = jsp.signal.convolve(f, kernel, mode="valid")/x.domain.dx[ax]
+    out = jnp.moveaxis(out, -1, ax)
+    outs.append(out)
+
+  outs = jnp.stack(outs, axis=-1)
+
+  return FiniteDifferences(outs, x.domain), params
+
 
 @operator
 def diag_jacobian(x: FourierSeries, params=None):

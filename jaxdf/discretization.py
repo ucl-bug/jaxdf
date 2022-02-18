@@ -173,8 +173,12 @@ class OnGrid(Linear):
     Returns:
       OnGrid: A linear discretization on the grid points of the domain.
     '''
-    dims = params.shape[-1]
-    super().__init__(params, domain, dims, None)
+    self.params = params
+    self.domain = domain
+
+  @property
+  def dims(self):
+    return self.params.shape[-1]
 
   def tree_flatten(self):
     children = (self.params,)
