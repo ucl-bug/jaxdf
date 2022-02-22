@@ -174,6 +174,14 @@ def __sub__(x: OnGrid, y: object, params=None):
   new_params = params_map(lambda x: x-y, x.params)
   return x.replace_params(new_params), None
 
+@operator
+def __sub__(x: Continuous, y: Continuous, params=None):
+  get_x = x.aux['get_field']
+  get_y = y.aux['get_field']
+  def get_fun(p, coords):
+    return get_x(p[0], coords) - get_y(p[1], coords)
+  return Continuous([x.params, y.params], x.domain, get_fun), None
+
 ## __truediv__
 @operator
 def __truediv__(x: Continuous, y: Continuous, params=None):
