@@ -32,18 +32,6 @@ help:             ## Show the help.
 	@echo "Targets:"
 	@fgrep "##" Makefile | fgrep -v fgrep
 
-.PHONY: install
-install:          ## Install the project in dev mode.
-	@echo "Don't forget to run 'make virtualenv' if you got errors."
-	@echo ""
-	$(ENV_PREFIX)python -c "import jax"
-	if [ $? -eq 0 ]; then
-		$(ENV_PREFIX)pip install -e .[test]
-	else
-		echo "jax is not installed, please install it first from https://github.com/google/jax#installation"
-		exit 1
-	fi
-
 .PHONY: jaxgpu
 jaxgpu:           ## Installs jax for *nix systems with CUDA
 	@echo "Installing jax..."

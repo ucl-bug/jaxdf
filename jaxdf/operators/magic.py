@@ -218,7 +218,7 @@ if __name__ == '__main__':
   from jaxdf.util import _get_implemented
 
   magic = [
-    __add__, __bool__, __divmod__, __float__,
+    __add__, __bool__, __divmod__,
     __mul__, __neg__, __pow__, __radd__,
     __rmul__, __rpow__, __rsub__, __rtruediv__,
     __sub__, __truediv__, inverse
