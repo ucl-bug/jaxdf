@@ -18,53 +18,44 @@
 
 jaxdf is a [JAX](https://jax.readthedocs.io/en/stable/)-based package defining a coding framework for writing differentiable numerical simulators with arbitrary discretizations.
 
-The intended use is to build numerical models of physical systems, such as wave propagation, or the numerical solution of partial differential equations, that are easy to customize to the user's research needs. Such models are pure functions that can be included into arbitray differentiable programs written in [JAX](https://jax.readthedocs.io/en/stable/). For example, they can be used as layers of neural networks, or to build a physics loss function.
+The intended use is to build numerical models of physical systems, such as wave propagation, or the numerical solution of partial differential equations, that are easy to customize to the user's research needs. Such models are pure functions that can be included into arbitray differentiable programs written in [JAX](https://jax.readthedocs.io/en/stable/): for example, they can be used as layers of neural networks, or to build a physics loss function.
 
 <br/>
 
 ## Example
 
-The following script builds the non-linear operator **(∇<sup>2</sup> + sin)**, using a Fourier spectral discretization on a square 2D domain. The output is given over the whole collocation grid.
+The following script builds the non-linear operator **(∇<sup>2</sup> + sin)**, using a Fourier spectral discretization on a square 2D domain, and uses it to define a loss function whose gradient is evaluated using JAX Automatic Differentiation.
 
 
 ```python
 from jaxdf import operators as jops
-from jaxdf.core import operator
+from jaxdf import FourierSeries, operator
 from jaxdf.geometry import Domain
 from jax import numpy as jnp
 from jax import jit, grad
 
+
 # Defining operator
-@operator()
+@operator
 def custom_op(u):
-    grad_u = jops.gradient(u)
-    diag_jacobian = jops.diag_jacobian(grad_u)
-    laplacian = jops.sum_over_dims(mod_diag_jacobian)
-    sin_u = jops.elementwise(jnp.sin)(u)
-    return laplacian + sin_u
+  grad_u = jops.gradient(u)
+  diag_jacobian = jops.diag_jacobian(grad_u)
+  laplacian = jops.sum_over_dims(diag_jacobian)
+  sin_u = jops.compose(u)(jnp.sin)
+  return laplacian + sin_u
 
 # Defining discretizations
-domain = Domain((256, 256), (1., 1.))
-fourier_discr = FourierSeries(domain)
-u_fourier_params, u = fourier_discr.empty_field(name='u')
-
-# Discretizing operators: getting pure functions and parameters
-result = custom_op(u=u)
-op_on_grid = result.get_field_on_grid(0)
-global_params = result.get_global_params() # This contains the Fourier filters
-
-# Compile and use the pure function
-result_on_grid = jit(op_on_grid)(
-    global_params,
-    {"u": u_fourier_params}
-)
+domain = Domain((128, 128), (1., 1.))
+parameters = jnp.ones((128,128,1))
+u = FourierSeries(parameters, domain)
 
 # Define a differentiable loss function
-def loss(u_params):
-    op_output = jit(op_on_grid)(global_params, {"u": u_params})
-    return jnp.mean(jnp.abs(op_output)**2)
+@jit
+def loss(u):
+  v = custom_op(u)
+  return jnp.mean(jnp.abs(v.on_grid)**2)
 
-gradient = grad(loss)(u_fourier_params)
+gradient = grad(loss)(u) # gradient is a FourierSeries
 ```
 
 <br/>
@@ -98,12 +89,12 @@ This package will be presented at the [Differentiable Programming workshop](http
 
 <br/>
 
-### Acknowledgements
+#### Acknowledgements
 
 - Some of the packaging of this repository is done by editing [this templace from @rochacbruno](https://github.com/rochacbruno/python-project-template)
 - The multiple-dispatch method employed is based on `plum`: https://github.com/wesselb/plum
 
-### Related projects
+#### Related projects
 
 1. [`odl`](https://github.com/odlgroup/odl) Operator Discretization Library (ODL) is a python library for fast prototyping focusing on (but not restricted to) inverse problems.
 3. [`deepXDE`](https://deepxde.readthedocs.io/en/latest/): a TensorFlow and PyTorch library for scientific machine learning.
