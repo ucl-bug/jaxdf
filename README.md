@@ -98,6 +98,11 @@ This package will be presented at the [Differentiable Programming workshop](http
 
 <br/>
 
+### Acknowledgements
+
+- Some of the packaging of this repository is done by editing [this templace from @rochacbruno](https://github.com/rochacbruno/python-project-template)
+- The multiple-dispatch method employed is based on `plum`: https://github.com/wesselb/plum
+
 ### Related projects
 
 1. [`odl`](https://github.com/odlgroup/odl) Operator Discretization Library (ODL) is a python library for fast prototyping focusing on (but not restricted to) inverse problems.

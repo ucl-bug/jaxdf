@@ -3,7 +3,7 @@ all = true
 
 [tool.mypy]
 ignore_missing_imports = true
-
+exclude = ['jaxdf/operators/']
 
 [tool.isort]
 multi_line_output = 3

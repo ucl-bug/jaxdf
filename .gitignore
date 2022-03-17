@@ -8,6 +8,7 @@
 *.mypy_cache
 htmlcov
 .coverage
+coverage.xml
 
 # Build
 build
@@ -26,3 +27,6 @@ docs/notebooks/img/*.png
 *npm-debug.log*
 *yarn-debug.log*
 *yarn-error.log*
+
+# Virtual Environment
+.venv

@@ -1,4 +1,6 @@
 coverage==6.2
 flake8==4.0.1
-mypy==0.930
+mypy
 pytest==6.2.5
+pygments
+isort
