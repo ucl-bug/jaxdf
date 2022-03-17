@@ -27,16 +27,6 @@ def _get_implemented(f):
   Returns:
     None
 
-  !!! example
-      ```python
-      >>> from jaxdf.operators.magic import __add__
-      >>> jaxdf.util._get_implemented(__add__)
-      __add__:
-      ─ (x: Continuous, y: object, params=None)
-      ─ (x: OnGrid, y: object, params=None)
-      ─ (x: Linear, y: Linear, params=None)
-      ─ (x: Continuous, y: Continuous, params=None)
-      ```
   '''
   from inspect import signature
 

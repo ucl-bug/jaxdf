@@ -11,7 +11,7 @@ def _unroll(x):
 def _identity(x):
     return x
 
-def variable_update_with_pml(x, dx_dt, k, dt):
+def weighted_update(x, dx_dt, k, dt):
     x = k * (x * k + dt * dx_dt)
     return x
 
@@ -78,7 +78,7 @@ def euler_integration(
 
   def euler_step(i, x):
     dx_dt = f(x, i * dt)
-    x = variable_update_with_pml(x, dx_dt, alpha, dt)
+    x = weighted_update(x, dx_dt, alpha, dt)
     samples = measurement_operator(x)
     return x, samples
 
@@ -97,11 +97,9 @@ def semi_implicit_euler(
     y0: jnp.ndarray,
     dt: float,
     output_steps: jnp.ndarray,
-    backprop=False,
     checkpoint=True,
 ):
-    r"""This functions works in the same way as the
-    [`semi_implicit_euler`](#jaxdf.ode.semi_implicit_euler) integrator,
+    r"""Integrates and ODE using a semi-implicit euler integrator,
     with the difference that the update function accepts an extra
     parameter $`\alpha`$ with the same pytree-structure as $`x`$ and
     $`y`$.
@@ -116,18 +114,17 @@ def semi_implicit_euler(
     ```
 
     $`M(x,y)`$ is an arbitrary measurement operator that is applied at
-    the end of each timestep, for example it could evaluate the pressure intensity
-    or the field value at some specific locations. If `None`, defaults to the identity
-    operator.
+    the end of each timestep, for example it could evaluate the field value at some specific locations.
+    If `None`, defaults to the identity operator.
     The vector of measurements $`r`$=`r` is returned.
 
     !!! warning
-        Calling this method with `backprop=True` allows to perform backpropagation.
-        However, this requires storing the entire forward pass history and is therefore
-        memory demanding. Alternatively, `backprop=False` allows to calculate
-        derivatives using forward-propagation, or jacobian-vector products
+        Performing gradient calculations via backpropagation (pullback, see [The Autodiff Cookbook](https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html))
+        requires storing the entire forward pass history and is therefore
+        memory demanding. Alternatively, derivatives can be calculated
+        using forward-propagation, or jacobian-vector products,
         with memory cost independent of the simulation length.
-        Combined with `jax.vmap` or `jax.jaxfwd`, this makes easy to calculate
+        Combined with `jax.vmap` or `jax.jaxfwd`, this makes it easy to calculate
         gradients for functions that have tall jacobians, such as simulations
         that depends on a small amount of parameters (e.g. delays, steering angle,
         etc)
@@ -186,9 +183,9 @@ def semi_implicit_euler(
     def step_without_measurements(carry, t):
         x, y = carry
         dx_dt = f(y, t * dt)
-        x = variable_update_with_pml(x, dx_dt, alpha, dt)
+        x = weighted_update(x, dx_dt, alpha, dt)
         dy_dt = g(x, t * dt)
-        y = variable_update_with_pml(y, dy_dt, alpha, dt)
+        y = weighted_update(y, dy_dt, alpha, dt)
         return (x, y)
 
     def single_step(carry, t):
