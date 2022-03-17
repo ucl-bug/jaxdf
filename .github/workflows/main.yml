@@ -29,7 +29,6 @@ jobs:
       - name: Making virtual environment, linting and testing
         run: |
           make virtualenv
-          make install
           make lint
           make test
       - name: "Upload coverage to Codecov"
