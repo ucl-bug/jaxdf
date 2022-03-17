@@ -14,27 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  linter:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.9]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Making virtual environment
-        run: make virtualenv
-      - name: Install project
-        run: make install
-      - name: Run linter
-        run: make lint
-
   tests_linux:
-    needs: linter
     strategy:
       fail-fast: false
       matrix:
@@ -46,12 +26,12 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Making virtual environment
-        run: make virtualenv
-      - name: Install project
-        run: make install
-      - name: Run tests
-        run: make test
+      - name: Making virtual environment, linting and testing
+        run: |
+          make virtualenv
+          make install
+          make lint
+          make test
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v1
         with:
