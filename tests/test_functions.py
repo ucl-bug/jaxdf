@@ -21,12 +21,12 @@ b = Continuous(6.0, domain, f)
 
 def test_compose_continuous():
   z = operators.compose(a)(jnp.exp)
-
   assert np.allclose(
     z.get_field(domain.origin), 1.
   )
 
 def test_compose_ongrid():
+  x = OnGrid(jnp.asarray([1.0]), domain)
   z = operators.compose(x)(jnp.exp)
   assert z.params == jnp.exp(1.0)
 
