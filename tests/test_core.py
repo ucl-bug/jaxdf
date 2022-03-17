@@ -55,6 +55,16 @@ def test_call_field():
   _ = f(a)
   print(make_jaxpr(f)(a))
 
+def test_make_fourier_inside_jitted_fun():
+  @jax.jit
+  def f(x):
+    y = FourierSeries(x.params**2, x.domain)
+    return y + 1
+
+  u = FourierSeries(2., domain)  # u.params == theta
+  v = f(u)
+  assert v.params == 5.
+
 
 if __name__ == '__main__':
   with jax.checking_leaks():
