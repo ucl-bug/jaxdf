@@ -9,6 +9,7 @@
 htmlcov
 .coverage
 coverage.xml
+site
 
 # Build
 build
