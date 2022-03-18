@@ -1,9 +1,9 @@
+from functools import reduce
+from typing import Iterable, NamedTuple
+
+import jax
 from jax import numpy as jnp
 from jax import random
-import jax
-from functools import reduce
-from typing import NamedTuple, Tuple
-from enum import IntEnum
 
 
 class Domain(NamedTuple):
@@ -13,8 +13,8 @@ class Domain(NamedTuple):
         size (Tuple[int]): The size of the domain in absolute units.
         dx (Tuple(float)): The unit of measure
     """
-    N: Tuple[int]
-    dx: Tuple[float]
+    N: Iterable[int] = (32,32)
+    dx: Iterable[float] = (1., 1.)
 
     @property
     def size(self):
@@ -170,18 +170,3 @@ class Domain(NamedTuple):
         """
         axis = self.spatial_axis
         return self._make_grid_from_axis(axis)
-
-
-class Staggered(IntEnum):
-    r"""Staggering flags as enumerated constants. This makes sure
-    that we are consistent when asking staggered computations
-    across different spectral functions
-
-    Attributes:
-        NONE: Unstaggered
-        FORWARD: Staggered forward
-        BACKWARD: Staggered backward
-    """
-    NONE = 0
-    FORWARD = 1
-    BACKWARD = -1

@@ -18,3 +18,10 @@
 .md-container .jp-Cell-inputWrapper .jp-InputPrompt.jp-InputArea-prompt {
   display: none;
 }
+
+/* Adds a dotted border below the code cells */
+.operator-implementation {
+  border-left: 4px solid rgb(156, 156, 156);
+  padding-left: 4px;
+  background-color: rgb(221, 221, 221);
+}

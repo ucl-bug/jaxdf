@@ -29,16 +29,17 @@ nav:
     - Optimize acoustic simulations: notebooks/simulate_helmholtz_equation.ipynb
     - How discretizations work: notebooks/api_discretization.ipynb
     - Helmholtz equation with PINNs: notebooks/helmholtz_pinn.ipynb
-  - API Reference:
+  - API:
     - core: core.md
     - discretization: discretization.md
     - geometry: geometry.md
     - ode: ode.md
-    - operators: operators.md
-    - primitives: primitives.md
-    - spectral: spectral.md
-    - utils: utils.md
-    
+    - operators:
+      - differential: operators/differential.md
+      - functions: operators/functions.md
+      - magic: operators/magic.md
+    - util: util.md
+
 plugins:
   - mkdocs-jupyter
   - mkdocstrings:
@@ -46,12 +47,13 @@ plugins:
       handlers:
         python:
           rendering:
-            show_source: false 
+            show_source: true
       watch:
         - jaxdf
   - search
   - mermaid2
-
+  - macros:
+      module_name: docs/macros
 
 # Customization
 extra:

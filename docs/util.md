@@ -1,8 +1,7 @@
-::: jaxdf.utils
+::: jaxdf.util
     handler: python
     selection:
         filters:
-            - "!^_"
             - "__init__$"
     rendering:
         show_root_heading: true

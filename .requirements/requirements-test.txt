@@ -1,0 +1,7 @@
+coverage==6.2
+flake8==4.0.1
+mypy
+pytest==6.2.5
+pygments
+isort
+pre-commit
