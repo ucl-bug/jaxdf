@@ -66,7 +66,7 @@ Before installing `jaxdf`, make sure that [you have installed JAX](https://githu
 
 Install jaxdf by cloning the repository or downloading and extracting the compressed archive. Then navigate in the root folder in a terminal, and run
 ```bash
-pip install -r requirements.txt
+pip install -r .requirements/requirements.txt
 pip install .
 ```
 
