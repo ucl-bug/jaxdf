@@ -79,6 +79,40 @@ def shift_operator(x: Continuous, dx: object, params=None):
     return get_x(p, coord + dx)
   return Continuous(x.params, x.domain, fun), None
 
+@operator
+def shift_operator(x: FourierSeries, dx = [0], params=None):
+  if params == None:
+    params = {'k_vec': x._freq_axis}
+
+  if x.real:
+    ffts = [jnp.fft.rfft, jnp.fft.irfft]
+  else:
+    ffts = [jnp.fft.fft, jnp.fft.ifft]
+  k_vec = params['k_vec']
+
+  # Adding staggering
+  if len(dx) == 1 and len(x.domain.N) != 1:
+    dx = dx * len(x.domain.N)
+
+  k_vec = [
+    jnp.exp(1j * k * delta)
+    for k, delta in zip(k_vec, dx)
+  ]
+
+  new_params = jnp.zeros_like(x.params)
+
+  def single_grad(axis, u):
+    u = jnp.moveaxis(u, axis, -1)
+    Fx = ffts[0](u, axis=-1)
+    iku = Fx * k_vec[axis]
+    du = ffts[1](iku, axis=-1, n=u.shape[-1])
+    return jnp.moveaxis(du, -1, axis)
+
+  for ax in range(x.ndim):
+    new_params = new_params.at[..., ax].set(single_grad(ax, x.params[..., ax]))
+
+  return FourierSeries(new_params, x.domain), params
+
 
 ## sum_over_dims
 @operator
