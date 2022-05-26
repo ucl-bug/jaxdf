@@ -83,7 +83,7 @@ def gradient(x: FiniteDifferences, params=None, accuracy=2, staggered='center'):
   return FiniteDifferences(new_params, x.domain), params
 
 @operator
-def gradient(x: FourierSeries, params=None):
+def gradient(x: FourierSeries, stagger = [0], params=None):
   if params == None:
     params = {'k_vec': x._freq_axis}
   assert x.dims == 1 # Gradient only defined for scalar fields
@@ -93,12 +93,23 @@ def gradient(x: FourierSeries, params=None):
   else:
     ffts = [jnp.fft.fft, jnp.fft.ifft]
   k_vec = params['k_vec']
+
+  # Adding staggering
+  if len(stagger) == 1 and len(x.domain.N) != 1:
+    stagger = stagger * len(x.domain.N)
+
+  dx = x.domain.dx
+  k_vec = [
+    1j * k * jnp.exp(1j * k * s * delta)
+    for k, delta, s in zip(k_vec, dx, stagger)
+  ]
+
   u = x.params[...,0]
 
   def single_grad(axis, u):
     u = jnp.moveaxis(u, axis, -1)
     Fx = ffts[0](u, axis=-1)
-    iku = 1j * Fx * k_vec[axis]
+    iku = Fx * k_vec[axis]
     du = ffts[1](iku, axis=-1, n=u.shape[-1])
     return jnp.moveaxis(du, -1, axis)
 
@@ -143,19 +154,29 @@ def diag_jacobian(x: FiniteDifferences, params=None, accuracy=2, staggered='cent
 
 
 @operator
-def diag_jacobian(x: FourierSeries, params=None):
+def diag_jacobian(x: FourierSeries, stagger = [0], params=None):
   if params == None:
     params = {'k_vec': x._freq_axis}
 
   ffts = _get_ffts(x)
   k_vec = params["k_vec"]
 
+  # Adding staggering
+  if len(stagger) == 1 and len(x.domain.N) != 1:
+    stagger = stagger * len(x.domain.N)
+
+  dx = x.domain.dx
+  k_vec = [
+    1j * k * jnp.exp(1j * k * s * delta)
+    for k, delta, s in zip(k_vec, dx, stagger)
+  ]
+
   new_params = jnp.zeros_like(x.params)
 
   def single_grad(axis, u):
     u = jnp.moveaxis(u, axis, -1)
     Fx = ffts[0](u, axis=-1)
-    iku = 1j * Fx * k_vec[axis]
+    iku = Fx * k_vec[axis]
     du = ffts[1](iku, axis=-1, n=u.shape[-1])
     return jnp.moveaxis(du, -1, axis)
 
