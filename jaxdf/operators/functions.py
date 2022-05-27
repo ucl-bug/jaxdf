@@ -1,8 +1,13 @@
+import numpy as np
 from jax import numpy as jnp
 
 from jaxdf.core import operator
 from jaxdf.discretization import *
 from jaxdf.discretization import OnGrid
+from jaxdf.operators.differential import (
+    _convolve_with_pad,
+    _get_fd_coefficients,
+)
 
 
 ## compose
@@ -78,6 +83,35 @@ def shift_operator(x: Continuous, dx: object, params=None):
   def fun(p, coord):
     return get_x(p, coord + dx)
   return Continuous(x.params, x.domain, fun), None
+
+@operator
+def shift_operator(x: FiniteDifferences, dx = [0], params=None):
+  # Parameter initializer
+  if params is None:
+    def single_kernel(axis, stagger):
+      kernel = _get_fd_coefficients(x, order = 0, stagger=stagger)
+      if x.domain.ndim > 1:
+        for _ in range(x.domain.ndim - 1):
+          kernel = np.expand_dims(kernel, axis=0)
+        # Move kernel to the correct axis
+        kernel = np.moveaxis(kernel, -1, axis)
+      kernel = kernel / x.domain.dx[axis]
+      return kernel
+    stagger = dx[0]/ x.domain.dx[0]
+    params = []
+    for i in range(x.domain.ndim):
+      params.append(single_kernel(axis=i, stagger=stagger))
+
+  # Apply convolution
+  kernels = params
+  array = x.on_grid
+
+  # Apply the corresponding kernel to each dimension
+  outs = [_convolve_with_pad(kernels[i], array[...,i], i) for i in range(x.ndim)]
+  new_params = jnp.stack(outs, axis=-1)
+
+  print(params)
+  return x.replace_params(new_params), params
 
 @operator
 def shift_operator(x: FourierSeries, dx = [0], params=None):
