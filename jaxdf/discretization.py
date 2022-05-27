@@ -296,27 +296,28 @@ class FiniteDifferences(OnGrid):
   def __init__(
     self,
     params,
-    domain
+    domain,
+    accuracy = 8,
   ):
     r'''Initializes a Finite Differences field on a collocation grid.
-
     Args:
       params (PyTree): The parameters of the discretization.
       domain (Domain): The domain of the discretization.
-
     Returns:
       FiniteDifferences: A Finite Differences field on a collocation grid.
     '''
-    super().__init__(params, domain)
+    self.params = params
+    self.domain = domain
+    self.accuracy = accuracy
 
   def tree_flatten(self):
     children = (self.params,)
-    aux_data = (self.domain,)
+    aux_data = (self.domain,self.accuracy)
     return (children, aux_data)
 
   @classmethod
   def tree_unflatten(cls, aux_data, children):
     params = children[0]
-    domain = aux_data[0]
-    a = cls(params, domain=domain)
+    domain, accuracy = aux_data
+    a = cls(params, domain=domain, accuracy=accuracy)
     return a
