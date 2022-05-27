@@ -127,7 +127,7 @@ def _get_fd_coefficients(x: FiniteDifferences, order=1, stagger = 0):
   # Append zero if a coefficient has been removed
   if stagger > 0:
     coeffs = coeffs + [0.]
-  else:
+  elif stagger < 0:
     coeffs = [0.] + coeffs
 
   return np.asarray(coeffs)
@@ -173,6 +173,16 @@ def gradient(x: Continuous, params=None):
     return v
   return x.update_fun_and_params(x.params, grad_fun), None
 
+
+@operator(init_params=ft_diag_jacobian_init)
+def gradient(
+  x: FiniteDifferences,
+  stagger = [0],
+  params = None
+) -> FiniteDifferences:
+  if params is None:
+    params = ft_diag_jacobian_init(x, stagger=stagger)
+  return diag_jacobian(x, stagger, params=params), params
 
 @operator
 def gradient(x: FourierSeries, stagger = [0], params=None):
@@ -220,7 +230,6 @@ def diag_jacobian(x: Continuous, params=None):
 @operator(init_params=ft_diag_jacobian_init)
 def diag_jacobian(
   x: FiniteDifferences,
-  *,
   stagger = [0],
   params = None
 ) -> FiniteDifferences:
