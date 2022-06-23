@@ -1,3 +1,4 @@
+import warnings
 from typing import Callable
 
 from jax import eval_shape
@@ -267,6 +268,46 @@ class OnGrid(Linear):
 class FourierSeries(OnGrid):
   r'''A Fourier series field defined on a collocation grid.'''
 
+  def __call__(self, x):
+    r"""Uses the Fourier shift theorem to compute the value of the field
+    at an arbitrary point. Requires N*2 one dimensional FFTs.
+
+    Args:
+      x (float): The point at which to evaluate the field.
+
+    Returns:
+      float, jnp.ndarray: The value of the field at the point.
+    """
+    dx = jnp.asarray(self.domain.dx)
+    domain_size = jnp.asarray(self.domain.N)*dx
+    shift = x - domain_size/2 + 0.5*dx
+
+    k_vec = [
+      jnp.exp(-1j * k * delta)
+      for k, delta in zip(self._freq_axis, shift)
+    ]
+    ffts = self._ffts
+
+    new_params = self.params
+
+    def single_shift(axis, u):
+      u = jnp.moveaxis(u, axis, -1)
+      Fx = ffts[0](u, axis=-1)
+      iku = Fx * k_vec[axis]
+      du = ffts[1](iku, axis=-1, n=u.shape[-1])
+      return jnp.moveaxis(du, -1, axis)
+
+    for ax in range(self.ndim):
+      new_params = single_shift(ax, new_params)
+
+    origin = tuple([0]*self.ndim)
+    return new_params[origin]
+
+
+  def get_field(self, x):
+    warnings.warn("FourierSeries.get_field is deprecated. Use FourierSeries.__call__ instead.", DeprecationWarning)
+    return self.__call__(x)
+
   @property
   def _freq_axis(self):
     r'''Returns the frequency axis of the grid'''
@@ -279,6 +320,16 @@ class FourierSeries(OnGrid):
 
     k_axis = [f(n, delta) for n, delta in zip(self.domain.N, self.domain.dx)]
     return k_axis
+
+  @property
+  def _ffts(self):
+    r"""Returns the FFT and iFFT functions that are appropriate for the
+    field type (real or complex)
+    """
+    if self.real:
+     return [jnp.fft.rfft, jnp.fft.irfft]
+    else:
+      return [jnp.fft.fft, jnp.fft.ifft]
 
   @property
   def _cut_freq_axis(self):
