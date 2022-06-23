@@ -121,12 +121,7 @@ def __pow__(x: Continuous, y: object, params=None):
 
 ## __radd__
 @operator(precedence=-1)
-def __radd__(x: OnGrid, y: object, params=None):
-  return x + y, None
-
-
-@operator(precedence=-1)
-def __radd__(x: Continuous, y: object, params=None):
+def __radd__(x: Field, y: object, params=None):
   return x + y, None
 
 
@@ -146,7 +141,7 @@ def __rpow__(x: OnGrid, y: object, params=None):
 
 ## __rsub__
 @operator
-def __rsub__(x: Linear, y: object, params=None):
+def __rsub__(x: Field, y: object, params=None):
   return (-x) + y, None
 
 
@@ -181,6 +176,13 @@ def __sub__(x: Continuous, y: Continuous, params=None):
   def get_fun(p, coords):
     return get_x(p[0], coords) - get_y(p[1], coords)
   return Continuous([x.params, y.params], x.domain, get_fun), None
+
+@operator
+def __sub__(x: Continuous, y: object, params=None):
+  get_x = x.aux['get_field']
+  def get_fun(p, coords):
+    return get_x(p, coords) - y
+  return Continuous(x.params, x.domain, get_fun), None
 
 ## __truediv__
 @operator

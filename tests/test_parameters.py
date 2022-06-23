@@ -25,7 +25,7 @@ def test_jit_paramfun():
   _ = f(x)
 
 def test_get_params():
-  op_params = operators.dummy(x)._op_params
+  op_params = operators.dummy.default_params(x)
   assert op_params['k'] == 3
 
   def f(x, op_params):
@@ -37,13 +37,13 @@ def test_get_params():
   z = jit(f)(x, op_params)
   assert z.params == 3.0
 
-  op_params = operators.dummy(x)._op_params
+  op_params = operators.dummy.default_params(x)
   z = jit(f)(a, op_params)
   _ = (z)
 
   def f(x, coord, op_params):
     b = operators.dummy(x, params=op_params)
-    return b.get_field(coord)
+    return b(coord)
 
   z = jit(f)(a, 1.0, op_params)
   _ = (make_jaxpr(f)(a, 1.0, op_params))
