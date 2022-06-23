@@ -45,3 +45,86 @@ def test_create_field(
     field = get(PRNGKEY)
 
   assert field.params.shape == tuple(true_size)
+
+@pytest.mark.parametrize("discretization", [
+  OnGrid, FourierSeries, FiniteDifferences
+])
+def test_add(discretization):
+  N = (1,)
+  domain = Domain(N, dx=[1.]*len(N))
+  x = discretization(jnp.asarray([1.0]), domain)
+  y = discretization(jnp.asarray([2.0]), domain)
+
+  z = x + y
+  assert z.params == 3.0
+  assert type(z) == discretization
+
+  @jit
+  def fun(x, y):
+    return x + y
+
+  z = fun(x, y)
+  z = fun(x, y)
+  assert z.params == 3.0
+  assert type(z) == discretization
+
+  z = x + 5.
+  assert z.params == 6.0
+
+  @jit
+  def fun(x):
+    return x + 5.
+
+  z = fun(x)
+  z = fun(x)
+  assert z.params == 6.0
+
+@pytest.mark.parametrize("discretization", [
+  OnGrid, FourierSeries, FiniteDifferences
+])
+def test_sub(discretization):
+  N = (1,)
+  domain = Domain(N, dx=[1.]*len(N))
+  x = discretization(jnp.asarray([1.0]), domain)
+  y = discretization(jnp.asarray([2.0]), domain)
+
+  z = x - y
+  assert z.params == -1.0
+  assert type(z) == discretization
+
+  @jit
+  def fun(x, y):
+    return x - y
+
+  z = fun(x, y)
+  z = fun(x, y)
+  assert z.params == -1.0
+  assert type(z) == discretization
+
+  z =  x - 2.0
+  assert z.params == -1.0
+
+  @jit
+  def fun(x):
+    return  x - 2.0
+
+  z = fun(x)
+  z = fun(x)
+  assert z.params == -1.0
+
+@pytest.mark.parametrize("discretization", [
+  OnGrid, FourierSeries, FiniteDifferences
+])
+def test_jit_with_float(discretization):
+  N = (1,)
+  domain = Domain(N, dx=[1.]*len(N))
+  x = discretization(jnp.asarray([1.0]), domain)
+  y = discretization(jnp.asarray([2.0]), domain)
+
+  @jit
+  def add(x, y):
+    return x + y * 10
+
+  _ = add(x,y)
+  _ = add(x, 6.0)
+  _ = add(-5.0, x)
