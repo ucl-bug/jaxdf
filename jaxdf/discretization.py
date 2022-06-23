@@ -173,8 +173,21 @@ class OnGrid(Linear):
     Returns:
       OnGrid: A linear discretization on the grid points of the domain.
     '''
-    self.params = params
     self.domain = domain
+    self.params = params
+
+  @property
+  def params(self):
+    return self._params
+
+  @params.setter
+  def params(self, value):
+    # Automatically add a dimension for scalar fields
+    if len(value.shape) == len(self.domain.N):
+      value = jnp.expand_dims(value, -1)
+      self._params = value
+    else:
+      self._params = value
 
   @property
   def dims(self):
@@ -306,8 +319,8 @@ class FiniteDifferences(OnGrid):
     Returns:
       FiniteDifferences: A Finite Differences field on a collocation grid.
     '''
-    self.params = params
     self.domain = domain
+    self.params = params
     self.accuracy = accuracy
 
   def tree_flatten(self):
