@@ -37,7 +37,7 @@ def test_fourier_gradient():
   _ = (make_jaxpr(f)(a))
   _ = (make_jaxpr(f)(m))
 
-  op_params = operators.gradient(m)._op_params
+  op_params = operators.gradient.default_params(m)
   _ = ('op_params', op_params)
   z = operators.gradient(m, params=op_params)
   _ = (z.params[...,0])
@@ -53,7 +53,7 @@ def test_fourier_laplacian():
 
   _ = (f(m).params[...,0])
 
-  op_params = operators.laplacian(m)._op_params
+  op_params = operators.laplacian.default_params(m)
   _ = ('op_params', op_params)
   z = operators.laplacian(m, params=op_params)
   _ = (z.params[...,0])
@@ -74,7 +74,7 @@ def test_continous_gradient():
   def f(a, op_params):
     return operators.gradient(a, params=op_params)
 
-  op_params = operators.gradient(a)._op_params
+  op_params = operators.gradient.default_params(a)
   _ = (f(a, op_params).params)
 
 
@@ -89,7 +89,7 @@ def test_continuous_laplacian():
   def f(a, op_params):
     return operators.laplacian(a, params=op_params)
 
-  op_params = operators.laplacian(a)._op_params
+  op_params = operators.laplacian.default_params(a)
   _ = (f(a, op_params).params)
 
 
@@ -98,10 +98,10 @@ def test_jit_continous_gradient():
   def f(m, op_params):
     return operators.gradient(m, params=op_params)
 
-  op_params = operators.gradient(m)._op_params
+  op_params = operators.gradient.default_params(m)
   _ = (f(m, op_params).params[...,0])
 
-  op_params_a = operators.gradient(a)._op_params
+  op_params_a = operators.gradient.default_params(a)
   _ = (f(a, op_params_a).params)
   _ = (make_jaxpr(f)(a, op_params_a))
   _ = (make_jaxpr(f)(m, op_params))
