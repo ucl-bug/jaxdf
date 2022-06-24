@@ -8,4 +8,4 @@ mkdocs-material-extensions==1.0.3
 mkdocs-mermaid2-plugin==0.5.2
 mkdocstrings==0.17.0
 markdown-katex==202112.1034
-pygments
+pygments==2.12.0

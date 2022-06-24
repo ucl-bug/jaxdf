@@ -1,7 +1,7 @@
 coverage==6.2
 flake8==4.0.1
-mypy
+mypy==0.961
 pytest==6.2.5
-pygments
-isort
-pre-commit
+pygments==2.12.0
+isort==5.10.1
+pre-commit==2.19.0
