@@ -206,6 +206,14 @@ def gradient(x: FourierSeries, stagger = [0], params=None):
     for k, delta, s in zip(k_vec, dx, stagger)
   ]
 
+  # Set to zero the filter at the Nyquist frequency
+  # if the dimension is even
+  # see https://math.mit.edu/~stevenj/fft-deriv.pdf
+  for f in range(len(k_vec)):
+    if x.domain.N[f] % 2 == 0:
+      f_nyq = x.domain.N[f] // 2
+      k_vec[f] = k_vec[f].at[f_nyq].set(0.)
+
   u = x.params[...,0]
 
   def single_grad(axis, u):
@@ -291,40 +299,17 @@ def laplacian(x: Continuous, params=None):
 @operator
 def laplacian(x: FourierSeries, params=None):
   if params == None:
-    params = {'k_vec': x._freq_axis}
+    params = {'p_sq': jnp.sum(x._freq_grid**2, -1)}
   assert x.dims == 1 # Laplacian only defined for scalar fields
 
   ffts = _get_ffts(x)
-  k_vec = params["k_vec"]
+  p_sq = params["p_sq"]
   u = x.params[...,0]
 
-  def single_grad(axis, u):
-    u = jnp.moveaxis(u, axis, -1)
-    Fx = ffts[0](u, axis=-1)
-    iku = -Fx * k_vec[axis] ** 2
-    du = ffts[1](iku, axis=-1, n=u.shape[-1])
-    return jnp.moveaxis(du, -1, axis)
-
-  new_params = jnp.sum(
-        jnp.stack([single_grad(i, u) for i in range(x.ndim)], axis=-1),
-        axis=-1,
-        keepdims=True,
-    )
-  return FourierSeries(new_params, x.domain), params
-
-@operator
-def laplacian(x: FiniteDifferences, params=None, accuracy=4):
-  if params == None:
-    coeffs = {
-      2: [1, -2, 1],
-      4: [-1 / 12, 4 / 3, -5/2, 4 / 3, -1 / 12],
-      6: [1 / 90, -3 / 20, 3 / 2, -49 / 18, 3 / 2, -3 / 20, 1 / 90],
-    }
-    params = {"laplacian_kernel": jnp.asarray(coeffs[accuracy])}
-
-  kernel = params["laplacian_kernel"]
-  new_params = _convolve_kernel(x, kernel)
-  return FiniteDifferences(new_params, x.domain), params
+  u_fft = ffts[0](u)
+  Gu_fft = (-p_sq)* u_fft
+  Gu = ffts[1](Gu_fft)
+  return FourierSeries(Gu, x.domain), params
 
 
 if __name__ == '__main__':
