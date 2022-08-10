@@ -299,17 +299,26 @@ def laplacian(x: Continuous, params=None):
 @operator
 def laplacian(x: FourierSeries, params=None):
   if params == None:
-    params = {'p_sq': jnp.sum(x._freq_grid**2, -1)}
+    params = {'k_vec': x._freq_axis}
   assert x.dims == 1 # Laplacian only defined for scalar fields
 
   ffts = _get_ffts(x)
-  p_sq = params["p_sq"]
+  k_vec = params["k_vec"]
   u = x.params[...,0]
 
-  u_fft = ffts[0](u)
-  Gu_fft = (-p_sq)* u_fft
-  Gu = ffts[1](Gu_fft)
-  return FourierSeries(Gu, x.domain), params
+  def single_grad(axis, u):
+    u = jnp.moveaxis(u, axis, -1)
+    Fx = ffts[0](u, axis=-1)
+    iku = -Fx * k_vec[axis] ** 2
+    du = ffts[1](iku, axis=-1, n=u.shape[-1])
+    return jnp.moveaxis(du, -1, axis)
+
+  new_params = jnp.sum(
+        jnp.stack([single_grad(i, u) for i in range(x.ndim)], axis=-1),
+        axis=-1,
+        keepdims=True,
+    )
+  return FourierSeries(new_params, x.domain), params
 
 
 if __name__ == '__main__':
