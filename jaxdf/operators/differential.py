@@ -185,7 +185,27 @@ def gradient(
   return diag_jacobian(x, stagger, params=params), params
 
 @operator
-def gradient(x: FourierSeries, stagger = [0], params=None):
+def gradient(
+  x: FourierSeries,
+  stagger = [0],
+  correct_nyquist = True,
+  params=None
+) -> FourierSeries:
+  r"""
+  Args:
+      x (FourierSeries): Input field
+      stagger (list, optional): Staggering value for the returned fields.
+        The fields are staggered in the direction of their derivative.
+        Defaults to [0].
+      correct_nyquist (bool, optional): If `True`, uses a correction of the
+        derivative filter for the Nyquist frequency, which preserves Hermitian
+        symmetric and null space. See [those notes](https://math.mit.edu/~stevenj/fft-deriv.pdf)
+        for more details. Defaults to True.
+      params (Any, optional): Operator parameters. Defaults to None.
+
+  Returns:
+      FourierSeries: The gradient of the input field.
+  """
   if params == None:
     params = {'k_vec': x._freq_axis}
   assert x.dims == 1 # Gradient only defined for scalar fields
@@ -209,10 +229,11 @@ def gradient(x: FourierSeries, stagger = [0], params=None):
   # Set to zero the filter at the Nyquist frequency
   # if the dimension is even
   # see https://math.mit.edu/~stevenj/fft-deriv.pdf
-  for f in range(len(k_vec)):
-    if x.domain.N[f] % 2 == 0:
-      f_nyq = x.domain.N[f] // 2
-      k_vec[f] = k_vec[f].at[f_nyq].set(0.)
+  if correct_nyquist:
+    for f in range(len(k_vec)):
+      if x.domain.N[f] % 2 == 0:
+        f_nyq = x.domain.N[f] // 2
+        k_vec[f] = k_vec[f].at[f_nyq].set(0.)
 
   u = x.params[...,0]
 
@@ -255,7 +276,28 @@ def diag_jacobian(
 
 
 @operator
-def diag_jacobian(x: FourierSeries, stagger = [0], params=None):
+def diag_jacobian(
+  x: FourierSeries,
+  stagger = [0],
+  correct_nyquist = True,
+  params=None
+) -> FourierSeries:
+  r"""
+  Args:
+      x (FourierSeries): Input field
+      stagger (list, optional): Staggering value for the returned fields.
+        The fields are staggered in the direction of their derivative.
+        Defaults to [0].
+      correct_nyquist (bool, optional): If `True`, uses a correction of the
+        derivative filter for the Nyquist frequency, which preserves Hermitian
+        symmetric and null space. See [those notes](https://math.mit.edu/~stevenj/fft-deriv.pdf)
+        for more details. Defaults to True.
+      params (Any, optional): Operator parameters. Defaults to None.
+
+  Returns:
+      FourierSeries: The vector field whose components are the diagonal entries
+        of the Jacobian of the input field.
+  """
   if params == None:
     params = {'k_vec': x._freq_axis}
 
@@ -271,6 +313,15 @@ def diag_jacobian(x: FourierSeries, stagger = [0], params=None):
     1j * k * jnp.exp(1j * k * s * delta)
     for k, delta, s in zip(k_vec, dx, stagger)
   ]
+
+  # Set to zero the filter at the Nyquist frequency
+  # if the dimension is even
+  # see https://math.mit.edu/~stevenj/fft-deriv.pdf
+  if correct_nyquist:
+    for f in range(len(k_vec)):
+      if x.domain.N[f] % 2 == 0:
+        f_nyq = x.domain.N[f] // 2
+        k_vec[f] = k_vec[f].at[f_nyq].set(0.)
 
   new_params = jnp.zeros_like(x.params)
 
@@ -315,6 +366,59 @@ def laplacian(x: FourierSeries, params=None):
 
   new_params = jnp.sum(
         jnp.stack([single_grad(i, u) for i in range(x.ndim)], axis=-1),
+        axis=-1,
+        keepdims=True,
+    )
+  return FourierSeries(new_params, x.domain), params
+
+@operator
+def heterog_laplacian(x: FourierSeries, c: FourierSeries, params=None):
+  '''Computes the position-varying laplacian using algorithm 4 of
+  https://math.mit.edu/~stevenj/fft-deriv.pdf.
+  '''
+  if params == None:
+    params = {'k_vec': x._freq_axis}
+  assert x.dims == 1 # Laplacian only defined for scalar fields
+
+  ffts = _get_ffts(x)
+  k_vec = params["k_vec"]
+  u = x.params[...,0]
+  v = c.params[...,0]
+
+  def single_coordinate(axis, u):
+    u = jnp.moveaxis(u, axis, -1)
+    U = ffts[0](u, axis=-1)
+    U_prime = 1j * k_vec[axis] * U
+
+    # Handle Nyquist frequency
+    N_on_L = 1/u.domain.dx[axis]
+    N = u.domain.N[axis]
+    if N % 2 == 0:
+      U_prime = U_prime.at[..., N//2].set(
+        U[..., N//2]*N_on_L*jnp.pi*1j
+      )
+
+    # Multiply with heterogeneous field
+    u_prime = ffts[1](U_prime, axis=-1, n=u.shape[-1])
+    c_uprime = v*u_prime
+
+    # Get the second derivative
+    V = ffts[0](c_uprime, axis=-1)
+    V_prime = 1j * k_vec[axis] * V
+
+    # Handle Nyquist frequency
+    if N % 2 == 0:
+      V_prime = V_prime.at[..., N//2].set(
+        V[..., N//2]*N_on_L*jnp.pi*1j
+      )
+
+    # Return to space
+    ddu = ffts[1](V_prime, axis=-1, n=u.shape[-1])
+
+    return jnp.moveaxis(ddu, -1, axis)
+
+  new_params = jnp.sum(
+        jnp.stack([single_coordinate(i, u) for i in range(x.ndim)], axis=-1),
         axis=-1,
         keepdims=True,
     )
