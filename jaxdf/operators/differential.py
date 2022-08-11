@@ -210,10 +210,7 @@ def gradient(
     params = {'k_vec': x._freq_axis}
   assert x.dims == 1 # Gradient only defined for scalar fields
 
-  if x.real:
-    ffts = [jnp.fft.rfft, jnp.fft.irfft]
-  else:
-    ffts = [jnp.fft.fft, jnp.fft.ifft]
+  ffts = _get_ffts(x)
   k_vec = params['k_vec']
 
   # Adding staggering
@@ -360,7 +357,7 @@ def laplacian(x: FourierSeries, params=None):
   def single_grad(axis, u):
     u = jnp.moveaxis(u, axis, -1)
     Fx = ffts[0](u, axis=-1)
-    iku = -Fx * k_vec[axis] ** 2
+    iku = -Fx * (k_vec[axis] ** 2)
     du = ffts[1](iku, axis=-1, n=u.shape[-1])
     return jnp.moveaxis(du, -1, axis)
 
