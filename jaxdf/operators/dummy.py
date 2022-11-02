@@ -2,14 +2,14 @@ from jaxdf.core import operator
 from jaxdf.discretization import *
 
 
-@operator
+@operator # type: ignore
 def dummy(x: OnGrid, params=None):
   r'''A dummy operator that is useful for debugging.'''
   if params is None:
     params = {"k": 3}
   return params["k"]*x, params
 
-@operator
+@operator # type: ignore
 def dummy(x: Continuous, params=None):
   if params is None:
     params = {"k": 3}

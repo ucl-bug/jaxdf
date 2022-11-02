@@ -10,8 +10,8 @@ from jaxdf.operators.differential import (
 )
 
 
-## compose
-@operator
+## compose 
+@operator # type: ignore
 def compose(x: Continuous, params=None):
   r'''Applies function composition on the `get_fun` of the Continuous object.
   '''
@@ -22,7 +22,7 @@ def compose(x: Continuous, params=None):
     return Continuous(x.params, x.domain, new_fun)
   return decorator, None
 
-@operator
+@operator # type: ignore
 def compose(x: OnGrid, params=None):
   r'''Maps the given function over the pytree of parameters
   of the `Field`.
@@ -41,7 +41,7 @@ def compose(x: OnGrid, params=None):
     return x.replace_params(fun(x.params))
   return decorator, None
 
-@operator
+@operator # type: ignore
 def compose(x: object, params=None):
   r'''For non-field objects, the composition is simply the
   application of the `jax` function to the input.
@@ -55,14 +55,14 @@ def compose(x: object, params=None):
   return decorator, None
 
 
-@operator
+@operator # type: ignore
 def functional(x: object):
   r'''Maps a field to a scalar value.'''
   def decorator(fun):
     return fun(x)
   return decorator
 
-@operator
+@operator # type: ignore
 def functional(x: OnGrid):
   r'''Maps a field to a scalar value.'''
   def decorator(fun):
@@ -77,14 +77,14 @@ def get_component(x: OnGrid, dim: int):
 
 
 ## shift_operator
-@operator
+@operator # type: ignore
 def shift_operator(x: Continuous, dx: object, params=None):
   get_x = x.aux['get_field']
   def fun(p, coord):
     return get_x(p, coord + dx)
   return Continuous(x.params, x.domain, fun), None
 
-@operator
+@operator # type: ignore
 def shift_operator(x: FiniteDifferences, dx = [0], params=None):
   # Parameter initializer
   if params is None:
@@ -113,7 +113,7 @@ def shift_operator(x: FiniteDifferences, dx = [0], params=None):
   print(params)
   return x.replace_params(new_params), params
 
-@operator
+@operator # type: ignore
 def shift_operator(x: FourierSeries, dx = [0], params=None):
   if params == None:
     params = {'k_vec': x._freq_axis}
@@ -149,14 +149,14 @@ def shift_operator(x: FourierSeries, dx = [0], params=None):
 
 
 ## sum_over_dims
-@operator
+@operator # type: ignore
 def sum_over_dims(x: Continuous, params = None):
   get_x = x.aux['get_field']
   def fun(p, coords):
     return jnp.sum(get_x(p, coords), axis=-1, keepdims=True)
   return x.update_fun_and_params(x.params, fun), None
 
-@operator
+@operator # type: ignore
 def sum_over_dims(x: OnGrid, params = None):
   new_params = jnp.sum(x.params, axis=-1, keepdims=True)
   return x.replace_params(new_params), None

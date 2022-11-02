@@ -183,12 +183,12 @@ class OnGrid(Linear):
 
   @params.setter
   def params(self, value):
-    # Automatically add a dimension for scalar fields
-    if len(value.shape) == len(self.domain.N):
-      value = jnp.expand_dims(value, -1)
-      self._params = value
-    else:
-      self._params = value
+    # Automatically add a dimension for scalar fields, if possible.
+    # See this for an explanation of the first if: https://jax.readthedocs.io/en/latest/pytrees.html#custom-pytrees-and-initialization
+    if not (type(value) is object or value is None or isinstance(value, OnGrid)):
+      if len(value.shape) == len(self.domain.N):
+        value = jnp.expand_dims(value, -1)
+    self._params = value
 
   @property
   def dims(self):
