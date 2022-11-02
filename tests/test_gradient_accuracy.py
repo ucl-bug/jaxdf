@@ -5,7 +5,6 @@ from typing import List
 import numpy as np
 import pytest
 from jax import numpy as jnp
-from matplotlib import pyplot as plt
 
 from jaxdf import FourierSeries
 from jaxdf.geometry import Domain
@@ -78,6 +77,7 @@ def test_gradient_accuracy_fourier_series(
 
   # Plot fft of the two signals
   if make_plot:
+    from matplotlib import pyplot as plt
     if len(test_data["step_size"]) == 1:
       f1 = jnp.fft.fftn(y[...,0])
       f2 = jnp.fft.fftn(y_pred.on_grid[...,0])
