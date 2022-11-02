@@ -175,20 +175,14 @@ class OnGrid(Linear):
       OnGrid: A linear discretization on the grid points of the domain.
     '''
     self.domain = domain
+
+    # Automatically add a dimension for scalar fields, if possible.
+    # See this for an explanation of the first if: https://jax.readthedocs.io/en/latest/pytrees.html#custom-pytrees-and-initialization
+    if not (type(params) is object or params is None or isinstance(params, OnGrid)):
+      if len(params.shape) == len(self.domain.N):
+        params = jnp.expand_dims(params, -1)
+
     self.params = params
-
-  @property
-  def params(self):
-    return self._params
-
-  @params.setter
-  def params(self, value):
-    # Automatically add a dimension for scalar fields
-    if len(value.shape) == len(self.domain.N):
-      value = jnp.expand_dims(value, -1)
-      self._params = value
-    else:
-      self._params = value
 
   @property
   def dims(self):
