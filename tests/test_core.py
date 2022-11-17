@@ -71,7 +71,7 @@ def test_override_operator_new_discretization(get_ongrid_fields):
 
 
   @operator
-  def compose(x: MyDiscr, params=None):
+  def compose(x: MyDiscr, *, params=None):
     def decorator(fun):
       return x.replace_params(fun(x.params) + 10)
     return decorator, None

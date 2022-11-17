@@ -9,7 +9,7 @@ from jaxdf.geometry import Domain
 def test_readme_example():
   # Defining operator
   @operator
-  def custom_op(u):
+  def custom_op(u, *, params=None):
     grad_u = jops.gradient(u)
     diag_jacobian = jops.diag_jacobian(grad_u)
     laplacian = jops.sum_over_dims(diag_jacobian)

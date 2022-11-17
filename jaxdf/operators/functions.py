@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 from jax import numpy as jnp
 
@@ -84,24 +86,31 @@ def shift_operator(x: Continuous, *, dx: object, params=None):
     return get_x(p, coord + dx)
   return Continuous(x.params, x.domain, fun)
 
-@operator # type: ignore
-def shift_operator(x: FiniteDifferences, *, dx = [0], params=None):
-  # Parameter initializer
-  if params is None:
-    def single_kernel(axis, stagger):
-      kernel = _get_fd_coefficients(x, order = 0, stagger=stagger)
-      if x.domain.ndim > 1:
-        for _ in range(x.domain.ndim - 1):
-          kernel = np.expand_dims(kernel, axis=0)
-        # Move kernel to the correct axis
-        kernel = np.moveaxis(kernel, -1, axis)
-      kernel = kernel / x.domain.dx[axis]
-      return kernel
-    stagger = dx[0]/ x.domain.dx[0]
-    params = []
-    for i in range(x.domain.ndim):
-      params.append(single_kernel(axis=i, stagger=stagger))
+def fd_shift_kernels(
+  x: FiniteDifferences,
+  dx: List[float],
+  *args,
+  **kwargs
+):
+  def single_kernel(axis, stagger):
+    kernel = _get_fd_coefficients(x, order = 0, stagger=stagger)
+    if x.domain.ndim > 1:
+      for _ in range(x.domain.ndim - 1):
+        kernel = np.expand_dims(kernel, axis=0)
+      # Move kernel to the correct axis
+      kernel = np.moveaxis(kernel, -1, axis)
+    kernel = kernel / x.domain.dx[axis]
+    return kernel
 
+  stagger = dx[0]/ x.domain.dx[0]
+  params = []
+  for i in range(x.domain.ndim):
+    params.append(single_kernel(axis=i, stagger=stagger))
+
+  return params
+
+@operator(init_params=fd_shift_kernels) # type: ignore
+def shift_operator(x: FiniteDifferences, *, dx = [0.0], params=None):
   # Apply convolution
   kernels = params
   array = x.on_grid
@@ -110,14 +119,10 @@ def shift_operator(x: FiniteDifferences, *, dx = [0], params=None):
   outs = [_convolve_with_pad(kernels[i], array[...,i], i) for i in range(x.ndim)]
   new_params = jnp.stack(outs, axis=-1)
 
-  print(params)
-  return x.replace_params(new_params), params
+  return x.replace_params(new_params)
 
-@operator # type: ignore
+@operator(init_params=lambda x, dx: {'k_vec': x._freq_axis}) # type: ignore
 def shift_operator(x: FourierSeries, *, dx = [0], params=None):
-  if params == None:
-    params = {'k_vec': x._freq_axis}
-
   if x.real:
     ffts = [jnp.fft.rfft, jnp.fft.irfft]
   else:

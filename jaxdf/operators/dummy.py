@@ -15,7 +15,7 @@ def dummy(x: OnGrid, *, params=None):
   r'''A dummy operator that is useful for debugging.'''
   if params is None:
     params = {"k": 3.0}
-  return params["k"]*x, params
+  return params["k"]*x
 
 @operator # type: ignore
 def dummy(x: Continuous, *, params=None):
@@ -33,4 +33,4 @@ def yummy_init(x: OnGrid, *args, **kwargs):
 @operator(init_params=yummy_init) # type: ignore
 def yummy(x: OnGrid, *, params=None):
   r'''A dummy operator that is useful for debugging.'''
-  return params["k"]*x, params
+  return params["k"]*x
