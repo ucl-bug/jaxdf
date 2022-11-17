@@ -168,7 +168,7 @@ def ft_diag_jacobian_init(
   return kernels
 
 ## gradient
-@operator
+@operator # type: ignore
 def gradient(x: Continuous, *, params=None):
   get_x = x.aux['get_field']
   def grad_fun(p, coords):
@@ -178,7 +178,7 @@ def gradient(x: Continuous, *, params=None):
   return x.update_fun_and_params(x.params, grad_fun)
 
 
-@operator(init_params=ft_diag_jacobian_init)
+@operator(init_params=ft_diag_jacobian_init) # type: ignore
 def gradient(
   x: FiniteDifferences,
   *,
@@ -187,7 +187,7 @@ def gradient(
 ) -> FiniteDifferences:
   return diag_jacobian(x, stagger, params=params)
 
-@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis})
+@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis})  # type: ignore
 def gradient(
   x: FourierSeries,
   *,
@@ -247,7 +247,7 @@ def gradient(
   return FourierSeries(new_params, x.domain)
 
 # diag_jacobian
-@operator
+@operator # type: ignore
 def diag_jacobian(x: Continuous, *, params=None):
   get_x = x.aux['get_field']
   def diag_fun(p, coords):
@@ -255,7 +255,7 @@ def diag_jacobian(x: Continuous, *, params=None):
     return jnp.diag(f_jac(p, coords)[0])
   return x.update_fun_and_params(x.params, diag_fun), None
 
-@operator(init_params=ft_diag_jacobian_init)
+@operator(init_params=ft_diag_jacobian_init) # type: ignore
 def diag_jacobian(
   x: FiniteDifferences,
   *,
@@ -272,7 +272,7 @@ def diag_jacobian(
   return x.replace_params(new_params)
 
 
-@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis})
+@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis}) # type: ignore
 def diag_jacobian(
   x: FourierSeries,
   *,
@@ -333,7 +333,7 @@ def diag_jacobian(
   return FourierSeries(new_params, x.domain), params
 
 # laplacian
-@operator
+@operator # type: ignore
 def laplacian(x: Continuous, *, params=None):
   get_x = x.aux['get_field']
   def grad_fun(p, coords):
@@ -342,7 +342,7 @@ def laplacian(x: Continuous, *, params=None):
   return x.update_fun_and_params(x.params, grad_fun), None
 
 
-@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis})
+@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis}) # type: ignore
 def laplacian(x: FourierSeries, *, params=None):
   assert x.dims == 1 # Laplacian only defined for scalar fields
 
@@ -364,7 +364,7 @@ def laplacian(x: FourierSeries, *, params=None):
     )
   return FourierSeries(new_params, x.domain), params
 
-@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis})
+@operator(init_params=lambda x, *args, **kwargs: {'k_vec': x._freq_axis}) # type: ignore
 def heterog_laplacian(x: FourierSeries, c: FourierSeries, *, params=None):
   '''Computes the position-varying laplacian using algorithm 4 of
   https://math.mit.edu/~stevenj/fft-deriv.pdf.

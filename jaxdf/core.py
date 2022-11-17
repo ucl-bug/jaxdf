@@ -1,7 +1,7 @@
 
 import types
 from functools import wraps
-from typing import Callable
+from typing import Callable, Union
 
 from jax.tree_util import register_pytree_node_class, tree_map
 from plum import Dispatcher
@@ -70,10 +70,9 @@ def _operator(evaluate, precedence, init_params):
 
   return f
 
-
 def operator(
-  evaluate: Callable = None,
-  init_params: Callable = None,
+  evaluate: Union[Callable, None] = None,
+  init_params: Union[Callable, None] = None,
   precedence: int = 0
 ):
   r'''Decorator for defining operators using multiple dispatch. The type annotation of the
