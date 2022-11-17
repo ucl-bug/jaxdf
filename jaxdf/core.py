@@ -3,10 +3,11 @@ import types
 from functools import wraps
 from typing import Callable
 
-from jax import jit
 from jax.tree_util import register_pytree_node_class, tree_map
 from plum import Dispatcher
 from plum.function import promised_type_of
+
+from jaxdf.exceptions import check_fun_has_params
 
 # Initialize the dispatch table
 _jaxdf_dispatch = Dispatcher()
@@ -16,9 +17,24 @@ debug_config ={
   "debug_dispatch": False,
 }
 
+
+
 def _operator(evaluate, precedence, init_params):
+  check_fun_has_params(evaluate)
+
+  # If the parameter initialization function is not provided, then
+  # assume that the operator has no parameters
+  if init_params is None:
+    def init_params(*args, **kwargs):
+      return None
+
+  # Create the operator function
   @wraps(evaluate)
   def wrapper(*args, **kwargs):
+    # Check if the parameters are not passed
+    if 'params' not in kwargs:
+      kwargs['params'] = init_params(*args, **kwargs)
+
     if debug_config["debug_dispatch"]:
       print(f"Dispatching {evaluate.__name__} with for types {evaluate.__annotations__}")
 
@@ -31,22 +47,16 @@ def _operator(evaluate, precedence, init_params):
 
     return field
 
-  if init_params is None:
-    def init_params(*args, **kwargs):
-      @jit
-      def _only_params(*args, **kwargs):
-        try:
-          return evaluate(*args, **kwargs)[1]
-        except:
-          return None
-      return _only_params(*args, **kwargs)
-
+  # Adds the parameters initializer to the functin wrapper
   wrapper._initialize_parameters = init_params
 
+  # Register the operator in the dispatch table
   f = _jaxdf_dispatch(wrapper, precedence=precedence)
 
-  # Bind an init_params method that returns the default parameters
+  # Bind an default_params method that returns the default parameters
   def _bound_init_params(self, *args, **kwargs):
+    # TODO: the method is resolved only on non-keyword arguments,
+    #       but it should potentially be resolved on all arguments.
     self._resolve_pending_registrations()
     if not self._runtime_type_of:
         sig_types = tuple([type(x) for x in args])
@@ -132,6 +142,29 @@ def new_discretization(cls):
   '''
   return register_pytree_node_class(cls)
 
+def constants(value) -> Callable:
+  r"""This is a higher order function for defining constant parameters of
+  operators, independent of the operator arguments.
+
+  ??? example
+
+    ```python
+    @operator(init_params=constants({"a": 1, "b": 2.0}))
+    def my_operator(x, *, params):
+      return x + params["a"] + params["b"]
+    ```
+
+  Args:
+    value (Any): The value of the constant parameters.
+
+  Returns:
+    Callable: The parameters initializer function that returns the constant value.
+  """
+  def init_params(*args, **kwargs):
+    return value
+  return init_params
+
+
 @new_discretization
 class Field(object):
   r'''The base-class for all discretizations. This class is also responsible for binding the operators in `jaxdf.operators.magic` to
@@ -213,47 +246,47 @@ class Field(object):
     return __rtruediv__(self, other)
 
 @operator
-def __add__(self, other, params=None):
+def __add__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __radd__(self, other, params=None):
+def __radd__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __sub__(self, other, params=None):
+def __sub__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __rsub__(self, other, params=None):
+def __rsub__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __mul__(self, other, params=None):
+def __mul__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __rmul__(self, other, params=None):
+def __rmul__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __neg__(self, params=None):
+def __neg__(self, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)}")
 
 @operator
-def __pow__(self, other, params=None):
+def __pow__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __rpow__(self, other, params=None):
+def __rpow__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __truediv__(self, other, params=None):
+def __truediv__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
 @operator
-def __rtruediv__(self, other, params=None):
+def __rtruediv__(self, other, *, params=None):
   raise NotImplementedError(f"Function not implemented for {type(self)} and {type(other)}")
 
   # Lifted jax functions for convenience
