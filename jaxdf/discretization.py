@@ -1,5 +1,5 @@
 import warnings
-from typing import Callable
+from typing import Callable, TypeVar
 
 from jax import eval_shape
 from jax import numpy as jnp
@@ -7,16 +7,20 @@ from jax import vmap
 from jax.tree_util import register_pytree_node_class
 
 from jaxdf.core import Field, new_discretization
+from jaxdf.geometry import Domain
+
+PyTree = TypeVar("PyTree")
 
 
 @new_discretization
 class Linear(Field):
   r'''This discretization assumes that the field is a linear function of the
-  parameters contained in `Linear.params`.'''
+  parameters contained in `Linear.params`.
+  '''
   def __init__(
     self,
-    params,
-    domain,
+    params: PyTree,
+    domain: Domain,
     dims=1,
     aux = None,
   ):
@@ -25,26 +29,24 @@ class Linear(Field):
 @register_pytree_node_class
 class Continuous(Field):
   r'''A continous discretization, which is defined via a `get_field` function stored
-  in the `aux` parameters. This is the most general form of a discretization, and its
-  operation are implemented using function composition and autograd.
+  in the `aux` parameters. Its operations are implemented using function composition 
+  and autograd.
 
-  Attributes:
-    params (PyTree): The parameters of the discretization. This must be a pytree
-      and is transformed by JAX transformations such as `jit` and `grad`.
-    domain (Domain): The domain of the discretization.
-    dims (int): The dimensionality of the field.
-    aux (dict): A dictionary of auxiliary data, containing the `get_field`
-      key. This is a function that takes a parameter vector and a point in
-      the domain and returns the field at that point. The signature of this
-      function is `get_field(params, x)`.
+  !!! example
+      ```python
+      def get_field(params, x):
+        return jnp.tanh(params[0] * x + params[1])
+      
+      params = jnp.array([1.0, 2.0])
+      domain = Domain((16,), (0.1,))
+      a = Continuous(params, domain, get_field)
+      ```
 
-  An object of this class can be called as a function, returning the field at a
-  desired point.
   '''
   def __init__(
     self,
-    params,
-    domain,
+    params: PyTree,
+    domain: Domain,
     get_fun: Callable
   ):
     r'''Initializes a continuous discretization.
@@ -90,8 +92,8 @@ class Continuous(Field):
 
   def update_fun_and_params(
     self,
-    params,
-    get_field
+    params: PyTree,
+    get_field: Callable,
   ):
     r'''Updates the parameters and the function of the discretization.
 
@@ -132,24 +134,26 @@ class Continuous(Field):
     return cls(params, domain=domain, get_fun=get_field)
 
   def __call__(self, x):
-    r'''Same as the `get_field` function.
+    r'''
+    An object of this class can be called as a function, returning the field at a
+    desired point. 
 
     !!! example
         ```python
+        ...
         a = Continuous.from_function(init_params, domain, get_field)
-
-        # Querying the field at the coordinate $`x=1.0`$
-        a(1.0)
+        field_at_x = a(1.0)
         ```
     '''
     return self.get_field(x)
 
   def get_field(self, x):
+    r"""Same as `__call__`."""
     return self.aux["get_field"](self.params, x)
 
   @property
   def on_grid(self):
-    '''The field on the grid points of the domain.'''
+    '''Returns the field on the grid points of the domain.'''
     fun = self.aux["get_field"]
     ndims = len(self.domain.N)
     for _ in range(ndims):
@@ -162,8 +166,8 @@ class OnGrid(Linear):
   r'''A linear discretization on the grid points of the domain.'''
   def __init__(
     self,
-    params,
-    domain
+    params: PyTree,
+    domain: Domain,
   ):
     r'''Initializes a linear discretization on the grid points of the domain.
 
@@ -208,7 +212,21 @@ class OnGrid(Linear):
 
   def __getitem__(self, idx):
     r'''Allow indexing when leading batch / time dimensions are
-    present in the parameters'''
+    present in the parameters
+    
+    !!! example
+        ```python
+        ...
+        domain = Domain((16, (1.0,))
+        
+        # 10 fields
+        params = random.uniform(key, (10, 16, 1)) 
+        a = OnGrid(params, domain)
+
+        # Field at the 5th index
+        field = a[5]
+        ```
+    '''
     if self.ndim + 1 == len(self.params.shape):
       raise ValueError("Indexing is only supported if there's at least one batch / time dimension")
 
@@ -222,18 +240,28 @@ class OnGrid(Linear):
 
   @classmethod
   def empty(cls, domain, dims=1):
-    r'''Creates an empty OnGrid field (zero field).'''
+    r'''Creates an empty OnGrid field (zero field). Equivalent to
+    `OnGrid(jnp.zeros(domain.N), domain)`.
+    '''
     N = tuple(list(domain.N) + [dims,])
     return cls(jnp.zeros(N), domain)
 
   @property
-  def is_field_complex(self):
-    r'''Whether the field is complex.'''
+  def is_field_complex(self) -> bool:
+    r'''Checks if a field is complex.
+
+    Returns:
+      bool: Whether the field is complex.
+    '''
     return self.params.dtype == jnp.complex64 or self.params.dtype == jnp.complex128
 
   @property
-  def real(self):
-    r'''Whether the field is real.'''
+  def real(self) -> bool:
+    r'''Checks if a field is real.
+
+    Returns:
+      bool: Whether the field is real.
+    '''
     return not self.is_field_complex
 
   @classmethod

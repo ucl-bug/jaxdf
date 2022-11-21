@@ -18,7 +18,6 @@ debug_config ={
 }
 
 
-
 def _operator(evaluate, precedence, init_params):
   check_fun_has_params(evaluate)
 
@@ -76,9 +75,50 @@ def operator(
   precedence: int = 0
 ):
   r'''Decorator for defining operators using multiple dispatch. The type annotation of the
-  `evaluate` function are used to determine the dispatch rules.
+  `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the 
+  same as the Julia one, that is: operators are dispatched on the types of the positional arguments.
+  Keyword arguments are not considered for dispatching.
 
-  Generic inputs must have the type-hint `object`.
+  Keyword arguments are defined after the `*` in the function signature.
+
+  !!! example
+      ```python
+      @operator
+      def my_operator(x: FourierSeries, *, dx: float, params=None):
+        ...
+      ```
+
+  The argument `params` is mandatory and it must be a keyword argument. It is used to pass the 
+  parameters of the operator, for example the stencil coefficients of a finite difference operator.
+  
+  The default value of the parameters is specified by the `init_params` function, as follows:
+
+  !!! example
+      ```python
+
+      def params_initializer(x, *, dx):
+        return {"stencil": jnp.ones(x.shape) * dx}
+
+      @operator(init_params=params_initializer)
+      def my_operator(x, *, dx, params=None):
+        b = params["stencil"] / dx
+        y_params = jnp.convolve(x.params, b, mode="same")
+        return x.replace_params(y_params)
+      ```
+  
+  The default value of `params` is not considered during computation.
+  If the operator has no parameters, the `init_params` function can be omitted. In this case, the
+  `params` value is set to `None`.
+
+  For constant parameters, the `constants` function can be used:
+
+  !!! example
+      ```python
+      @operator(init_params=constants({"a": 1, "b": 2.0}))
+      def my_operator(x, *, params):
+        return x + params["a"] + params["b"]
+      ```
+
 
   Args:
     evaluate (Callable): A function with the signature `evaluate(field, *args, **kwargs, params)`.
@@ -91,22 +131,6 @@ def operator(
   Returns:
     Callable: The operator function with signature `evaluate(field, *args, **kwargs, params)`.
 
-  !!! example
-      ```python
-      from jaxdf import operator
-
-      @operator(precedence=1)
-      def square_plus_two(x: OnGrid, params=2):
-        new_params = (x.params**2) + params
-        return x.replace_params(new_params), params
-
-      @operator
-      def square_plus_two(x: Continuous, params=2):
-        get_x = x.aux['get_field']
-        def new_get_field(p, coords):
-          return get_x(p, coords)**2 + params
-        return Continuous(x.params, x.domain, new_get_field), params
-      ```
   '''
   if evaluate is None:
     # Returns the decorator
@@ -145,13 +169,13 @@ def constants(value) -> Callable:
   r"""This is a higher order function for defining constant parameters of
   operators, independent of the operator arguments.
 
-  ??? example
+  !!! example
 
-    ```python
-    @operator(init_params=constants({"a": 1, "b": 2.0}))
-    def my_operator(x, *, params):
-      return x + params["a"] + params["b"]
-    ```
+      ```python
+      @operator(init_params=constants({"a": 1, "b": 2.0}))
+      def my_operator(x, *, params):
+        return x + params["a"] + params["b"]
+      ```
 
   Args:
     value (Any): The value of the constant parameters.
@@ -207,6 +231,21 @@ class Field(object):
     return self.__repr__()
 
   def replace_params(self, new_params):
+    r"""Returns a new field of the same type, with the same domain and auxiliary data, but with new parameters.
+
+    !!! example
+        ```python
+        x = FourierSeries(jnp.ones(10), domain=domain)
+        y_params = x.params + 1
+        y = x.replace_params(y_params)
+        ```
+
+    Args:
+      new_params (Any): The new parameters.
+    
+    Returns:
+      Field: A new field with the same domain and auxiliary data, but with new parameters.
+    """
     return self.__class__(new_params, self.domain, self.dims, self.aux)
 
   # Dummy magic functions to make it work with
@@ -301,6 +340,9 @@ def params_map(
 
   Returns a field with the same type of `f`, with updated
   parameters
+
+  !!! danger
+      This function has been deprecated. Use `jaxdf.operators.functions.compose` instead
 
   Args:
     f (Callable): A function that is applied to all the leaves of the
