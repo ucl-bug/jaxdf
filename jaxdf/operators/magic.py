@@ -135,7 +135,7 @@ def __rmul__(x: Field, y: object, *, params=None):
 ## __rpow__
 @operator(precedence=-1) # type: ignore
 def __rpow__(x: OnGrid, y: object, *, params=None):
-  new_params = params_map(lambda x: x**y, x.params)
+  new_params = params_map(lambda x: y**x, x.params)
   return x.replace_params(new_params), None
 
 
