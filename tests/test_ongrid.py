@@ -128,3 +128,58 @@ def test_jit_with_float(discretization):
   _ = add(x,y)
   _ = add(x, 6.0)
   _ = add(-5.0, x)
+
+@pytest.mark.parametrize("N", [(64,), (64,64), (64, 64, 64)])
+def test_time_index(N):
+  domain = Domain(N, dx=[1.]*len(N))
+  params = jnp.ones((10,) + domain.N + (1,))
+  field = OnGrid(params, domain)
+
+  field_at_10 = field[10]
+  assert jnp.allclose(field_at_10.params, jnp.ones(domain.N + (1,)))
+
+def test_time_index_raises():
+  N = (64,)
+  domain = Domain(N, dx=[1.]*len(N))
+  params = jnp.ones(domain.N + (1,))
+  field = OnGrid(params, domain)
+
+  with pytest.raises(IndexError):
+    field[0]
+
+@pytest.mark.parametrize("N", [(64,), (64,64), (64, 64, 64)])
+def from_grid(N):
+  domain = Domain(N, dx=[1.]*len(N))
+  params = jnp.ones(domain.N + (1,))
+  field = OnGrid(params, domain)
+  grid_values = field.on_grid
+
+  field_from_grid = OnGrid.from_grid(grid_values, domain)
+  assert jnp.allclose(field_from_grid.params, field.params)
+
+def test_op_bool():
+  N = (64,)
+  domain = Domain(N, dx=[1.]*len(N))
+  params = jnp.ones(domain.N + (1,))
+  field = OnGrid(params, domain)
+  field_post = bool(field)
+
+  assert jnp.allclose(field_post, field.on_grid != 0.0)
+
+def test_op_pow():
+  N = (64,)
+  domain = Domain(N, dx=[1.]*len(N))
+  params = jnp.ones(domain.N + (1,))
+  field = OnGrid(params, domain)
+  field_post = field**2
+
+  assert jnp.allclose(field_post.on_grid, field.on_grid**2)
+
+def test_op_rpow():
+  N = (64,)
+  domain = Domain(N, dx=[1.]*len(N))
+  params = jnp.ones(domain.N + (1,))
+  field = OnGrid(params, domain)
+  field_post = 2**field
+
+  assert jnp.allclose(field_post.on_grid, 2**field.on_grid)

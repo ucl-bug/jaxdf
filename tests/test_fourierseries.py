@@ -39,5 +39,14 @@ def test_call(N, out_dims, jitting):
 
   assert jnp.allclose(field_value, value)
 
-if __name__ == '__main__':
-  pass
+def test_ffts_funcs():
+  domain = Domain((33,), dx=[1.])
+  params = jnp.zeros((33, 1))
+  field = FourierSeries(params, domain)
+  ffts = field._ffts
+  assert ffts == [jnp.fft.rfft, jnp.fft.irfft]
+
+  params = params + 1j
+  field = FourierSeries(params, domain)
+  ffts = field._ffts
+  assert ffts == [jnp.fft.fft, jnp.fft.ifft]

@@ -29,14 +29,14 @@ class Linear(Field):
 @register_pytree_node_class
 class Continuous(Field):
   r'''A continous discretization, which is defined via a `get_field` function stored
-  in the `aux` parameters. Its operations are implemented using function composition 
+  in the `aux` parameters. Its operations are implemented using function composition
   and autograd.
 
   !!! example
       ```python
       def get_field(params, x):
         return jnp.tanh(params[0] * x + params[1])
-      
+
       params = jnp.array([1.0, 2.0])
       domain = Domain((16,), (0.1,))
       a = Continuous(params, domain, get_field)
@@ -136,7 +136,7 @@ class Continuous(Field):
   def __call__(self, x):
     r'''
     An object of this class can be called as a function, returning the field at a
-    desired point. 
+    desired point.
 
     !!! example
         ```python
@@ -213,22 +213,28 @@ class OnGrid(Linear):
   def __getitem__(self, idx):
     r'''Allow indexing when leading batch / time dimensions are
     present in the parameters
-    
+
     !!! example
         ```python
         ...
         domain = Domain((16, (1.0,))
-        
+
         # 10 fields
-        params = random.uniform(key, (10, 16, 1)) 
+        params = random.uniform(key, (10, 16, 1))
         a = OnGrid(params, domain)
 
         # Field at the 5th index
         field = a[5]
         ```
+
+    Returns:
+      OnGrid: A linear discretization on the grid points of the domain.
+
+    Raises:
+      IndexError: If the field is not indexable (single field).
     '''
     if self.ndim + 1 == len(self.params.shape):
-      raise ValueError("Indexing is only supported if there's at least one batch / time dimension")
+      raise IndexError("Indexing is only supported if there's at least one batch / time dimension")
 
     new_params = self.params[idx]
     return self.__class__(new_params, self.domain)

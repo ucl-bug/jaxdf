@@ -417,6 +417,7 @@ def heterog_laplacian(x: FourierSeries, c: FourierSeries, *, params=None):
 
 
 if __name__ == '__main__':
+  '''# Gets implemented functions
   from jaxdf.util import _get_implemented
 
   funcs = [
@@ -428,3 +429,4 @@ if __name__ == '__main__':
   for f in funcs:
     _get_implemented(f)
   print('\n')
+  '''

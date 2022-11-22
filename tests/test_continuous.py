@@ -86,6 +86,45 @@ def test_add(N, jitting, get_fields):
     expected_value=[5.*len(N) +1]
   )
 
+def test_from_function():
+  def f(params, x):
+    return jnp.sum(params)*x
+
+  def init_params(rng, domain):
+    return jnp.ones((1,))
+
+  domain = Domain((64,), dx=(1.,))
+  seed = random.PRNGKey(42)
+  field = Continuous.from_function(domain, init_params, f, seed)
+
+def test_on_grid():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  params = jnp.ones((1,))
+
+  domain = Domain((4,), dx=(.1,))
+  field = Continuous(params, domain, f)
+  grid = field.on_grid
+  grid_true = jnp.asarray([
+    [-0.15],
+    [-0.05],
+    [ 0.05],
+    [ 0.15]
+  ])
+  assert jnp.allclose(grid, grid_true)
+
+def test_replace_params():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  params = jnp.ones((1,))
+
+  domain = Domain((4,), dx=(.1,))
+  field = Continuous(params, domain, f)
+  field = field.replace_params(jnp.zeros((1,)))
+  assert jnp.allclose(field.params, jnp.zeros((1,)))
+
 @pytest.mark.parametrize("jitting", [True, False])
 def test_sub(N, jitting, get_fields):
   a,b = get_fields
@@ -129,3 +168,31 @@ def test_mul(N, jitting, get_fields):
     jitting,
     a.domain.origin+1,
     expected_value=[10.*len(N)])
+
+def test_op_neg():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  params = jnp.ones((1,))
+
+  domain = Domain((4,), dx=(.1,))
+  field = Continuous(params, domain, f)
+  field = -field
+  field_value = field(jnp.ones((1,)))
+
+  true_field_value = - f(params, jnp.ones((1,)))
+  assert jnp.allclose(field_value, true_field_value)
+
+def test_op_rtruediv():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  params = jnp.ones((1,))*4.
+
+  domain = Domain((4,), dx=(.1,))
+  field = Continuous(params, domain, f)
+  field = 1./field
+  field_value = field(jnp.ones((1,)))
+
+  true_field_value = 1./f(params, jnp.ones((1,)))
+  assert jnp.allclose(field_value, true_field_value)
