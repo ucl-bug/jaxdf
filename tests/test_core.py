@@ -84,3 +84,65 @@ def test_override_operator_new_discretization(get_ongrid_fields):
 
   z = operators.compose(a)(jnp.exp)
   assert z.params ==  z_old
+
+def test_replace_param_for_abstract_field():
+  domain = geometry.Domain((1,), (1.,))
+  params = jnp.asarray([1.0])
+  aux = {"a": 1, "f": lambda x: x, "s": "string"}
+  dims = 1
+
+  a = Field(params, domain, dims, aux)
+
+  new_params = jnp.asarray([2.0])
+
+  b = a.replace_params(new_params)
+  
+  assert b.params == new_params
+  assert b.aux == aux
+  assert b.dims == dims
+  assert b.domain == domain
+
+@pytest.mark.parametrize("function", [
+  "__add__",
+  "__radd__",
+  "__sub__",
+  "__rsub__",
+  "__mul__",
+  "__rmul__",
+  "__pow__",
+  "__rpow__",
+  "__truediv__",
+  "__rtruediv__",
+])
+def test_non_implemented_binary_methods(function):
+  domain = geometry.Domain((1,), (1.,))
+  params = jnp.asarray([1.0])
+  aux = {"a": 1, "f": lambda x: x, "s": "string"}
+  dims = 1
+
+  a = Field(params, domain, dims, aux)
+  b = Field(params, domain, dims, aux)
+  c = FourierSeries(params, domain)
+
+  with pytest.raises(NotImplementedError):
+    getattr(a, function)(b)
+  
+  with pytest.raises(NotImplementedError):
+    getattr(a, function)(c)
+
+  with pytest.raises(NotImplementedError):
+    getattr(c, function)(a)
+
+@pytest.mark.parametrize("function", [
+  "__neg__",
+])
+def test_non_implemented_unary_methods(function):
+  domain = geometry.Domain((1,), (1.,))
+  params = jnp.asarray([1.0])
+  aux = {"a": 1, "f": lambda x: x, "s": "string"}
+  dims = 1
+
+  a = Field(params, domain, dims, aux)
+
+  with pytest.raises(NotImplementedError):
+    getattr(a, function)()

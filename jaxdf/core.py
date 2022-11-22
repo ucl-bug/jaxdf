@@ -54,13 +54,17 @@ def _operator(evaluate, precedence, init_params):
 
   # Bind an default_params method that returns the default parameters
   def _bound_init_params(self, *args, **kwargs):
-    # TODO: the method is resolved only on non-keyword arguments,
-    #       but it should potentially be resolved on all arguments.
+    # the method is resolved only on non-keyword arguments,
+    # see: https://github.com/wesselb/plum/issues/40#issuecomment-1321164488
     self._resolve_pending_registrations()
+    sig_types = tuple([type(x) for x in args])
+
+    ''' # TODO: This is a hack that shouldn't be needed
     if not self._runtime_type_of:
         sig_types = tuple([type(x) for x in args])
     else:
         sig_types = tuple([promised_type_of.resolve()(x) for x in args])
+    '''
 
     method, _ = self.resolve_method(*sig_types)
     return method._initialize_parameters(*args, **kwargs)
