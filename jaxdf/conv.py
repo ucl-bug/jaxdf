@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Union
+from typing import List, Tuple, Union, no_type_check
 
 import numpy as np
 from jax import numpy as jnp
@@ -34,8 +34,8 @@ def reflection_conv(
   return jsp.signal.convolve(f, kernel, mode="valid")
 
 def bubble_sort_abs_value(
-  points_list: Sequence[Union[float, int]]
-) -> Sequence[Union[float, int]]:
+  points_list: List[Union[float, int]]
+) -> List[Union[float, int]]:
   r'''Sorts a sequence of grid points by their absolute value.
 
   Sorting is done __in place__. This function is written with numpy, so it can't
@@ -50,10 +50,10 @@ def bubble_sort_abs_value(
       ```
 
   Args:
-    points_list (Sequence[Union[float, int]]): The grid points to sort.
+    points_list (List[Union[float, int]]): The grid points to sort.
 
   Returns:
-    Sequence[Union[float, int]]: The sorted grid points.
+    List[Union[float, int]]: The sorted grid points.
   '''
 
   for i in range(len(points_list)):
@@ -68,11 +68,13 @@ def bubble_sort_abs_value(
 
   return points_list
 
+# TODO (astanziola): This fails on mypy for some reason, but can't work out how to fix.
+@no_type_check
 def fd_coefficients_fornberg(
   order: int,
-  grid_points: Sequence[Union[float, int]],
+  grid_points: List[Union[float, int]],
   x0: Union[float, int]
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[List[None], List[Union[float, int]]]:
   r"""Generate finite difference stencils for a given order and grid points, using
   the Fornberg algorithm described in [[Fornberg, 2018]](https://web.njit.edu/~jiang/math712/fornberg.pdf).
 
@@ -92,7 +94,7 @@ def fd_coefficients_fornberg(
 
   Args:
     order (int): The order of the stencil.
-    grid_points (Sequence[Union[float, int]]): The grid points to use.
+    grid_points (List[Union[float, int]]): The grid points to use.
     x0 (Union[float, int]): The point at which to evaluate the stencil.
 
   Returns:
