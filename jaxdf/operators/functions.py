@@ -7,8 +7,8 @@ from jaxdf.core import operator
 from jaxdf.discretization import *
 from jaxdf.discretization import OnGrid
 from jaxdf.operators.differential import (
-    _convolve_with_pad,
-    _get_fd_coefficients,
+    reflection_conv,
+    get_fd_coefficients,
 )
 
 
@@ -93,7 +93,7 @@ def fd_shift_kernels(
   **kwargs
 ):
   def single_kernel(axis, stagger):
-    kernel = _get_fd_coefficients(x, order = 0, stagger=stagger)
+    kernel = get_fd_coefficients(x, order = 0, stagger=stagger)
     if x.domain.ndim > 1:
       for _ in range(x.domain.ndim - 1):
         kernel = np.expand_dims(kernel, axis=0)
@@ -116,7 +116,7 @@ def shift_operator(x: FiniteDifferences, *, dx = [0.0], params=None):
   array = x.on_grid
 
   # Apply the corresponding kernel to each dimension
-  outs = [_convolve_with_pad(kernels[i], array[...,i], i) for i in range(x.ndim)]
+  outs = [reflection_conv(kernels[i], array[...,i], i) for i in range(x.ndim)]
   new_params = jnp.stack(outs, axis=-1)
 
   return x.replace_params(new_params)

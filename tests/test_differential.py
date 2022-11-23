@@ -106,10 +106,43 @@ def test_jit_continous_gradient():
   _ = (make_jaxpr(f)(a, op_params_a))
   _ = (make_jaxpr(f)(m, op_params))
 
-if __name__ == '__main__':
+def test_continuous_derivative():
+  def f(params, x):
+    return jnp.sin(params*x)
+  domain = geometry.Domain((8,), (1.0,))
+  a = Continuous(1.5, domain, f)
+  b = operators.derivative(a)
+  da = lambda p, x : p*jnp.cos(p*x)
+
+  p = jnp.asarray([2.0])
+
+  f1 = b(p)
+  f2 = da(1.5, p)
+  assert jnp.allclose(f1, f2)
+
+def test_finite_difference_derivative():
+  domain = geometry.Domain((11,), (.5,))
+  params = jnp.zeros((11,))
+  params = params.at[5].set(1.0)
+  u = FiniteDifferences(params, domain, accuracy=4)
+  du = operators.gradient(u)
+
+  kernel = operators.gradient.default_params(u)
+  print(kernel)
+
+  grid_values = du.on_grid[:,0]
+  true_values = jnp.asarray(
+    [ 0., -0.,  0. , -0.16666667,  1.33333333, 0., 
+      -1.33333333, 0.16666667,  0.,  0., 0.])
+  assert jnp.allclose(grid_values, true_values)
+
+def test_checking_leaks():
   with jax.checking_leaks():
     test_fourier_laplacian()
     test_continuous_laplacian()
     test_fourier_gradient()
     test_continous_gradient()
-    test_jit_continous_gradient()
+    test_jit_continous_gradient()#
+
+if __name__ == "__main__":
+  test_finite_difference_derivative()
