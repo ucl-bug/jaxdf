@@ -1,3 +1,4 @@
+plumkdocs @ git+https://github.com/ucl-bug/plumkdocs.git#egg=plumkdocs
 jupyter
 mkdocs>=1.3.1
 mkdocs-autorefs>=0.4.1
