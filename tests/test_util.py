@@ -1,6 +1,8 @@
+from jax import numpy as jnp
+
 from jaxdf import util
 from jaxdf.operators.differential import gradient
-from jax import numpy as jnp
+
 
 def test_append_dimension():
   a = jnp.zeros((2, 3))

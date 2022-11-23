@@ -1,7 +1,9 @@
+from typing import Sequence, Tuple, Union
+
+import numpy as np
 from jax import numpy as jnp
 from jax import scipy as jsp
-from typing import Sequence, Union, Tuple
-import numpy as np
+
 
 def reflection_conv(
   kernel: jnp.ndarray,
@@ -10,13 +12,13 @@ def reflection_conv(
 ) -> jnp.ndarray:
   r'''Convolves an array with a kernel, using reflection padding.
   The kernel is supposed to have the same number of dimensions as the array.
-  
+
   Args:
     kernel (jnp.ndarray): The kernel to convolve with.
     array (jnp.ndarray): The array to convolve.
     reverse (bool, optional): Whether to reverse the kernel before convolving.
       Defaults to True.
-  
+
   Returns:
     jnp.ndarray: The convolved array.
   '''
@@ -34,22 +36,22 @@ def reflection_conv(
 def bubble_sort_abs_value(
   points_list: Sequence[Union[float, int]]
 ) -> Sequence[Union[float, int]]:
-  r'''Sorts a sequence of grid points by their absolute value. 
-  
+  r'''Sorts a sequence of grid points by their absolute value.
+
   Sorting is done __in place__. This function is written with numpy, so it can't
   be transformed by JAX.
 
   !!! example
       ```python
-      lst = [-3, -2, -1, 0, 1, 2, 3] 
+      lst = [-3, -2, -1, 0, 1, 2, 3]
       sorted_lst = bubble_sort_abs_value(lst)
       print(sorted_lst)
       # [0, 1, -1, 2, -2, 3, -3]
       ```
-    
+
   Args:
     points_list (Sequence[Union[float, int]]): The grid points to sort.
-  
+
   Returns:
     Sequence[Union[float, int]]: The sorted grid points.
   '''
@@ -67,11 +69,11 @@ def bubble_sort_abs_value(
   return points_list
 
 def fd_coefficients_fornberg(
-  order: int, 
-  grid_points: Sequence[Union[float, int]], 
+  order: int,
+  grid_points: Sequence[Union[float, int]],
   x0: Union[float, int]
 ) -> Tuple[np.ndarray, np.ndarray]:
-  r"""Generate finite difference stencils for a given order and grid points, using 
+  r"""Generate finite difference stencils for a given order and grid points, using
   the Fornberg algorithm described in [[Fornberg, 2018]](https://web.njit.edu/~jiang/math712/fornberg.pdf).
 
   The grid points can be placed in any order, can be at arbitrary locations (for example, to implemente staggered

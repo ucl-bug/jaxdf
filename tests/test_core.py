@@ -96,7 +96,7 @@ def test_replace_param_for_abstract_field():
   new_params = jnp.asarray([2.0])
 
   b = a.replace_params(new_params)
-  
+
   assert b.params == new_params
   assert b.aux == aux
   assert b.dims == dims
@@ -126,7 +126,7 @@ def test_non_implemented_binary_methods(function):
 
   with pytest.raises(NotImplementedError):
     getattr(a, function)(b)
-  
+
   with pytest.raises(NotImplementedError):
     getattr(a, function)(c)
 

@@ -1,8 +1,8 @@
+import jax
+from jax import numpy as jnp
+
 from jaxdf import FourierSeries
 from jaxdf.geometry import Domain
-
-from jax import numpy as jnp
-import jax
 
 
 def test_vmap_over_ongrid():

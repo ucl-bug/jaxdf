@@ -1,12 +1,12 @@
+from typing import Union
+
 import jax
 import numpy as np
 from jax import numpy as jnp
-from jax import scipy as jsp
 
+from jaxdf.conv import *
 from jaxdf.core import operator
 from jaxdf.discretization import *
-from jaxdf.conv import *
-from typing import Union
 
 
 def _get_ffts(x):
@@ -27,8 +27,8 @@ def derivative(x: Continuous, *, axis=0, params=None):
 
 
 def get_fd_coefficients(
-  x: FiniteDifferences, 
-  order: int = 1, 
+  x: FiniteDifferences,
+  order: int = 1,
   stagger: Union[float, int] = 0
 ):
 

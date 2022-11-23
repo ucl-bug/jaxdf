@@ -1,7 +1,9 @@
-from jaxdf import conv
+import numpy as np
 from jax import numpy as jnp
 from pytest import mark
-import numpy as np
+
+from jaxdf import conv
+
 
 def test_reflection_conv():
   array = jnp.zeros((5, 6))
@@ -71,5 +73,3 @@ def test_fornberg_coefficients(pair):
   points, order, stencil_true = pair.values()
   stencil, grid_points = conv.fd_coefficients_fornberg(order, points, 0.)
   assert np.allclose(stencil, stencil_true)
-
-      

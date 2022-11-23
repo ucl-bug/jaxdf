@@ -6,10 +6,7 @@ from jax import numpy as jnp
 from jaxdf.core import operator
 from jaxdf.discretization import *
 from jaxdf.discretization import OnGrid
-from jaxdf.operators.differential import (
-    reflection_conv,
-    get_fd_coefficients,
-)
+from jaxdf.operators.differential import get_fd_coefficients, reflection_conv
 
 
 ## compose

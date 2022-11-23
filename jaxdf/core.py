@@ -5,7 +5,6 @@ from typing import Callable, Union
 
 from jax.tree_util import register_pytree_node_class, tree_map
 from plum import Dispatcher
-from plum.function import promised_type_of
 
 from jaxdf.exceptions import check_fun_has_params
 
@@ -79,7 +78,7 @@ def operator(
   precedence: int = 0
 ):
   r'''Decorator for defining operators using multiple dispatch. The type annotation of the
-  `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the 
+  `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the
   same as the Julia one, that is: operators are dispatched on the types of the positional arguments.
   Keyword arguments are not considered for dispatching.
 
@@ -92,9 +91,9 @@ def operator(
         ...
       ```
 
-  The argument `params` is mandatory and it must be a keyword argument. It is used to pass the 
+  The argument `params` is mandatory and it must be a keyword argument. It is used to pass the
   parameters of the operator, for example the stencil coefficients of a finite difference operator.
-  
+
   The default value of the parameters is specified by the `init_params` function, as follows:
 
   !!! example
@@ -109,7 +108,7 @@ def operator(
         y_params = jnp.convolve(x.params, b, mode="same")
         return x.replace_params(y_params)
       ```
-  
+
   The default value of `params` is not considered during computation.
   If the operator has no parameters, the `init_params` function can be omitted. In this case, the
   `params` value is set to `None`.
@@ -246,7 +245,7 @@ class Field(object):
 
     Args:
       new_params (Any): The new parameters.
-    
+
     Returns:
       Field: A new field with the same domain and auxiliary data, but with new parameters.
     """

@@ -132,7 +132,7 @@ def test_finite_difference_derivative():
 
   grid_values = du.on_grid[:,0]
   true_values = jnp.asarray(
-    [ 0., -0.,  0. , -0.16666667,  1.33333333, 0., 
+    [ 0., -0.,  0. , -0.16666667,  1.33333333, 0.,
       -1.33333333, 0.16666667,  0.,  0., 0.])
   assert jnp.allclose(grid_values, true_values)
 
