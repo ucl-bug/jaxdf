@@ -166,7 +166,7 @@ def test_op_bool():
 
   assert jnp.allclose(field_post, field.on_grid != 0.0)
 
-def test_op_pow():
+def test_op_pow_float():
   N = (64,)
   domain = Domain(N, dx=[1.]*len(N))
   params = jnp.ones(domain.N + (1,))
@@ -174,6 +174,18 @@ def test_op_pow():
   field_post = field**2
 
   assert jnp.allclose(field_post.on_grid, field.on_grid**2)
+
+def test_op_pow():
+  N = (64,)
+  domain = Domain(N, dx=[1.]*len(N))
+  params1 = jnp.ones(domain.N + (1,))*3.
+  params2 = jnp.ones(domain.N + (1,))*2.
+  field1 = OnGrid(params1, domain)
+  field2 = OnGrid(params2, domain)
+  field_post = field1**field2
+
+  true_field = params1**params2
+  assert jnp.allclose(field_post.on_grid, true_field)
 
 def test_op_rpow():
   N = (64,)
@@ -183,3 +195,24 @@ def test_op_rpow():
   field_post = 2**field
 
   assert jnp.allclose(field_post.on_grid, 2**field.on_grid)
+
+def test_op_truediv():
+  N = (64,)
+  domain = Domain(N, dx=[1.]*len(N))
+  params1 = jnp.ones(domain.N + (1,))*3.
+  params2 = jnp.ones(domain.N + (1,))*2.
+  field1 = OnGrid(params1, domain)
+  field2 = OnGrid(params2, domain)
+  field_post = field1/field2
+
+  true_field = params1/params2
+  assert jnp.allclose(field_post.on_grid, true_field)
+
+def test_op_rtrue_div():
+  N = (64,)
+  domain = Domain(N, dx=[1.]*len(N))
+  params = jnp.ones(domain.N + (1,))
+  field = OnGrid(params, domain)
+  field_post = 2/field
+
+  assert jnp.allclose(field_post.on_grid, 2/field.on_grid)

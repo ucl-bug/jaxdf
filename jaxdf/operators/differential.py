@@ -33,7 +33,7 @@ def get_fd_coefficients(
 ):
 
   # Check that all the values of stagger are in [0, 0.5, -0.5]
-  assert stagger in [0, -0.5, 0.5], 'Staggering must be in [0, 0.5, -0.5] for finite differences'
+  #assert stagger in [0, -0.5, 0.5], f'Staggering must be in [0, 0.5, -0.5] for finite differences, got {stagger}'
   dx = np.asarray(x.domain.dx)
   accuracy = x.accuracy
   points = np.arange(-accuracy//2, accuracy//2+1)

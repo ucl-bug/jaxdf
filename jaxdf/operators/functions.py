@@ -3,10 +3,11 @@ from typing import List
 import numpy as np
 from jax import numpy as jnp
 
+from jaxdf.conv import reflection_conv
 from jaxdf.core import operator
 from jaxdf.discretization import *
 from jaxdf.discretization import OnGrid
-from jaxdf.operators.differential import get_fd_coefficients, reflection_conv
+from jaxdf.operators.differential import get_fd_coefficients
 
 
 ## compose
@@ -96,7 +97,7 @@ def fd_shift_kernels(
         kernel = np.expand_dims(kernel, axis=0)
       # Move kernel to the correct axis
       kernel = np.moveaxis(kernel, -1, axis)
-    kernel = kernel / x.domain.dx[axis]
+    #kernel = kernel / x.domain.dx[axis]
     return kernel
 
   stagger = dx[0]/ x.domain.dx[0]

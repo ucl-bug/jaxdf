@@ -196,3 +196,55 @@ def test_op_rtruediv():
 
   true_field_value = 1./f(params, jnp.ones((1,)))
   assert jnp.allclose(field_value, true_field_value)
+
+def test_op_truediv():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  def g(params, x):
+    return params * jnp.sum(x) + 2.
+
+  domain = Domain((4,), dx=(.1,))
+  field1 = Continuous(4., domain, f)
+  field2 = Continuous(2., domain, g)
+  field = field1/field2
+  field_value = field(jnp.ones((1,)))
+  true_field_value = f(4., jnp.ones((1,)))/g(2., jnp.ones((1,)))
+  assert jnp.allclose(field_value, true_field_value)
+
+def test_op_truediv_float():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  domain = Domain((4,), dx=(.1,))
+  field = Continuous(4., domain, f)
+  field = field/2.
+  field_value = field(jnp.ones((1,)))
+  true_field_value = f(4., jnp.ones((1,)))/2.
+  assert jnp.allclose(field_value, true_field_value)
+
+def test_op_pow():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  def g(params, x):
+    return params * jnp.sum(x) + 2.
+
+  domain = Domain((4,), dx=(.1,))
+  field1 = Continuous(4., domain, f)
+  field2 = Continuous(2., domain, g)
+  field = field1**field2
+  field_value = field(jnp.ones((1,)))
+  true_field_value = f(4., jnp.ones((1,)))**g(2., jnp.ones((1,)))
+  assert jnp.allclose(field_value, true_field_value)
+
+def test_op_pow_float():
+  def f(params, x):
+    return params * jnp.sum(x)
+
+  domain = Domain((4,), dx=(.1,))
+  field = Continuous(4., domain, f)
+  field = field**2.
+  field_value = field(jnp.ones((1,)))
+  true_field_value = f(4., jnp.ones((1,)))**2.
+  assert jnp.allclose(field_value, true_field_value)

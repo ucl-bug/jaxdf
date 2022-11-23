@@ -217,6 +217,7 @@ def inverse(x: OnGrid, *, params=None):
   return x.replace_params(new_params), None
 
 if __name__ == '__main__':
+  '''
   from jaxdf.util import _get_implemented
 
   magic = [
@@ -231,3 +232,4 @@ if __name__ == '__main__':
   for f in magic:
     _get_implemented(f)
   print('\n')
+  '''
