@@ -93,7 +93,7 @@ virtualenv:       ## Create a virtual environment. Checks that python > 3.8
 	@echo "--- Don't forget to manually reinstall JAX for GPU/TPU support: https://github.com/google/jax#installation"
 
 .PHONY: testenv
-virtualenv:       ## Create a virtual environment. Checks that python > 3.8
+testenv:       ## Create a virtual environment. Checks that python > 3.8
 	@echo "creating virtual environment ..."
 	@python -c "import sys; assert sys.version_info >= (3, 8), 'Python 3.8 or higher is required'" || exit 1
 	@rm -rf .venv
