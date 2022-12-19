@@ -30,9 +30,17 @@ def read_requirements(path):
     ]
 
 
+def read_variable_from_py(variable_name, path):
+    """Read a variable from a Python file.
+    >>> read_variable_from_py("VERSION", "jaxdf/__about__.py")
+    '0.1.0'
+    """
+    return read(path).split(variable_name + '="')[1].split('"')[0]
+
+
 setup(
     name="jaxdf",
-    version=read("jaxdf", "VERSION"),
+    version=read_variable_from_py("VERSION", "jaxdf/__about__.py"),
     description="A JAX-based research framework for writing differentiable numerical simulators with arbitrary discretizations",
     url="https://github.com/ucl-bug/jaxdf",
     long_description=read("README.md"),
@@ -59,9 +67,9 @@ setup(
     classifiers=[
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Physics",
     ],
 )

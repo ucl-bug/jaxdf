@@ -52,7 +52,7 @@ lint:             ## Runs isort and mypy.
 release:          ## Create a new tag for release.
 	@echo "WARNING: This operation will create s version tag and push to github"
 	@read -p "Version? (provide the next x.y.z semver) : " TAG
-	@echo "$${TAG}" > jaxdf/VERSION
+	@echo "VERSION='$${TAG}'" > jaxdf/__about__.py
 	@$(ENV_PREFIX)gitchangelog > HISTORY.md
 	@git add jaxdf/VERSION HISTORY.md
 	@git commit -m "release: version $${TAG} 🚀"
