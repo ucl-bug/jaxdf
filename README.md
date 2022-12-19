@@ -10,8 +10,6 @@
 | [**Installation**](#installation)
 | [**Documentation**](https://ucl-bug.github.io/jaxdf/)
 
-## ⚠️ This library is still in development. Breaking changes may occur.
-
 <br/>
 
 ## Overview
