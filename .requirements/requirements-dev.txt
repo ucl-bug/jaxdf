@@ -14,3 +14,5 @@ markdown-katex>=202112.1034
 pre-commit>=2.20.0
 pycln>=2.0.4
 isort>=5.10.1
+pre-commit>=2.20.0
+plumkdocs @ git+https://github.com/astanziola/plumkdocs.git#egg=plumkdocs

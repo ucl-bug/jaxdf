@@ -62,11 +62,18 @@ gradient = grad(loss)(u) # gradient is a FourierSeries
 
 Before installing `jaxdf`, make sure that [you have installed JAX](https://github.com/google/jax#installation). Follow the instruction to install JAX with NVidia GPU support if you want to use `jaxdf` on the GPUs.
 
-Install jaxdf by cloning the repository or downloading and extracting the compressed archive. Then navigate in the root folder in a terminal, and run
+You can install `jaxdf` from PyPI using `pip`:
+
+```bash
+pip install jaxdf
+```
+
+For development, install jaxdf by cloning the repository or downloading and extracting the compressed archive. Then navigate in the root folder in a terminal, and run
 ```bash
 pip install -r .requirements/requirements.txt
-pip install .
+pip install -e .
 ```
+to install the dependencies and the package itself (in editable mode).
 
 <br/>
 
