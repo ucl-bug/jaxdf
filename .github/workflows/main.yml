@@ -29,6 +29,7 @@ jobs:
       - name: Making virtual environment, linting and testing
         run: |
           make virtualenv
+          pip install -r .requirements/requirements-dev.txt
           make lint
           make test
       - name: "Upload coverage to Codecov"
