@@ -46,9 +46,7 @@ lint:             ## Runs isort and mypy.
 	$(ENV_PREFIX)isort jaxdf/
 	@echo "Running flake8 ..."
 	$(ENV_PREFIX)flake8 jaxdf/  --count --select=E9,F63,F7,F82 --show-source --statistics
-	$(ENV_PREFIX)flake8 jaxdf/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-	@echo "Running mypy ..."
-	$(ENV_PREFIX)mypy --config-file=pyproject.toml jaxdf/*.py
+	$(ENV_PREFIX)flake8 jaxdf/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --ignore=F811
 
 .PHONY: release
 release:          ## Create a new tag for release.

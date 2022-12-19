@@ -1,4 +1,4 @@
-::: jaxdf.ode
+::: jaxdf.exceptions
     handler: python
     selection:
         filters:

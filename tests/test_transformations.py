@@ -1,8 +1,8 @@
+import jax
+from jax import numpy as jnp
+
 from jaxdf import FourierSeries
 from jaxdf.geometry import Domain
-
-from jax import numpy as jnp
-import jax
 
 
 def test_vmap_over_ongrid():
@@ -13,11 +13,11 @@ def test_vmap_over_ongrid():
 
     vfoo = jax.vmap(foo, in_axes=(None, 0))
 
-    N = (8,8)
+    N = (8, 8)
     params = jnp.ones(N)
-    domain = Domain(N, (1,1))
+    domain = Domain(N, (1, 1))
 
     fs = FourierSeries(params, domain)
-    values = jnp.asarray([1,2,3,4])
+    values = jnp.asarray([1, 2, 3, 4])
 
     print(vfoo(fs, values))

@@ -18,6 +18,24 @@ theme:
   font:
     text: Roboto
     code: Roboto Mono
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
 
 nav:
   - Home: index.md
@@ -28,13 +46,15 @@ nav:
     - How discretizations work: notebooks/api_discretization.ipynb
     - Helmholtz equation with PINNs: notebooks/helmholtz_pinn.ipynb
   - API:
+    - conv: conv.md
     - core: core.md
     - discretization: discretization.md
+    - exceptions: exceptions.md
     - geometry: geometry.md
-    - ode: ode.md
     - operators:
       - differential: operators/differential.md
       - functions: operators/functions.md
+      - linear algebra: operators/linear_algebra.md
       - magic: operators/magic.md
     - util: util.md
 
@@ -77,6 +97,7 @@ markdown_extensions:
   - admonition
   - attr_list
   - footnotes
+  - pymdownx.details
 
 extra_css:
   - stylesheets/extra.css
