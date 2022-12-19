@@ -28,7 +28,20 @@ jobs:
         pip install -e .
     - name: Build documentation
       run: mkdocs gh-deploy --force
-    - name: Build and publish
+
+    - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: New release
+          draft: false
+          prerelease: false
+    
+        - name: Build and publish
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
