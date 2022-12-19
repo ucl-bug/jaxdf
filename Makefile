@@ -92,6 +92,16 @@ virtualenv:       ## Create a virtual environment. Checks that python > 3.8
 	@echo "!!! Please run 'source .venv/bin/activate' to enable the environment !!!"
 	@echo "--- Don't forget to manually reinstall JAX for GPU/TPU support: https://github.com/google/jax#installation"
 
+.PHONY: testenv
+virtualenv:       ## Create a virtual environment. Checks that python > 3.8
+	@echo "creating virtual environment ..."
+	@python -c "import sys; assert sys.version_info >= (3, 8), 'Python 3.8 or higher is required'" || exit 1
+	@rm -rf .venv
+	@python3 -m venv .venv
+	@./.venv/bin/pip install -U pip
+	@./.venv/bin/pip install -e .[test]
+	@./.venv/bin/pip install -r .requirements/requirements-dev.txt
+
 .PHONY: watch
 watch:            ## Run tests on every change.
 	ls **/**.py | entr $(ENV_PREFIX)pytest -s -vvv -l --tb=long --maxfail=1 tests/
