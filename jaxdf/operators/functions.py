@@ -5,12 +5,16 @@ from jax import numpy as jnp
 
 from jaxdf.conv import reflection_conv
 from jaxdf.core import operator
-from jaxdf.discretization import *
-from jaxdf.discretization import OnGrid
+from jaxdf.discretization import (
+    Continuous,
+    FiniteDifferences,
+    FourierSeries,
+    OnGrid,
+)
 from jaxdf.operators.differential import get_fd_coefficients
 
 
-## compose
+# compose
 @operator  # type: ignore
 def compose(x: Continuous, *, params=None):
     r"""Applies function composition on the `get_fun` of the Continuous object."""
@@ -88,7 +92,7 @@ def functional(x: OnGrid, *, params=None):
     return decorator
 
 
-## get_component
+# get_component
 def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
     r"""Slices the parameters of the field along the last dimensions,
     at the index specified by `dim`.
@@ -104,7 +108,7 @@ def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
     return x.replace_params(new_params)
 
 
-## shift_operator
+# shift_operator
 @operator  # type: ignore
 def shift_operator(x: Continuous, *, dx: object, params=None) -> Continuous:
     r"""Shifts the field by `dx` using function composition.
@@ -214,7 +218,7 @@ def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
     return FourierSeries(new_params, x.domain), params
 
 
-## sum_over_dims
+# sum_over_dims
 @operator  # type: ignore
 def sum_over_dims(x: Continuous, *, params=None):
     get_x = x.aux["get_field"]

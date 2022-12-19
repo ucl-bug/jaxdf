@@ -2,7 +2,7 @@
 This module contains dummy operators for testing purposes.
 """
 from jaxdf.core import operator
-from jaxdf.discretization import *
+from jaxdf.discretization import Continuous, Field, OnGrid
 
 
 @operator  # type: ignore

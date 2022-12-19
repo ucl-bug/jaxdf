@@ -200,10 +200,12 @@ def constants(value) -> Callable:
 
 @new_discretization
 class Field(object):
-    r"""The base-class for all discretizations. This class is also responsible for binding the operators in `jaxdf.operators.magic` to
+    r"""The base-class for all discretizations. This class is also responsible
+    for binding the operators in `jaxdf.operators.magic` to
     the magic methods of the discretization.
 
-    Normally you should not use this class directly, but instead use the `new_discretization` decorator to register
+    Normally you should not use this class directly, but instead use the
+    `new_discretization` decorator to register
     a new discretization based on this class.
     """
 

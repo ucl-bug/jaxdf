@@ -1,5 +1,6 @@
+from jax import numpy as jnp
+
 from jaxdf.core import operator
-from jaxdf.discretization import *
 from jaxdf.discretization import OnGrid
 
 from .functions import compose

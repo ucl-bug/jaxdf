@@ -4,9 +4,9 @@ import jax
 import numpy as np
 from jax import numpy as jnp
 
-from jaxdf.conv import *
+from jaxdf.conv import fd_coefficients_fornberg, reflection_conv
 from jaxdf.core import operator
-from jaxdf.discretization import *
+from jaxdf.discretization import Continuous, FiniteDifferences, FourierSeries
 
 
 def _get_ffts(x):
@@ -17,7 +17,7 @@ def _get_ffts(x):
     return ffts
 
 
-## derivative
+# derivative
 @operator
 def derivative(x: Continuous, *, axis=0, params=None) -> Continuous:
     r"""Derivative operator for continuous fields.
@@ -55,7 +55,6 @@ def get_fd_coefficients(
 
     # Check that all the values of stagger are in [0, 0.5, -0.5]
     # assert stagger in [0, -0.5, 0.5], f'Staggering must be in [0, 0.5, -0.5] for finite differences, got {stagger}'
-    dx = np.asarray(x.domain.dx)
     accuracy = x.accuracy
     points = np.arange(-accuracy // 2, accuracy // 2 + 1)
     if stagger > 0:
@@ -102,7 +101,7 @@ def fd_derivative_init(x: FiniteDifferences, axis=0, stagger=0, *args, **kwargs)
     return kernel
 
 
-def ft_diag_jacobian_init(x: FiniteDifferences, stagger=[0], *args, **kwargs):
+def fd_diag_jacobian_init(x: FiniteDifferences, stagger=[0], *args, **kwargs):
     r"""Initializes the parameters for the diagonal Jacobian of a FiniteDifferences field. Accepts
     an arbitrary number of positional and keyword arguments after the
     mandatory arguments, which are ignored.
@@ -125,7 +124,7 @@ def ft_diag_jacobian_init(x: FiniteDifferences, stagger=[0], *args, **kwargs):
     return kernels
 
 
-## gradient
+# gradient
 @operator  # type: ignore
 def gradient(x: Continuous, *, params=None) -> Continuous:
     r"""Gradient operator for continuous fields.
@@ -146,7 +145,7 @@ def gradient(x: Continuous, *, params=None) -> Continuous:
     return x.update_fun_and_params(x.params, grad_fun)
 
 
-@operator(init_params=ft_diag_jacobian_init)  # type: ignore
+@operator(init_params=fd_diag_jacobian_init)  # type: ignore
 def gradient(x: FiniteDifferences, *, stagger=[0], params=None) -> FiniteDifferences:
     r"""Gradient operator for finite differences fields.
 
@@ -235,7 +234,7 @@ def diag_jacobian(x: Continuous, *, params=None) -> Continuous:
     return x.update_fun_and_params(x.params, diag_fun), None
 
 
-@operator(init_params=ft_diag_jacobian_init)  # type: ignore
+@operator(init_params=fd_diag_jacobian_init)  # type: ignore
 def diag_jacobian(
     x: FiniteDifferences, *, stagger=[0], params=None
 ) -> FiniteDifferences:
