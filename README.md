@@ -3,7 +3,6 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![codecov](https://codecov.io/gh/ucl-bug/jaxdf/branch/main/graph/badge.svg?token=FIUYOCFDYL)](https://codecov.io/gh/ucl-bug/jaxdf)
 ![Continous Integration](https://github.com/ucl-bug/jaxdf/actions/workflows/main.yml/badge.svg)
-[![Documentation](https://github.com/ucl-bug/jaxdf/actions/workflows/build_docs.yml/badge.svg)](https://ucl-bug.github.io/jaxdf/)
 
 [**Overview**](#overview)
 | [**Example**](#example)
