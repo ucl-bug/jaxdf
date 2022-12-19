@@ -54,7 +54,7 @@ release:          ## Create a new tag for release.
 	@read -p "Version? (provide the next x.y.z semver) : " TAG
 	@echo "VERSION='$${TAG}'" > jaxdf/__about__.py
 	@$(ENV_PREFIX)gitchangelog > HISTORY.md
-	@git add jaxdf/VERSION HISTORY.md
+	@git add jaxdf/__about__.py HISTORY.md
 	@git commit -m "release: version $${TAG} 🚀"
 	@echo "creating git tag : $${TAG}"
 	@git tag $${TAG}
