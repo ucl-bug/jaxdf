@@ -13,8 +13,8 @@ class Domain(NamedTuple):
         size (Tuple[int]): The size of the domain in absolute units.
         dx (Tuple(float)): The unit of measure
     """
-    N: Iterable[int] = (32,32)
-    dx: Iterable[float] = (1., 1.)
+    N: Iterable[int] = (32, 32)
+    dx: Iterable[float] = (1.0, 1.0)
 
     @property
     def size(self):
