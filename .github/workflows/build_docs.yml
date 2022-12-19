@@ -24,5 +24,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r .requirements/requirements.txt
         pip install -r .requirements/requirements-doc.txt
+        pip install -e .
     - name: Build documentation
       run: mkdocs gh-deploy --force
