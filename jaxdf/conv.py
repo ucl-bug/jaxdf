@@ -20,7 +20,7 @@ def reflection_conv(
       Defaults to True.
 
   Returns:
-    jnp.ndarray: The convolved array.
+    The convolved array.
   '''
   # Reflection padding the array appropriately
   pad = [((x - 1) // 2, (x - 1) // 2) for x in kernel.shape]
@@ -53,7 +53,7 @@ def bubble_sort_abs_value(
     points_list (List[Union[float, int]]): The grid points to sort.
 
   Returns:
-    List[Union[float, int]]: The sorted grid points.
+    The sorted grid points.
   '''
 
   for i in range(len(points_list)):
@@ -91,6 +91,7 @@ def fd_coefficients_fornberg(
       stencil, nodes = fd_coefficients_fornberg(order, grid_points, x0)
       print(f"Stencil: {stencil}, Nodes: {nodes}")
       # Stencil: [-0.08333333  1.33333333 -2.5         1.33333333 -0.08333333], Nodes: [-2 -1  0  1  2]
+      ```
 
   Args:
     order (int): The order of the stencil.
@@ -98,7 +99,7 @@ def fd_coefficients_fornberg(
     x0 (Union[float, int]): The point at which to evaluate the stencil.
 
   Returns:
-    Tuple[np.ndarray, np.ndarray]: The stencil and the grid points where the stencil is evaluated.
+    The stencil and the grid points where the stencil is evaluated.
   """
   # from Generation of Finite Difference Formulas on Arbitrarily Spaced Grids
   # Bengt Fornberg, 1998

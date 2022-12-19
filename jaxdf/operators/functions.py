@@ -27,15 +27,6 @@ def compose(x: OnGrid, *, params=None):
   r'''Maps the given function over the pytree of parameters
   of the `Field`.
 
-  !!! example
-      ```python
-      x = OnGrid(params=-1.0, ...)
-
-      # Applies the absolute value function to the parameters
-      y = compose(x)(jnp.abs)
-
-      y.params # This is 1.0
-      ```
   '''
   def decorator(fun):
     return x.replace_params(fun(x.params))
@@ -46,7 +37,7 @@ def compose(x: object, *, params=None):
   r'''For non-field objects, the composition is simply the
   application of the `jax` function to the input.
 
-  ```
+  ```python
   compose(x)(fun) == fun(x)
   ```
   '''
@@ -57,28 +48,60 @@ def compose(x: object, *, params=None):
 
 @operator # type: ignore
 def functional(x: object, *, params=None):
-  r'''Maps a field to a scalar value.'''
+  r'''For non-field objects, a functional is simply the
+  application of the `jax` function to the input.
+
+  ```python
+  functional(x)(fun) == fun(x)
+  ```
+  '''
   def decorator(fun):
     return fun(x)
   return decorator
 
 @operator # type: ignore
 def functional(x: OnGrid, *, params=None):
-  r'''Maps a field to a scalar value.'''
+  r'''Maps the given function over the parameters of the field
+
+  !!! example
+      ```python
+      x = OnGrid(params=-1.0, ...)
+      y = functional(x)(jnp.sum)
+      y.params # This is -1.0
+      ```
+  '''
   def decorator(fun):
     return fun(x.params)
   return decorator
 
 
 ## get_component
-def get_component(x: OnGrid, *, dim: int, params=None):
+def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
+  r'''Slices the parameters of the field along the last dimensions,
+  at the index specified by `dim`.
+
+  Args:
+    x: The field to slice
+    dim: The index to slice at
+
+  Returns:
+    A new 1D field corresponding to the `dim`-th component of the input field.
+  '''
   new_params = jnp.expand_dims(x.params[..., dim], axis=-1)
   return x.replace_params(new_params)
 
-
 ## shift_operator
 @operator # type: ignore
-def shift_operator(x: Continuous, *, dx: object, params=None):
+def shift_operator(x: Continuous, *, dx: object, params=None) -> Continuous:
+  r'''Shifts the field by `dx` using function composition.
+
+  Args:
+    x: The field to shift
+    dx: The shift to apply
+
+  Returns:
+    A new field corresponding to the shifted input field.
+  '''
   get_x = x.aux['get_field']
   def fun(p, coord):
     return get_x(p, coord + dx)
@@ -90,6 +113,16 @@ def fd_shift_kernels(
   *args,
   **kwargs
 ):
+  r'''Computes the shift kernels for FiniteDifferences fields.
+
+  Args:
+    x: The field to shift
+    dx: The shift to apply
+
+  Returns:
+    The kernel to apply to the field coefficients in order to
+    shift the field.
+  '''
   def single_kernel(axis, stagger):
     kernel = get_fd_coefficients(x, order = 0, stagger=stagger)
     if x.domain.ndim > 1:
@@ -108,7 +141,21 @@ def fd_shift_kernels(
   return params
 
 @operator(init_params=fd_shift_kernels) # type: ignore
-def shift_operator(x: FiniteDifferences, *, dx = [0.0], params=None):
+def shift_operator(
+  x: FiniteDifferences,
+  *,
+  dx = [0.0],
+  params=None
+) -> FiniteDifferences:
+  r'''Shifts the field by `dx` using finite differences.
+
+  Args:
+    x: The field to shift
+    dx: The shift to apply
+
+  Returns:
+    A new field corresponding to the shifted input field.
+  '''
   # Apply convolution
   kernels = params
   array = x.on_grid
@@ -120,7 +167,21 @@ def shift_operator(x: FiniteDifferences, *, dx = [0.0], params=None):
   return x.replace_params(new_params)
 
 @operator(init_params=lambda x, dx: {'k_vec': x._freq_axis}) # type: ignore
-def shift_operator(x: FourierSeries, *, dx = [0], params=None):
+def shift_operator(
+  x: FourierSeries,
+  *,
+  dx = [0],
+  params=None
+) -> FourierSeries:
+  r'''Shifts the field by `dx` using the shift theorem in Fourier space.
+
+  Args:
+    x: The field to shift
+    dx: The shift to apply
+
+  Returns:
+    A new field corresponding to the shifted input field.
+  '''
   if x.real:
     ffts = [jnp.fft.rfft, jnp.fft.irfft]
   else:

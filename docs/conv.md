@@ -1,4 +1,9 @@
-::: jaxdf.operators
+
+# `jaxdf.conv`
+
+The `conv` module contains some functions behind the numerical implementation of Finite Differences operators and related functionality.
+
+::: jaxdf.conv
     handler: python
     selection:
         filters:

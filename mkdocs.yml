@@ -46,13 +46,15 @@ nav:
     - How discretizations work: notebooks/api_discretization.ipynb
     - Helmholtz equation with PINNs: notebooks/helmholtz_pinn.ipynb
   - API:
+    - conv: conv.md
     - core: core.md
     - discretization: discretization.md
+    - exceptions: exceptions.md
     - geometry: geometry.md
-    - ode: ode.md
     - operators:
       - differential: operators/differential.md
       - functions: operators/functions.md
+      - linear algebra: operators/linear_algebra.md
       - magic: operators/magic.md
     - util: util.md
 
