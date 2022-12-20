@@ -56,6 +56,8 @@ release:          ## Create a new tag for release.
 	@$(ENV_PREFIX)gitchangelog > HISTORY.md
 	@git add jaxdf/__about__.py HISTORY.md
 	@git commit -m "release: version $${TAG} 🚀"
+	@git add jaxdf/__about__.py HISTORY.md
+	@git commit -m "release: version $${TAG} 🚀"
 	@echo "creating git tag : $${TAG}"
 	@git tag $${TAG}
 	@git push -u origin HEAD --tags
