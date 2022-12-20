@@ -102,7 +102,6 @@ testenv:       ## Create a virtual environment. Checks that python > 3.8
 	@python3 -m venv .venv
 	@./.venv/bin/pip install -U pip
 	@./.venv/bin/pip install -e .[test]
-	@./.venv/bin/pip install -r .requirements/requirements-dev.txt
 
 .PHONY: watch
 watch:            ## Run tests on every change.
