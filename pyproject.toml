@@ -84,7 +84,7 @@ dev = [
   "mkdocstrings>=0.19.0, <0.20",
   "markdown-katex==202112.1034",
   "pre-commit>=2.20.0, <2.21",
-  "pycln>=2.0.4, <2.1",
+  "pycln>=2.0.4, <2.2",
   "isort>=5.10.1, <5.11",
   "pre-commit>=2.20.0, <2.21",
   "plumkdocs < 0.1",
