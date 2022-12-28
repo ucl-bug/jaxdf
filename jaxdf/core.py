@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Callable, Union
 
 from jax.tree_util import register_pytree_node_class, tree_map
-from plum import Dispatcher
+from plum import Dispatcher, type_of
 
 from jaxdf.exceptions import check_fun_has_params
 
@@ -58,14 +58,14 @@ def _operator(evaluate, precedence, init_params):
         # the method is resolved only on non-keyword arguments,
         # see: https://github.com/wesselb/plum/issues/40#issuecomment-1321164488
         self._resolve_pending_registrations()
-        sig_types = tuple([type(x) for x in args])
+        sig_types = tuple([type_of(x) for x in args])
 
-        """ # TODO: This is a hack that shouldn't be needed
-    if not self._runtime_type_of:
-        sig_types = tuple([type(x) for x in args])
-    else:
-        sig_types = tuple([promised_type_of.resolve()(x) for x in args])
-    """
+        # """ # TODO: This is a hack that shouldn't be needed
+        # if not self._runtime_type_of:
+        #    sig_types = tuple([type(x) for x in args])
+        # else:
+        #    sig_types = tuple([promised_type_of.resolve()(x) for x in args])
+        # """
 
         method, _ = self.resolve_method(*sig_types)
         return method._initialize_parameters(*args, **kwargs)
