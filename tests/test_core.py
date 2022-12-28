@@ -27,6 +27,35 @@ def get_continuous_fields():
     return a, b
 
 
+def test_custom_type():
+    from plum import parametric, type_of
+
+    class MyFourier(FourierSeries):
+        pass
+
+    @parametric(runtime_type_of=True)
+    class DimField(MyFourier):
+        pass
+
+    @type_of.dispatch
+    def type_of(x: MyFourier):
+        # Hook into Plum's type inference system to produce an appropriate instance of
+        # `NPArray` for NumPy arrays.
+        return DimField[x.dims]
+
+    domain = geometry.Domain((1,), (1.0,))
+    a = MyFourier(jnp.asarray([1.0]), domain)
+
+    @operator
+    def _test_operator(x: DimField[1], *, params=None):
+        return x
+
+    try:
+        _test_operator(a)
+    except TypeError:
+        pytest.fail("Type inference failed for parametric type.")
+
+
 def test_jit_call(get_continuous_fields):
     a, b = get_continuous_fields
 

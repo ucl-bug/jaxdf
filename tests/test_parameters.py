@@ -165,3 +165,9 @@ def test_tracer_leaks(field):
         test_paramfun(field=field)
         test_jit_paramfun(field=field)
         test_get_params(field=field)
+
+
+if __name__ == "__main__":
+    import pytest
+
+    pytest.main([__file__])
