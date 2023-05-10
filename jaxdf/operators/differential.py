@@ -139,7 +139,7 @@ def gradient(x: Continuous, *, params=None) -> Continuous:
 
     def grad_fun(p, coords):
         f_jac = jax.jacfwd(get_x, argnums=(1,))
-        v = f_jac(p, coords)[0]
+        v = f_jac(p, coords)[0][0]
         return v
 
     return x.update_fun_and_params(x.params, grad_fun)

@@ -59,20 +59,25 @@ class Continuous(Field):
         Returns:
           Continuous: A continuous discretization.
         """
-        aux = {"get_field": get_fun}
-        x = domain.origin
-        dims = eval_shape(get_fun, params, x).shape
-        super().__init__(params, domain, dims, aux)
+        self.params = params
+        self.domain = domain
+        self.aux = {"get_field": get_fun}
+
+    @property
+    def dims(self):
+        get_fun = self.aux["get_field"]
+        x = self.domain.origin
+        return eval_shape(get_fun, self.params, x).shape
 
     def tree_flatten(self):
         children = (self.params,)
-        aux_data = (self.dims, self.domain, self.aux["get_field"])
+        aux_data = (self.domain, self.aux["get_field"])
         return (children, aux_data)
 
     @classmethod
     def tree_unflatten(cls, aux_data, children):
         params = children[0]
-        dims, domain, get_fun = aux_data
+        domain, get_fun = aux_data
         a = cls(params, domain=domain, get_fun=get_fun)
         return a
 
