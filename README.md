@@ -34,7 +34,7 @@ from jax import jit, grad
 
 # Defining operator
 @operator
-def custom_op(u):
+def custom_op(u, *, params=None):
   grad_u = jops.gradient(u)
   diag_jacobian = jops.diag_jacobian(grad_u)
   laplacian = jops.sum_over_dims(diag_jacobian)
