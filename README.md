@@ -69,7 +69,6 @@ pip install jaxdf
 
 For development, install jaxdf by cloning the repository or downloading and extracting the compressed archive. Then navigate in the root folder in a terminal, and run
 ```bash
-pip install -r .requirements/requirements.txt
 pip install -e .
 ```
 to install the dependencies and the package itself (in editable mode).
