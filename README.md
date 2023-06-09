@@ -1,5 +1,6 @@
 # jaxdf - JAX-based Discretization Framework
 
+[![Support](https://dcbadge.vercel.app/api/server/VtUb4fFznt?style=flat)](https://discord.gg/VtUb4fFznt)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![codecov](https://codecov.io/gh/ucl-bug/jaxdf/branch/main/graph/badge.svg?token=FIUYOCFDYL)](https://codecov.io/gh/ucl-bug/jaxdf)
 ![Continous Integration](https://github.com/ucl-bug/jaxdf/actions/workflows/main.yml/badge.svg)
@@ -8,6 +9,7 @@
 | [**Example**](#example)
 | [**Installation**](#installation)
 | [**Documentation**](https://ucl-bug.github.io/jaxdf/)
+| [**Support**](#support)
 
 <br/>
 
@@ -72,6 +74,14 @@ For development, install jaxdf by cloning the repository or downloading and extr
 pip install -e .
 ```
 to install the dependencies and the package itself (in editable mode).
+
+
+## Support
+
+[![Support](https://dcbadge.vercel.app/api/server/VtUb4fFznt?style=flat)](https://discord.gg/VtUb4fFznt)
+
+If you find some problems in the code or want to propose some new features, feel free to open an issue. If you generally would like to have some guidance, discuss something, or just say hi, feel free to write a message in the [Discord channel](https://discord.gg/VtUb4fFznt).
+
 
 <br/>
 
