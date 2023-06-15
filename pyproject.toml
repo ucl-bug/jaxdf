@@ -37,8 +37,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "jax>=0.4.0, <0.5",
-  "jaxlib>=0.4.0, <0.5",
+  "jax>=0.4.11, <0.5",
+  "jaxlib>=0.4.11, <0.5",
   "plum-dispatch>=1.6.0, <=1.8",
 ]
 
