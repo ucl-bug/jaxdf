@@ -18,7 +18,7 @@ jobs:
       - name: Setup Python + Poetry environment
         uses: ./.github/actions/python-poetry-env
       - name: Running tests
-        run: poetry run coverage run --source=jwave -m pytest -xvs
+        run: poetry run coverage run --source=jaxdf -m pytest -xvs
       - name: Install coverage
         run: pip install coverage
       - name: "Upload combined coverage to Codecov"
