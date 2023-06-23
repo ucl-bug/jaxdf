@@ -15,15 +15,16 @@
 
 ## Overview
 
-jaxdf is a [JAX](https://jax.readthedocs.io/en/stable/)-based package defining a coding framework for writing differentiable numerical simulators with arbitrary discretizations.
+Jaxdf is a package based on [JAX](https://jax.readthedocs.io/en/stable/) that provides a coding framework for creating differentiable numerical simulators with arbitrary discretizations.
 
-The intended use is to build numerical models of physical systems, such as wave propagation, or the numerical solution of partial differential equations, that are easy to customize to the user's research needs. Such models are pure functions that can be included into arbitray differentiable programs written in [JAX](https://jax.readthedocs.io/en/stable/): for example, they can be used as layers of neural networks, or to build a physics loss function.
+The primary objective of Jaxdf is to aid in the construction of numerical models for physical systems, like wave propagation, or the numerical resolution of partial differential equations, in a manner that is easily tailored to the user's research requirements. These models are pure functions that can be seamlessly integrated into arbitrary differentiable programs written in [JAX](https://jax.readthedocs.io/en/stable/). For instance, they can be employed as layers within neural networks, or utilized in constructing a physics loss function.
+
 
 <br/>
 
 ## Example
 
-The following script builds the non-linear operator **(∇<sup>2</sup> + sin)**, using a Fourier spectral discretization on a square 2D domain, and uses it to define a loss function whose gradient is evaluated using JAX Automatic Differentiation.
+The script below constructs the non-linear operator **(∇<sup>2</sup> + sin)**, applying a Fourier spectral discretization on a square 2D domain. It then utilizes this operator to define a loss function. The gradient of this loss function is calculated using JAX's Automatic Differentiation.
 
 
 ```python
@@ -61,27 +62,43 @@ gradient = grad(loss)(u) # gradient is a FourierSeries
 
 ## Installation
 
-Before installing `jaxdf`, make sure that [you have installed JAX](https://github.com/google/jax#installation). Follow the instruction to install JAX with NVidia GPU support if you want to use `jaxdf` on the GPUs.
+Before proceeding with the installation of `jaxdf`, ensure that [JAX is already installed](https://github.com/google/jax#installation) on your system. If you intend to utilize `jaxdf` with NVidia GPU support, follow the instructions to install JAX accordingly.
 
-You can install `jaxdf` from PyPI using `pip`:
+To install `jaxdf` from PyPI, use the `pip` command:
 
 ```bash
 pip install jaxdf
 ```
 
-For development, install jaxdf by cloning the repository or downloading and extracting the compressed archive. Then navigate in the root folder in a terminal, and run
+For development purposes, install `jaxdf` by either cloning the repository or downloading and extracting the compressed archive. Afterward, navigate to the root folder in a terminal, and execute the following command:
 ```bash
-pip install -e .
+pip install --upgrade poetry
+poetry install
 ```
-to install the dependencies and the package itself (in editable mode).
+This will install the dependencies and the package itself (in editable mode).
 
 
 ## Support
 
 [![Support](https://dcbadge.vercel.app/api/server/VtUb4fFznt?style=flat)](https://discord.gg/VtUb4fFznt)
 
-If you find some problems in the code or want to propose some new features, feel free to open an issue. If you generally would like to have some guidance, discuss something, or just say hi, feel free to write a message in the [Discord channel](https://discord.gg/VtUb4fFznt).
+If you encounter any issues with the code or wish to suggest new features, please feel free to open an issue. If you seek guidance, wish to discuss something, or simply want to say hi, don't hesitate to write a message in our [Discord channel](https://discord.gg/VtUb4fFznt).
 
+
+<br/>
+
+## Contributing
+
+Contributions are absolutely welcome! Most contributions start with an issue. Please don't hesitate to create issues in which you ask for features, give feedback on performances, or simply want to reach out.
+
+To make a pull request, please look at the detailed [Contributing guide](CONTRIBUTING.md) for how to do it, but fundamentally keep in mind the following main guidelines:
+
+- If you add a new feature or fix a bug:
+  - Make sure it is covered by tests
+  - Add a line in the changelog using `kacl-cli`
+- If you changed something in the documentation, make sure that the documentation site can be correctly build using `mkdocs serve`
+
+<br/>
 
 <br/>
 
@@ -102,10 +119,11 @@ This package will be presented at the [Differentiable Programming workshop](http
 
 <br/>
 
+
 #### Acknowledgements
 
 - Some of the packaging of this repository is done by editing [this templace from @rochacbruno](https://github.com/rochacbruno/python-project-template)
-- The multiple-dispatch method employed is based on `plum`: https://github.com/wesselb/plum
+- The multiple-dispatch method employed is based on `plum`, check out this amazing project: https://github.com/wesselb/plum
 
 #### Related projects
 
