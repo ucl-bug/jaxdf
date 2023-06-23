@@ -13,8 +13,10 @@ jobs:
   unit_and_integration_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/python-poetry-env
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Python + Poetry environment
+        uses: ./.github/actions/python-poetry-env
       - name: Running tests
         run: poetry run coverage run --source=jwave -m pytest -xvs
       - name: Install coverage
