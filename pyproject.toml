@@ -53,6 +53,7 @@ packages = [
 python = "^3.9"
 plum-dispatch = "^1.6"
 jax = "^0.4.11"
+jaxlib = "^0.4.11"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.7"
