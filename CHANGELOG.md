@@ -3,7 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [Unreleased]
+
+## [0.2.5] - 2023-06-23
 ### Fixed
 - The default_parameters function now works with custom field types
 - `__rpow__` for `OnGrid`
@@ -23,3 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated docs
 - Renamed ode variable update, removed wrong test in utils
 - Updated support/packaging files
+
+[Unreleased]: https://github.com/ucl-bug/jaxdf/compare/0.2.5...master
+[0.2.5]: https://github.com/ucl-bug/jaxdf/tree/0.2.5
+
