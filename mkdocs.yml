@@ -1,41 +1,54 @@
 # Project info
-site_name: jaxdf
+site_name: JaxDF
 site_author: Antonio Stanziola, Biomedical Ultrasound Group
 site_description: >-
   A JAX-based research framework for writing differentiable numerical simulators with arbitrary discretizations
 site_url: https://ucl-bug.github.io/jaxdf/
 
-# Repository
-repo_url: https://github.com/ucl-bug/jaxdf
+# Github info
 repo_name: ucl-bug/jaxdf
+repo_url: https://github.com/ucl-bug/jaxdf
 
 theme:
   name: "material"
+
   features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
     - navigation.tabs
-    - navigation.instant
-  language: en
-  font:
-    text: Roboto
-    code: Roboto Mono
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+
   palette:
-    # Palette toggle for automatic mode
-    - media: "(prefers-color-scheme)"
-      toggle:
-        icon: material/brightness-auto
-        name: Switch to light mode
-    # Palette toggle for light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    - scheme: default
+      primary: red
+      accent: red
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Palette toggle for dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
+    - scheme: slate
+      primary: red
+      accent: red
       toggle:
         icon: material/brightness-4
-        name: Switch to system preference
+        name: Switch to light mode
+
+  font:
+    text: Roboto
+    code: Roboto Mono
 
 nav:
   - Home: index.md
@@ -57,6 +70,20 @@ nav:
       - linear algebra: operators/linear_algebra.md
       - magic: operators/magic.md
     - util: util.md
+  - Changelog: changelog.md
+  - Contributing: contributing.md
+
+# Customization
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ucl-bug/jaxdf
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/jaxdf/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/UCL_Ultrasound
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/VtUb4fFznt
 
 plugins:
   - mkdocs-jupyter
@@ -65,42 +92,36 @@ plugins:
       handlers:
         python:
           rendering:
-            show_source: true
-      watch:
-        - jaxdf
+            show_source: false
+      custom_templates: templates
   - search
   - mermaid2
   - macros:
       module_name: docs/macros
 
-# Customization
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/ucl-bug
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/ucl_ultrasound
-
 markdown_extensions:
   - toc:
       toc_depth: 5
-  - markdown_katex:
-      no_inline_svg: True
-      insert_fonts_css: True
   - pymdownx.highlight
-  - pymdownx.superfences:
-       custom_fences:
-         - name: mermaid
-           class: mermaid
-           format: !!python/name:pymdownx.superfences.fence_div_format
-
+  - pymdownx.snippets
   - admonition
   - attr_list
   - footnotes
-  - pymdownx.details
+  - pymdownx.details      # For collapsible admonitions
+  - pymdownx.superfences
 
 extra_css:
   - stylesheets/extra.css
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css
 
 extra_javascript:
-    - https://unpkg.com/mermaid/dist/mermaid.min.js
+  - javascripts/katex.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js
+  - https://unpkg.com/mermaid/dist/mermaid.min.js
+
+use_directory_urls: false
+
+# For mkdocstrings
+watch:
+  - jaxdf

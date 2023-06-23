@@ -1,22 +1,32 @@
+# Project
 *.ipynb_checkpoints
 *.pytest_cache
 *.vscode
 *.egg-info
 *__pycache__
-*wandb/
-*.pyc
-*.mypy_cache
-htmlcov
+.venv
+site/*
+build/*
+
+# poetry
+poetry.lock
+
+# Testing
 .coverage
 coverage.xml
-site
 
-# Build
-build
-dist
+# Pages to be generated
+docs/test_reports/test_accuracy.png
+docs/test_reports/test_data.txt
+docs/test_reports/test_report.md
 
-# Paper images
-docs/notebooks/img/*.png
+# Data
+*.mat
+docs/notebooks/others/ct.jpg
+
+#k-wave outputs
+docs/benchmarks/kwave/*.png
+
 
 # Misc
 *.DS_Store
@@ -24,10 +34,3 @@ docs/notebooks/img/*.png
 *.env.development.local
 *.env.test.local
 *.env.production.local
-
-*npm-debug.log*
-*yarn-debug.log*
-*yarn-error.log*
-
-# Virtual Environment
-.venv

@@ -1,0 +1,31 @@
+# This is a workflow for Unit, Integration, and Regression Tests
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    paths: '**.py'
+  workflow_dispatch:
+
+jobs:
+  unit_and_integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Python + Poetry environment
+        uses: ./.github/actions/python-poetry-env
+      - name: Running tests
+        run: poetry run coverage run --source=jaxdf -m pytest -xvs
+      - name: Install coverage
+        run: |
+          pip install coverage
+          coverage xml
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          name: codecov-umbrella

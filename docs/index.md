@@ -16,7 +16,3 @@ It also contains a growing open-source library of differentiable discretizations
   - [Optimize acoustic simulations](notebooks/simulate_helmholtz_equation/)
   - [(⚠️ WIP) Discretization API](notebooks/api_discretization/)
   - [Solving the Helmholtz equation with PINNs](notebooks/helmholtz_pinn/)
-
-</br>
-
-### [**API Reference**](core)
