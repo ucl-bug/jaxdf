@@ -51,7 +51,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-plum-dispatch = "^1.6"
+plum-dispatch = ">=1.6,<3.0"
 jax = "^0.4.11"
 jaxlib = "^0.4.11"
 
