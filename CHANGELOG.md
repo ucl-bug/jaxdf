@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.2.6] - 2023-06-28
 ### Changed
 - removed `jaxlib` from dependencies. See https://github.com/google/jax/discussions/16380 for more information
 
@@ -28,5 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Renamed ode variable update, removed wrong test in utils
 - Updated support/packaging files
 
-[Unreleased]: https://github.com/ucl-bug/jaxdf/compare/0.2.5...master
+[Unreleased]: https://github.com/ucl-bug/jaxdf/compare/0.2.6...master
+[0.2.6]: https://github.com/ucl-bug/jaxdf/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/ucl-bug/jaxdf/tree/0.2.5
+

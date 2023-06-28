@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jaxdf"
-version = "0.2.5"
+version = "0.2.6"
 description = "A JAX-based research framework for writing differentiable numerical simulators with arbitrary discretizations"
 authors = [
   "Antonio Stanziola <a.stanziola@ucl.ac.uk>",
