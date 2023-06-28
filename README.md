@@ -3,7 +3,7 @@
 [![Support](https://dcbadge.vercel.app/api/server/VtUb4fFznt?style=flat)](https://discord.gg/VtUb4fFznt)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![codecov](https://codecov.io/gh/ucl-bug/jaxdf/branch/main/graph/badge.svg?token=FIUYOCFDYL)](https://codecov.io/gh/ucl-bug/jaxdf)
-![Continous Integration](https://github.com/ucl-bug/jaxdf/actions/workflows/main.yml/badge.svg)
+[![CI](https://github.com/ucl-bug/jaxdf/actions/workflows/tests.yml/badge.svg)](https://github.com/ucl-bug/jaxdf/actions/workflows/tests.yml)
 
 [**Overview**](#overview)
 | [**Example**](#example)
