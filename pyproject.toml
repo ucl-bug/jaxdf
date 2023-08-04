@@ -57,7 +57,7 @@ jax = "^0.4.11"
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.7"
 mypy = "^1.4.0"
-plumkdocs = "^0.0.2"
+plumkdocs = ">=0.0.2,<0.0.5"
 pre-commit = "^3.3.3"
 mkdocs-material-extensions = "^1.0.3"
 mkdocs-material = "^9.1.16"
