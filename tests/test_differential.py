@@ -74,7 +74,7 @@ def test_continous_gradient():
     x = jnp.asarray([1.0])
     z = operators.gradient(a)
     _ = z
-    _ = (a.get_field(x), z.get_field(x))
+    _ = (a(x), z(x))
 
     @jit
     def f(a, op_params):
@@ -88,7 +88,7 @@ def test_continuous_laplacian():
     x = jnp.asarray([1.0])
     z = operators.laplacian(a)
     _ = z
-    _ = (a.get_field(x), z.get_field(x))
+    _ = (a(x), z(x))
     print(_)
 
     @jit
@@ -100,6 +100,7 @@ def test_continuous_laplacian():
 
 
 def test_jit_continous_gradient():
+
     @jit
     def f(m, op_params):
         return operators.gradient(m, params=op_params)
@@ -114,10 +115,11 @@ def test_jit_continous_gradient():
 
 
 def test_continuous_derivative():
+
     def f(params, x):
         return jnp.sin(params * x)
 
-    domain = geometry.Domain((8,), (1.0,))
+    domain = geometry.Domain((8, ), (1.0, ))
     a = Continuous(1.5, domain, f)
     b = operators.derivative(a)
     da = lambda p, x: p * jnp.cos(p * x)
@@ -129,9 +131,31 @@ def test_continuous_derivative():
     assert jnp.allclose(f1, f2)
 
 
+def test_continuous_diag_jacobian():
+
+    # A function and its corresponding diagonal Jacobian.
+    def f(params, x):
+        return jnp.array([params[0] * x[0], params[1] * x[1]])
+
+    def diag_jac(params, x):
+        return jnp.array([params[0], params[1]])
+
+    domain = geometry.Domain((8, 8), (1.0, 1.0))
+    p = jnp.array([2.0, 3.0])
+    a = Continuous(p, domain, f)
+    b = operators.diag_jacobian(a)
+
+    x = jnp.array([1.0, 1.0])    # sample point in the domain
+
+    f1 = b(x)
+    f2 = diag_jac(p, x)
+
+    assert jnp.allclose(f1, f2)
+
+
 def test_finite_difference_derivative():
-    domain = geometry.Domain((11,), (0.5,))
-    params = jnp.zeros((11,))
+    domain = geometry.Domain((11, ), (0.5, ))
+    params = jnp.zeros((11, 1))
     params = params.at[5].set(1.0)
     u = FiniteDifferences(params, domain, accuracy=4)
     du = operators.gradient(u)
@@ -140,21 +164,37 @@ def test_finite_difference_derivative():
     print(kernel)
 
     grid_values = du.on_grid[:, 0]
-    true_values = jnp.asarray(
-        [
-            0.0,
-            -0.0,
-            0.0,
-            -0.16666667,
-            1.33333333,
-            0.0,
-            -1.33333333,
-            0.16666667,
-            0.0,
-            0.0,
-            0.0,
-        ]
-    )
+    true_values = jnp.asarray([
+        0.0,
+        -0.0,
+        0.0,
+        -0.16666667,
+        1.33333333,
+        0.0,
+        -1.33333333,
+        0.16666667,
+        0.0,
+        0.0,
+        0.0,
+    ])
+    assert jnp.allclose(grid_values, true_values)
+
+
+def test_finite_difference_laplacian():
+    domain = geometry.Domain((11, ), (0.5, ))
+    params = jnp.zeros((11, 1))
+    params = params.at[5].set(1.0)
+    u = FiniteDifferences(params, domain, accuracy=4)
+    lap_u = operators.laplacian(u)
+
+    # If you want to print the kernel of the laplacian operator (similar to the gradient test):
+    kernel = operators.laplacian.default_params(u)
+
+    grid_values = lap_u.on_grid[:, 0]
+    true_values = jnp.asarray([
+        0, 0., 0., -0.08333334, 1.3333334, -2.5, 1.3333334, -0.08333334, 0.,
+        0., 0.
+    ])
     assert jnp.allclose(grid_values, true_values)
 
 
@@ -164,8 +204,8 @@ def test_checking_leaks():
         test_continuous_laplacian()
         test_fourier_gradient()
         test_continous_gradient()
-        test_jit_continous_gradient()  #
+        test_jit_continous_gradient()
 
 
 if __name__ == "__main__":
-    test_finite_difference_derivative()
+    test_finite_difference_laplacian()

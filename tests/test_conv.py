@@ -11,49 +11,50 @@ def test_reflection_conv():
     kernel = jnp.ones((2, 3))
 
     output = conv.reflection_conv(kernel, array)
-    true_output = jnp.array(
+    true_output = jnp.array([
         [
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-            ],
-            [
-                0.0,
-                0.0,
-                1.0,
-                1.0,
-                1.0,
-                0.0,
-            ],
-            [
-                0.0,
-                0.0,
-                1.0,
-                1.0,
-                1.0,
-                0.0,
-            ],
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-            ],
-        ]
-    )
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ],
+        [
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+        ],
+        [
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+        ],
+        [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ],
+    ])
     assert jnp.allclose(output, true_output)
 
 
 @mark.parametrize(
     "pair",
     [
-        {"in_list": [-3, -2, -1, 0, 1, 2, 3], "out_list": [0, 1, -1, 2, -2, 3, -3]},
+        {
+            "in_list": [-3, -2, -1, 0, 1, 2, 3],
+            "out_list": [0, 1, -1, 2, -2, 3, -3]
+        },
         {
             "in_list": [0.5, 1.5, -0.5, 2.5, -1.5, -2.5],
             "out_list": [0.5, -0.5, 1.5, -1.5, 2.5, -2.5],
@@ -68,7 +69,11 @@ def test_bubble_sort_abs(pair):
 @mark.parametrize(
     "pair",
     [
-        {"points": [-1, 0, 1], "order": 1, "stencil": [-0.5, 0, 0.5]},
+        {
+            "points": [-1, 0, 1],
+            "order": 1,
+            "stencil": [-0.5, 0, 0.5]
+        },
         {
             "points": [-2, -1, 0, 1, 2],
             "order": 1,
@@ -76,10 +81,16 @@ def test_bubble_sort_abs(pair):
         },
         {
             "points": [-2, -1, 0, 1, 2],
-            "order": 2,
-            "stencil": [-1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0],
+            "order":
+            2,
+            "stencil":
+            [-1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0],
         },
-        {"points": [-0.5, 0.5], "order": 0, "stencil": [0.5, 0.5]},
+        {
+            "points": [-0.5, 0.5],
+            "order": 0,
+            "stencil": [0.5, 0.5]
+        },
         {
             "points": [-0.5, 0.5, 1.5],
             "order": 0,

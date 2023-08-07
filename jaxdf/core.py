@@ -1,9 +1,10 @@
 import types
+import warnings
 from functools import wraps
 from typing import Callable, Union
 
-from jax.tree_util import register_pytree_node_class, tree_map
-from plum import Dispatcher, type_of
+from jax.tree_util import register_pytree_node_class
+from plum import Dispatcher
 
 from jaxdf.exceptions import check_fun_has_params
 
@@ -14,6 +15,11 @@ _jaxdf_dispatch = Dispatcher()
 debug_config = {
     "debug_dispatch": False,
 }
+
+
+def _abstract_operator(evaluate):
+    f = _jaxdf_dispatch.abstract(evaluate)
+    return f
 
 
 def _operator(evaluate, precedence, init_params):
@@ -58,16 +64,9 @@ def _operator(evaluate, precedence, init_params):
         # the method is resolved only on non-keyword arguments,
         # see: https://github.com/wesselb/plum/issues/40#issuecomment-1321164488
         self._resolve_pending_registrations()
-        sig_types = tuple([type_of(x) for x in args])
+        sig_types = tuple(map(type, args))
 
-        # """ # TODO: This is a hack that shouldn't be needed
-        # if not self._runtime_type_of:
-        #    sig_types = tuple([type(x) for x in args])
-        # else:
-        #    sig_types = tuple([promised_type_of.resolve()(x) for x in args])
-        # """
-
-        method, _ = self.resolve_method(*sig_types)
+        method, _ = self.resolve_method(args, types)
         return method._initialize_parameters(*args, **kwargs)
 
     f.default_params = types.MethodType(_bound_init_params, f)
@@ -75,80 +74,91 @@ def _operator(evaluate, precedence, init_params):
     return f
 
 
-def operator(
-    evaluate: Union[Callable, None] = None,
-    init_params: Union[Callable, None] = None,
-    precedence: int = 0,
-):
-    r"""Decorator for defining operators using multiple dispatch. The type annotation of the
-    `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the
-    same as the Julia one, that is: operators are dispatched on the types of the positional arguments.
-    Keyword arguments are not considered for dispatching.
+class Operator:
 
-    Keyword arguments are defined after the `*` in the function signature.
+    def __call__(
+        self,
+        evaluate: Union[Callable, None] = None,
+        init_params: Union[Callable, None] = None,
+        precedence: int = 0,
+    ):
+        r"""Decorator for defining operators using multiple dispatch. The type annotation of the
+        `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the
+        same as the Julia one, that is: operators are dispatched on the types of the positional arguments.
+        Keyword arguments are not considered for dispatching.
 
-    !!! example
-        ```python
-        @operator
-        def my_operator(x: FourierSeries, *, dx: float, params=None):
-          ...
-        ```
+        Keyword arguments are defined after the `*` in the function signature.
 
-    The argument `params` is mandatory and it must be a keyword argument. It is used to pass the
-    parameters of the operator, for example the stencil coefficients of a finite difference operator.
+        !!! example
+            ```python
+            @operator
+            def my_operator(x: FourierSeries, *, dx: float, params=None):
+            ...
+            ```
 
-    The default value of the parameters is specified by the `init_params` function, as follows:
+        The argument `params` is mandatory and it must be a keyword argument. It is used to pass the
+        parameters of the operator, for example the stencil coefficients of a finite difference operator.
 
-    !!! example
-        ```python
+        The default value of the parameters is specified by the `init_params` function, as follows:
 
-        def params_initializer(x, *, dx):
-          return {"stencil": jnp.ones(x.shape) * dx}
+        !!! example
+            ```python
 
-        @operator(init_params=params_initializer)
-        def my_operator(x, *, dx, params=None):
-          b = params["stencil"] / dx
-          y_params = jnp.convolve(x.params, b, mode="same")
-          return x.replace_params(y_params)
-        ```
+            def params_initializer(x, *, dx):
+            return {"stencil": jnp.ones(x.shape) * dx}
 
-    The default value of `params` is not considered during computation.
-    If the operator has no parameters, the `init_params` function can be omitted. In this case, the
-    `params` value is set to `None`.
+            @operator(init_params=params_initializer)
+            def my_operator(x, *, dx, params=None):
+            b = params["stencil"] / dx
+            y_params = jnp.convolve(x.params, b, mode="same")
+            return x.replace_params(y_params)
+            ```
 
-    For constant parameters, the `constants` function can be used:
+        The default value of `params` is not considered during computation.
+        If the operator has no parameters, the `init_params` function can be omitted. In this case, the
+        `params` value is set to `None`.
 
-    !!! example
-        ```python
-        @operator(init_params=constants({"a": 1, "b": 2.0}))
-        def my_operator(x, *, params):
-          return x + params["a"] + params["b"]
-        ```
+        For constant parameters, the `constants` function can be used:
+
+        !!! example
+            ```python
+            @operator(init_params=constants({"a": 1, "b": 2.0}))
+            def my_operator(x, *, params):
+            return x + params["a"] + params["b"]
+            ```
 
 
-    Args:
-      evaluate (Callable): A function with the signature `evaluate(field, *args, **kwargs, params)`.
-        It must return a tuple, with the first element being a field and the second
-        element being the default parameters for the operator.
-      init_params (Callable): A function that overrides the default parameters initializer for the
-        operator. Useful when running the operator just to get the parameters is expensive.
-      precedence (int): The precedence of the operator if an ambiguous match is found.
+        Args:
+        evaluate (Callable): A function with the signature `evaluate(field, *args, **kwargs, params)`.
+            It must return a tuple, with the first element being a field and the second
+            element being the default parameters for the operator.
+        init_params (Callable): A function that overrides the default parameters initializer for the
+            operator. Useful when running the operator just to get the parameters is expensive.
+        precedence (int): The precedence of the operator if an ambiguous match is found.
 
-    Returns:
-      Callable: The operator function with signature `evaluate(field, *args, **kwargs, params)`.
+        Returns:
+        Callable: The operator function with signature `evaluate(field, *args, **kwargs, params)`.
 
-    """
-    if evaluate is None:
-        # Returns the decorator
-        def decorator(evaluate):
+        """
+        if evaluate is None:
+            # Returns the decorator
+            def decorator(evaluate):
+                return _operator(evaluate, precedence, init_params)
+
+            return decorator
+        else:
             return _operator(evaluate, precedence, init_params)
 
-        return decorator
-    else:
-        return _operator(evaluate, precedence, init_params)
+    def abstract(self, evaluate: Callable):
+        """Decorator for defining abstract operators. This is mainly used
+        to define generic docstrings."""
+        return _abstract_operator(evaluate)
 
 
-def new_discretization(cls):
+operator = Operator()
+
+
+def discretization(cls):
     r"""Wrapper around `jax.tree_util.register_pytree_node_class` that can
     be used to register a new discretization.
 
@@ -159,7 +169,7 @@ def new_discretization(cls):
 
     !!! example
         ```python
-        @new_discretization
+        @discretization
         class Polynomial(Continuous):
           @classmethod
           def from_params(cls, params, domain):
@@ -198,14 +208,14 @@ def constants(value) -> Callable:
     return init_params
 
 
-@new_discretization
+@discretization
 class Field(object):
     r"""The base-class for all discretizations. This class is also responsible
     for binding the operators in `jaxdf.operators.magic` to
     the magic methods of the discretization.
 
     Normally you should not use this class directly, but instead use the
-    `new_discretization` decorator to register
+    `discretization` decorator to register
     a new discretization based on this class.
     """
 
@@ -213,36 +223,77 @@ class Field(object):
         self,
         params,
         domain,
-        dims=1,
         aux=None,
     ):
         self.params = params
         self.domain = domain
-        self.dims = dims
         self.aux = aux
 
     def tree_flatten(self):
-        children = (self.params,)
-        aux_data = (self.dims, self.domain, self.aux)
+        children = (self.params, )
+        aux_data = (self.domain, self.aux)
         return (children, aux_data)
-
-    @property
-    def ndim(self):
-        return self.domain.ndim
 
     @classmethod
     def tree_unflatten(cls, aux_data, children):
         params = children[0]
-        dims, domain, aux = aux_data
-        a = cls(params, dims=dims, domain=domain, aux=aux)
+        domain, aux = aux_data
+        a = cls(params, domain=domain, aux=aux)
         return a
 
-    def __repr__(self):  #
+    def __repr__(self):    #
         classname = self.__class__.__name__
-        return f"Field {classname}"
+        return f"{classname}"
 
     def __str__(self):
         return self.__repr__()
+
+    def __call__(self, x):
+        r"""
+        An Field can be called as a function, returning the field at a
+        desired point.
+
+        !!! example
+            ```python
+            ...
+            a = Continuous.from_function(init_params, domain, get_field)
+            field_at_x = a(1.0)
+            ```
+        """
+        raise NotImplementedError(
+            f"Not implemented for {self.__class__.__name__} discretization")
+
+    @property
+    def on_grid(self):
+        """Returns the field on the grid points of the domain."""
+        raise NotImplementedError(
+            f"Not implemented for {self.__class__.__name__} discretization")
+
+    @property
+    def dims(self):
+        r"""The dimension of the field values"""
+        raise NotImplementedError
+
+    @property
+    def is_complex(self) -> bool:
+        r"""Checks if a field is complex.
+
+        Returns:
+          bool: Whether the field is complex.
+        """
+        raise NotImplementedError
+
+    @property
+    def is_field_complex(self) -> bool:
+        warnings.warn(
+            "Field.is_field_complex is deprecated. Use Field.is_complex instead.",
+            DeprecationWarning,
+        )
+        return self.is_complex
+
+    @property
+    def is_real(self) -> bool:
+        return not self.is_complex
 
     def replace_params(self, new_params):
         r"""Returns a new field of the same type, with the same domain and auxiliary data, but with new parameters.
@@ -260,7 +311,7 @@ class Field(object):
         Returns:
           Field: A new field with the same domain and auxiliary data, but with new parameters.
         """
-        return self.__class__(new_params, self.domain, self.dims, self.aux)
+        return self.__class__(new_params, self.domain, self.aux)
 
     # Dummy magic functions to make it work with
     # the dispatch system
@@ -301,43 +352,37 @@ class Field(object):
 @operator
 def __add__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __radd__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __sub__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rsub__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __mul__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rmul__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
@@ -348,52 +393,24 @@ def __neg__(self, *, params=None):
 @operator
 def __pow__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rpow__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __truediv__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rtruediv__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
     # Lifted jax functions for convenience
-
-
-def params_map(f: Callable, field: Field, *rest) -> Field:
-    r"""Maps a function to the parameters of a Field.
-
-    Since a Field is a pytree, this is equivalent to (and implemented
-    using) `jax.tree_util.tree_map`
-
-    Returns a field with the same type of `f`, with updated
-    parameters
-
-    !!! danger
-        This function has been deprecated. Use `jaxdf.operators.functions.compose` instead
-
-    Args:
-      f (Callable): A function that is applied to all the leaves of the
-        parameters of the input fields
-      field (Field): The field to map the function to
-      *rest: Optional additional fields to map the function to
-
-    Returns:
-      Field: A field with the same discretization as `field`, with updated parameters.
-    """
-    return tree_map(f, field, *rest)

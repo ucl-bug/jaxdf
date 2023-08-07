@@ -9,15 +9,13 @@ from jaxdf.core import operator
 from jaxdf.discretization import Continuous, FiniteDifferences, FourierSeries
 
 
-def _get_ffts(x):
-    if x.real:
-        ffts = [jnp.fft.rfft, jnp.fft.irfft]
-    else:
-        ffts = [jnp.fft.fft, jnp.fft.ifft]
-    return ffts
-
-
 # derivative
+@operator.abstract
+def derivative(x):    # pragma: no cover
+    # Implements the derivative operator
+    raise NotImplementedError
+
+
 @operator
 def derivative(x: Continuous, *, axis=0, params=None) -> Continuous:
     r"""Derivative operator for continuous fields.
@@ -32,15 +30,15 @@ def derivative(x: Continuous, *, axis=0, params=None) -> Continuous:
     get_x = x.aux["get_field"]
 
     def grad_fun(p, coords):
-        f_jac = jax.jacfwd(get_x, argnums=(1,))
+        f_jac = jax.jacfwd(get_x, argnums=(1, ))
         return jnp.expand_dims(f_jac(p, coords)[0][0][axis], -1)
 
     return Continuous(x.params, x.domain, grad_fun)
 
 
-def get_fd_coefficients(
-    x: FiniteDifferences, order: int = 1, stagger: Union[float, int] = 0
-):
+def get_fd_coefficients(x: FiniteDifferences,
+                        order: int = 1,
+                        stagger: Union[float, int] = 0):
     r"""Returnst the stencil coefficients for a 1D Finite Differences derivative
     operator.
 
@@ -74,7 +72,11 @@ def get_fd_coefficients(
     return np.asarray(coeffs)
 
 
-def fd_derivative_init(x: FiniteDifferences, axis=0, stagger=0, *args, **kwargs):
+def fd_derivative_init(x: FiniteDifferences,
+                       axis=0,
+                       stagger=0,
+                       *args,
+                       **kwargs):
     r"""Initializes the stencils for FiniteDifferences derivatives. Accepts
     an arbitrary number of positional and keyword arguments after the
     mandatory arguments, which are ignored.
@@ -125,7 +127,13 @@ def fd_diag_jacobian_init(x: FiniteDifferences, stagger=[0], *args, **kwargs):
 
 
 # gradient
-@operator  # type: ignore
+@operator.abstract
+def gradient(x):    # pragma: no cover
+    # Implements the gradient operator
+    raise NotImplementedError
+
+
+@operator    # type: ignore
 def gradient(x: Continuous, *, params=None) -> Continuous:
     r"""Gradient operator for continuous fields.
 
@@ -138,15 +146,18 @@ def gradient(x: Continuous, *, params=None) -> Continuous:
     get_x = x.aux["get_field"]
 
     def grad_fun(p, coords):
-        f_jac = jax.jacfwd(get_x, argnums=(1,))
+        f_jac = jax.jacfwd(get_x, argnums=(1, ))
         v = f_jac(p, coords)[0][0]
         return v
 
     return x.update_fun_and_params(x.params, grad_fun)
 
 
-@operator(init_params=fd_diag_jacobian_init)  # type: ignore
-def gradient(x: FiniteDifferences, *, stagger=[0], params=None) -> FiniteDifferences:
+@operator(init_params=fd_diag_jacobian_init)    # type: ignore
+def gradient(x: FiniteDifferences,
+             *,
+             stagger=[0],
+             params=None) -> FiniteDifferences:
     r"""Gradient operator for finite differences fields.
 
     Args:
@@ -159,10 +170,13 @@ def gradient(x: FiniteDifferences, *, stagger=[0], params=None) -> FiniteDiffere
     return diag_jacobian(x, stagger=stagger, params=params)
 
 
-@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis})  # type: ignore
-def gradient(
-    x: FourierSeries, *, stagger=[0], correct_nyquist=True, params=None
-) -> FourierSeries:
+@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis}
+          )    # type: ignore
+def gradient(x: FourierSeries,
+             *,
+             stagger=[0],
+             correct_nyquist=True,
+             params=None) -> FourierSeries:
     r"""Gradient operator for Fourier series fields.
 
     Args:
@@ -178,9 +192,8 @@ def gradient(
     Returns:
         FourierSeries: The gradient of the input field.
     """
-    assert x.dims == 1  # Gradient only defined for scalar fields
+    assert x.dims == 1    # Gradient only defined for scalar fields
 
-    ffts = _get_ffts(x)
     k_vec = params["k_vec"]
 
     # Adding staggering
@@ -189,7 +202,8 @@ def gradient(
 
     dx = x.domain.dx
     k_vec = [
-        1j * k * jnp.exp(1j * k * s * delta) for k, delta, s in zip(k_vec, dx, stagger)
+        1j * k * jnp.exp(1j * k * s * delta)
+        for k, delta, s in zip(k_vec, dx, stagger)
     ]
 
     # Set to zero the filter at the Nyquist frequency
@@ -205,17 +219,24 @@ def gradient(
 
     def single_grad(axis, u):
         u = jnp.moveaxis(u, axis, -1)
-        Fx = ffts[0](u, axis=-1)
+        Fx = x._ffts[0](u, axis=-1)
         iku = Fx * k_vec[axis]
-        du = ffts[1](iku, axis=-1, n=u.shape[-1])
+        du = x._ffts[1](iku, axis=-1, n=u.shape[-1])
         return jnp.moveaxis(du, -1, axis)
 
-    new_params = jnp.stack([single_grad(i, u) for i in range(x.ndim)], axis=-1)
+    new_params = jnp.stack([single_grad(i, u) for i in range(x.domain.ndim)],
+                           axis=-1)
     return FourierSeries(new_params, x.domain)
 
 
 # diag_jacobian
-@operator  # type: ignore
+@operator.abstract
+def diag_jacobian(x):    # pragma: no cover
+    # Extracts the diagonal of the Jacobian operator
+    raise NotImplementedError
+
+
+@operator    # type: ignore
 def diag_jacobian(x: Continuous, *, params=None) -> Continuous:
     r"""Diagonal Jacobian operator for continuous fields.
 
@@ -228,16 +249,17 @@ def diag_jacobian(x: Continuous, *, params=None) -> Continuous:
     get_x = x.aux["get_field"]
 
     def diag_fun(p, coords):
-        f_jac = jax.jacfwd(get_x, argnums=(1,))
+        f_jac = jax.jacfwd(get_x, argnums=(1, ))
         return jnp.diag(f_jac(p, coords)[0])
 
-    return x.update_fun_and_params(x.params, diag_fun), None
+    return x.update_fun_and_params(x.params, diag_fun)
 
 
-@operator(init_params=fd_diag_jacobian_init)  # type: ignore
-def diag_jacobian(
-    x: FiniteDifferences, *, stagger=[0], params=None
-) -> FiniteDifferences:
+@operator(init_params=fd_diag_jacobian_init)    # type: ignore
+def diag_jacobian(x: FiniteDifferences,
+                  *,
+                  stagger=[0],
+                  params=None) -> FiniteDifferences:
     r"""Diagonal Jacobian operator for finite differences fields.
 
     Args:
@@ -251,16 +273,22 @@ def diag_jacobian(
     array = x.on_grid
 
     # Apply the corresponding kernel to each dimension
-    outs = [reflection_conv(kernels[i], array[..., i]) for i in range(x.ndim)]
+    outs = [
+        reflection_conv(kernels[i], array[..., i])
+        for i in range(x.domain.ndim)
+    ]
     new_params = jnp.stack(outs, axis=-1)
 
     return x.replace_params(new_params)
 
 
-@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis})  # type: ignore
-def diag_jacobian(
-    x: FourierSeries, *, stagger=[0], correct_nyquist=True, params=None
-) -> FourierSeries:
+@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis}
+          )    # type: ignore
+def diag_jacobian(x: FourierSeries,
+                  *,
+                  stagger=[0],
+                  correct_nyquist=True,
+                  params=None) -> FourierSeries:
     r"""Diagonal Jacobian operator for Fourier series fields.
 
     Args:
@@ -277,7 +305,6 @@ def diag_jacobian(
         The vector field whose components are the diagonal entries
           of the Jacobian of the input field.
     """
-    ffts = _get_ffts(x)
     k_vec = params["k_vec"]
 
     # Adding staggering
@@ -286,7 +313,8 @@ def diag_jacobian(
 
     dx = x.domain.dx
     k_vec = [
-        1j * k * jnp.exp(1j * k * s * delta) for k, delta, s in zip(k_vec, dx, stagger)
+        1j * k * jnp.exp(1j * k * s * delta)
+        for k, delta, s in zip(k_vec, dx, stagger)
     ]
 
     # Set to zero the filter at the Nyquist frequency
@@ -302,19 +330,26 @@ def diag_jacobian(
 
     def single_grad(axis, u):
         u = jnp.moveaxis(u, axis, -1)
-        Fx = ffts[0](u, axis=-1)
+        Fx = x._ffts[0](u, axis=-1)
         iku = Fx * k_vec[axis]
-        du = ffts[1](iku, axis=-1, n=u.shape[-1])
+        du = x._ffts[1](iku, axis=-1, n=u.shape[-1])
         return jnp.moveaxis(du, -1, axis)
 
-    for ax in range(x.ndim):
-        new_params = new_params.at[..., ax].set(single_grad(ax, x.params[..., ax]))
+    for ax in range(x.domain.ndim):
+        new_params = new_params.at[...,
+                                   ax].set(single_grad(ax, x.params[..., ax]))
 
-    return FourierSeries(new_params, x.domain), params
+    return FourierSeries.from_grid(new_params, x.domain)
 
 
 # laplacian
-@operator  # type: ignore
+@operator.abstract
+def laplacian(x):    # pragma: no cover
+    # Implements the Laplacian operator
+    raise NotImplementedError
+
+
+@operator    # type: ignore
 def laplacian(x: Continuous, *, params=None) -> Continuous:
     r"""Laplacian operator for continuous fields.
 
@@ -327,13 +362,14 @@ def laplacian(x: Continuous, *, params=None) -> Continuous:
     get_x = x.aux["get_field"]
 
     def grad_fun(p, coords):
-        hessian = jax.hessian(get_x, argnums=(1,))(p, coords)[0][0][0]
+        hessian = jax.hessian(get_x, argnums=(1, ))(p, coords)[0][0][0]
         return jnp.diag(hessian)
 
     return x.update_fun_and_params(x.params, grad_fun), None
 
 
-@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis})  # type: ignore
+@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis}
+          )    # type: ignore
 def laplacian(x: FourierSeries, *, params=None):
     r"""Laplacian operator for Fourier series fields.
 
@@ -343,31 +379,88 @@ def laplacian(x: FourierSeries, *, params=None):
     Returns:
       The Laplacian of the field
     """
-    assert x.dims == 1  # Laplacian only defined for scalar fields
+    assert x.dims == 1    # Laplacian only defined for scalar fields
 
-    ffts = _get_ffts(x)
     k_vec = params["k_vec"]
     u = x.params[..., 0]
 
     def single_grad(axis, u):
         u = jnp.moveaxis(u, axis, -1)
-        Fx = ffts[0](u, axis=-1)
-        iku = -Fx * (k_vec[axis] ** 2)
-        du = ffts[1](iku, axis=-1, n=u.shape[-1])
+        Fx = x._ffts[0](u, axis=-1)
+        iku = -Fx * (k_vec[axis]**2)
+        du = x._ffts[1](iku, axis=-1, n=u.shape[-1])
         return jnp.moveaxis(du, -1, axis)
 
     new_params = jnp.sum(
-        jnp.stack([single_grad(i, u) for i in range(x.ndim)], axis=-1),
+        jnp.stack([single_grad(i, u) for i in range(x.domain.ndim)], axis=-1),
         axis=-1,
         keepdims=True,
     )
     return FourierSeries(new_params, x.domain), params
 
 
-@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis})  # type: ignore
-def heterog_laplacian(
-    x: FourierSeries, c: FourierSeries, *, params=None
-) -> FourierSeries:
+def fd_laplacian_init(x: FiniteDifferences, *args, **kwargs):
+    r"""Initializes the parameters for the Laplacian of a FiniteDifferences field. Accepts
+    an arbitrary number of positional and keyword arguments after the
+    mandatory arguments, which are ignored.
+
+    Args:
+      x: FiniteDifferences field
+
+    Returns:
+      Stencil coefficients
+
+    """
+
+    # Get kernel for 1D
+    kernel = get_fd_coefficients(x, order=2)
+
+    # Make it into an ND kernel by repeating it
+    if x.domain.ndim == 1:
+        return kernel
+
+    full_kernel_shape = [kernel.shape[0]] * x.domain.ndim
+    full_kernel = np.zeros(full_kernel_shape, dtype=kernel.dtype)
+    center = kernel.shape[0] // 2
+
+    # Put the kernel in the middle of the array for each dimension, by adding it to the full kernel
+    for i in range(x.domain.ndim):
+        full_kernel[tuple([
+            center if j == i else slice(None) for j in range(x.domain.ndim)
+        ])] += kernel
+
+    return full_kernel
+
+
+@operator(init_params=fd_laplacian_init)    # type: ignore
+def laplacian(x: FiniteDifferences, *, params=None) -> FiniteDifferences:
+    r"""Gradient operator for finite differences fields.
+
+    Args:
+      x: FiniteDifferences field
+      stagger: Stagger of the derivative
+
+    Returns:
+      The gradient of the field
+    """
+    assert x.dims == 1, "Laplacian only defined for scalar fields"
+    new_params = reflection_conv(params, x.on_grid[..., 0], reverse=False)
+    return x.replace_params(new_params).add_dim()
+
+
+# heterog_laplacian
+@operator.abstract
+def heterog_laplacian(x):    # pragma: no cover
+    # Implements the Heterogeneous Laplacian operator
+    raise NotImplementedError
+
+
+@operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis}
+          )    # type: ignore
+def heterog_laplacian(x: FourierSeries,
+                      c: FourierSeries,
+                      *,
+                      params=None) -> FourierSeries:
     r"""Computes the position-varying laplacian using algorithm 4 of
     [[Johnson, 2011]](https://math.mit.edu/~stevenj/fft-deriv.pdf).
 
@@ -378,43 +471,45 @@ def heterog_laplacian(
     Returns:
       The Laplacian of the field
     """
-    assert x.dims == 1  # Laplacian only defined for scalar fields
+    assert x.dims == 1    # Laplacian only defined for scalar fields
 
-    ffts = _get_ffts(x)
     k_vec = params["k_vec"]
     u = x.params[..., 0]
     v = c.params[..., 0]
 
     def single_coordinate(axis, u):
         u = jnp.moveaxis(u, axis, -1)
-        U = ffts[0](u, axis=-1)
+        U = x._ffts[0](u, axis=-1)
         U_prime = 1j * k_vec[axis] * U
 
         # Handle Nyquist frequency
         N_on_L = 1 / u.domain.dx[axis]
         N = u.domain.N[axis]
         if N % 2 == 0:
-            U_prime = U_prime.at[..., N // 2].set(U[..., N // 2] * N_on_L * jnp.pi * 1j)
+            U_prime = U_prime.at[..., N // 2].set(U[..., N // 2] * N_on_L *
+                                                  jnp.pi * 1j)
 
         # Multiply with heterogeneous field
-        u_prime = ffts[1](U_prime, axis=-1, n=u.shape[-1])
+        u_prime = x._ffts[1](U_prime, axis=-1, n=u.shape[-1])
         c_uprime = v * u_prime
 
         # Get the second derivative
-        V = ffts[0](c_uprime, axis=-1)
+        V = x._ffts[0](c_uprime, axis=-1)
         V_prime = 1j * k_vec[axis] * V
 
         # Handle Nyquist frequency
         if N % 2 == 0:
-            V_prime = V_prime.at[..., N // 2].set(V[..., N // 2] * N_on_L * jnp.pi * 1j)
+            V_prime = V_prime.at[..., N // 2].set(V[..., N // 2] * N_on_L *
+                                                  jnp.pi * 1j)
 
         # Return to space
-        ddu = ffts[1](V_prime, axis=-1, n=u.shape[-1])
+        ddu = x._ffts[1](V_prime, axis=-1, n=u.shape[-1])
 
         return jnp.moveaxis(ddu, -1, axis)
 
     new_params = jnp.sum(
-        jnp.stack([single_coordinate(i, u) for i in range(x.ndim)], axis=-1),
+        jnp.stack([single_coordinate(i, u) for i in range(x.domain.ndim)],
+                  axis=-1),
         axis=-1,
         keepdims=True,
     )

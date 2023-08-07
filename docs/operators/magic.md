@@ -16,7 +16,7 @@ Implements the `bool()` operator for fields.
 
 ## `__divmod__`
 
-Implements the `divmod()` operator for fields, which for two fields $`u`$ and $`v`$ returns a pair of fields `(u // v, u % v)`.
+Implements the `divmod()` operator for fields, which for two fields $u$ and $v$ returns a pair of fields `(u // v, u % v)`.
 
 {{ implementations('jaxdf.operators.magic', '__divmod__') }}
 
@@ -29,13 +29,13 @@ Implements the `*` operator for fields.
 
 ## `__neg__`
 
-Given a field $`u`$, returns the field $`-u`$, using the syntax `-u`.
+Given a field $u$, returns the field $-u$, using the syntax `-u`.
 
 {{ implementations('jaxdf.operators.magic', '__neg__') }}
 
 ## `__pow__`
 
-Given a field $`u`$ and a generic $`c`$, returns the field $`u^c`$, using the syntax `u**c`.
+Given a field $u$ and a generic $c$, returns the field $u^c$, using the syntax `u**c`.
 
 {{ implementations('jaxdf.operators.magic', '__pow__') }}
 

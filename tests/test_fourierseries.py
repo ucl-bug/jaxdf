@@ -6,7 +6,7 @@ from jaxdf.discretization import FourierSeries
 from jaxdf.geometry import Domain
 
 
-@pytest.mark.parametrize("N", [(33,), (33, 33), (33, 33, 33)])
+@pytest.mark.parametrize("N", [(33, ), (33, 33), (33, 33, 33)])
 @pytest.mark.parametrize("jitting", [True, False])
 @pytest.mark.parametrize("out_dims", [1, 3])
 def test_call(N, out_dims, jitting):
@@ -20,9 +20,8 @@ def test_call(N, out_dims, jitting):
     elif len(N) == 2:
         params = params.at[delta_position[0], delta_position[1], :].set(1.0)
     elif len(N) == 3:
-        params = params.at[
-            delta_position[0], delta_position[1], delta_position[2], :
-        ].set(1.0)
+        params = params.at[delta_position[0], delta_position[1],
+                           delta_position[2], :].set(1.0)
 
     value = jnp.asarray([1.0] * out_dims)
     x = jnp.asarray([0.0] * len(N))
@@ -41,7 +40,7 @@ def test_call(N, out_dims, jitting):
 
 
 def test_ffts_funcs():
-    domain = Domain((33,), dx=[1.0])
+    domain = Domain((33, ), dx=[1.0])
     params = jnp.zeros((33, 1))
     field = FourierSeries(params, domain)
     ffts = field._ffts

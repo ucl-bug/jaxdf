@@ -89,24 +89,26 @@ def test_add(N, jitting, get_fields):
 
 
 def test_from_function():
+
     def f(params, x):
         return jnp.sum(params) * x
 
     def init_params(rng, domain):
-        return jnp.ones((1,))
+        return jnp.ones((1, ))
 
-    domain = Domain((64,), dx=(1.0,))
+    domain = Domain((64, ), dx=(1.0, ))
     seed = random.PRNGKey(42)
     field = Continuous.from_function(domain, init_params, f, seed)
 
 
 def test_on_grid():
+
     def f(params, x):
         return params * jnp.sum(x)
 
-    params = jnp.ones((1,))
+    params = jnp.ones((1, ))
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field = Continuous(params, domain, f)
     grid = field.on_grid
     grid_true = jnp.asarray([[-0.15], [-0.05], [0.05], [0.15]])
@@ -114,15 +116,16 @@ def test_on_grid():
 
 
 def test_replace_params():
+
     def f(params, x):
         return params * jnp.sum(x)
 
-    params = jnp.ones((1,))
+    params = jnp.ones((1, ))
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field = Continuous(params, domain, f)
-    field = field.replace_params(jnp.zeros((1,)))
-    assert jnp.allclose(field.params, jnp.zeros((1,)))
+    field = field.replace_params(jnp.zeros((1, )))
+    assert jnp.allclose(field.params, jnp.zeros((1, )))
 
 
 @pytest.mark.parametrize("jitting", [True, False])
@@ -177,86 +180,92 @@ def test_mul(N, jitting, get_fields):
 
 
 def test_op_neg():
+
     def f(params, x):
         return params * jnp.sum(x)
 
-    params = jnp.ones((1,))
+    params = jnp.ones((1, ))
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field = Continuous(params, domain, f)
     field = -field
-    field_value = field(jnp.ones((1,)))
+    field_value = field(jnp.ones((1, )))
 
-    true_field_value = -f(params, jnp.ones((1,)))
+    true_field_value = -f(params, jnp.ones((1, )))
     assert jnp.allclose(field_value, true_field_value)
 
 
 def test_op_rtruediv():
+
     def f(params, x):
         return params * jnp.sum(x)
 
-    params = jnp.ones((1,)) * 4.0
+    params = jnp.ones((1, )) * 4.0
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field = Continuous(params, domain, f)
     field = 1.0 / field
-    field_value = field(jnp.ones((1,)))
+    field_value = field(jnp.ones((1, )))
 
-    true_field_value = 1.0 / f(params, jnp.ones((1,)))
+    true_field_value = 1.0 / f(params, jnp.ones((1, )))
     assert jnp.allclose(field_value, true_field_value)
 
 
 def test_op_truediv():
+
     def f(params, x):
         return params * jnp.sum(x)
 
     def g(params, x):
         return params * jnp.sum(x) + 2.0
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field1 = Continuous(4.0, domain, f)
     field2 = Continuous(2.0, domain, g)
     field = field1 / field2
-    field_value = field(jnp.ones((1,)))
-    true_field_value = f(4.0, jnp.ones((1,))) / g(2.0, jnp.ones((1,)))
+    field_value = field(jnp.ones((1, )))
+    true_field_value = f(4.0, jnp.ones((1, ))) / g(2.0, jnp.ones((1, )))
     assert jnp.allclose(field_value, true_field_value)
 
 
 def test_op_truediv_float():
+
     def f(params, x):
         return params * jnp.sum(x)
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field = Continuous(4.0, domain, f)
     field = field / 2.0
-    field_value = field(jnp.ones((1,)))
-    true_field_value = f(4.0, jnp.ones((1,))) / 2.0
+    field_value = field(jnp.ones((1, )))
+    true_field_value = f(4.0, jnp.ones((1, ))) / 2.0
     assert jnp.allclose(field_value, true_field_value)
 
 
 def test_op_pow():
+
     def f(params, x):
         return params * jnp.sum(x)
 
     def g(params, x):
         return params * jnp.sum(x) + 2.0
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field1 = Continuous(4.0, domain, f)
     field2 = Continuous(2.0, domain, g)
     field = field1**field2
-    field_value = field(jnp.ones((1,)))
-    true_field_value = f(4.0, jnp.ones((1,))) ** g(2.0, jnp.ones((1,)))
+    field_value = field(jnp.ones((1, )))
+    true_field_value = f(4.0, jnp.ones((1, )))**g(2.0, jnp.ones((1, )))
     assert jnp.allclose(field_value, true_field_value)
 
 
 def test_op_pow_float():
+
     def f(params, x):
         return params * jnp.sum(x)
 
-    domain = Domain((4,), dx=(0.1,))
+    domain = Domain((4, ), dx=(0.1, ))
     field = Continuous(4.0, domain, f)
     field = field**2.0
-    field_value = field(jnp.ones((1,)))
-    true_field_value = f(4.0, jnp.ones((1,))) ** 2.0
+    field_value = field(jnp.ones((1, )))
+    true_field_value = f(4.0, jnp.ones((1, )))**2.0
     assert jnp.allclose(field_value, true_field_value)

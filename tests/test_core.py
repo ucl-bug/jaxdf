@@ -9,7 +9,7 @@ from jaxdf import *
 
 @pytest.fixture
 def get_ongrid_fields():
-    domain = geometry.Domain((1,), (1.0,))
+    domain = geometry.Domain((1, ), (1.0, ))
     a = OnGrid(jnp.asarray([1.0]), domain)
     b = OnGrid(jnp.asarray([2.0]), domain)
     return a, b
@@ -18,6 +18,7 @@ def get_ongrid_fields():
 @pytest.fixture
 def get_continuous_fields():
     domain = geometry.Domain()
+
     # Continuous fields
     def f(p, x):
         return jnp.expand_dims(jnp.sum(p * (x**2)), -1)
@@ -28,26 +29,26 @@ def get_continuous_fields():
 
 
 def test_custom_type():
-    from plum import parametric, type_of
+    from plum import parametric
 
+    @parametric
     class MyFourier(FourierSeries):
-        pass
+        params: jnp.ndarray
+        domain: geometry.Domain
 
-    @parametric(runtime_type_of=True)
-    class DimField(MyFourier):
-        pass
+        @classmethod
+        def __init_type_parameter__(cls, parameter):
+            return parameter
 
-    @type_of.dispatch
-    def type_of(x: MyFourier):
-        # Hook into Plum's type inference system to produce an appropriate instance of
-        # `NPArray` for NumPy arrays.
-        return DimField[x.dims]
+        @classmethod
+        def __infer_type_parameter__(cls, params, domain):
+            return params.shape[-1]
 
-    domain = geometry.Domain((1,), (1.0,))
+    domain = geometry.Domain((1, ), (1.0, ))
     a = MyFourier(jnp.asarray([1.0]), domain)
 
     @operator
-    def _test_operator(x: DimField[1], *, params=None):
+    def _test_operator(x: MyFourier[1], *, params=None):
         return x
 
     try:
@@ -62,7 +63,7 @@ def test_jit_call(get_continuous_fields):
     @jit
     def f(x):
         q = x + 2
-        return q.get_field(x.domain.origin)
+        return q(x.domain.origin)
 
     z = f(a)
     z = f(a)
@@ -87,6 +88,7 @@ def test_make_fourier_inside_jitted_fun(get_ongrid_fields):
 
     @jax.jit
     def f(x):
+        print(a.params)
         y = FourierSeries(x.params**2, x.domain)
         return y + 1
 
@@ -102,11 +104,13 @@ def test_override_operator_new_discretization(get_ongrid_fields):
     z_old = z.params
 
     class MyDiscr(OnGrid):
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
     @operator
     def compose(x: MyDiscr, *, params=None):
+
         def decorator(fun):
             return x.replace_params(fun(x.params) + 10)
 
@@ -123,12 +127,11 @@ def test_override_operator_new_discretization(get_ongrid_fields):
 
 
 def test_replace_param_for_abstract_field():
-    domain = geometry.Domain((1,), (1.0,))
+    domain = geometry.Domain((1, ), (1.0, ))
     params = jnp.asarray([1.0])
     aux = {"a": 1, "f": lambda x: x, "s": "string"}
-    dims = 1
 
-    a = Field(params, domain, dims, aux)
+    a = Field(params, domain, aux)
 
     new_params = jnp.asarray([2.0])
 
@@ -136,7 +139,6 @@ def test_replace_param_for_abstract_field():
 
     assert b.params == new_params
     assert b.aux == aux
-    assert b.dims == dims
     assert b.domain == domain
 
 
@@ -156,13 +158,12 @@ def test_replace_param_for_abstract_field():
     ],
 )
 def test_non_implemented_binary_methods(function):
-    domain = geometry.Domain((1,), (1.0,))
+    domain = geometry.Domain((1, ), (1.0, ))
     params = jnp.asarray([1.0])
     aux = {"a": 1, "f": lambda x: x, "s": "string"}
-    dims = 1
 
-    a = Field(params, domain, dims, aux)
-    b = Field(params, domain, dims, aux)
+    a = Field(params, domain, aux)
+    b = Field(params, domain, aux)
     c = FourierSeries(params, domain)
 
     with pytest.raises(NotImplementedError):
@@ -182,12 +183,11 @@ def test_non_implemented_binary_methods(function):
     ],
 )
 def test_non_implemented_unary_methods(function):
-    domain = geometry.Domain((1,), (1.0,))
+    domain = geometry.Domain((1, ), (1.0, ))
     params = jnp.asarray([1.0])
     aux = {"a": 1, "f": lambda x: x, "s": "string"}
-    dims = 1
 
-    a = Field(params, domain, dims, aux)
+    a = Field(params, domain, aux)
 
     with pytest.raises(NotImplementedError):
         getattr(a, function)()

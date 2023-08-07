@@ -13,6 +13,7 @@ domain = geometry.Domain()
 x = OnGrid(jnp.asarray([1.0]), domain)
 y = OnGrid(jnp.asarray([2.0]), domain)
 
+
 # Continuous fields
 def f(p, x):
     return jnp.expand_dims(jnp.sum(p * (x**2)), -1)
@@ -24,7 +25,7 @@ b = Continuous(6.0, domain, f)
 
 def test_compose_continuous():
     z = operators.compose(a)(jnp.exp)
-    assert np.allclose(z.get_field(domain.origin), 1.0)
+    assert np.allclose(z(domain.origin), 1.0)
 
 
 def test_compose_ongrid():
@@ -34,6 +35,7 @@ def test_compose_ongrid():
 
 
 def test_compose_gradient():
+
     @jit
     def f(x):
         z = operators.compose(x)(jnp.exp)
@@ -41,7 +43,7 @@ def test_compose_gradient():
         return operators.gradient(z)
 
     print(f(a))
-    print(f(a).get_field(domain.origin + 1))
+    print(f(a)(domain.origin + 1))
 
 
 def test_compose():
@@ -72,45 +74,43 @@ def test_fd_shift_operator():
     x = FiniteDifferences(params, domain, accuracy=2)
 
     y = operators.shift_operator(x, dx=[0.125, 0.0]).on_grid[..., 0]
-    y_true = jnp.asarray(
+    y_true = jnp.asarray([
         [
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-            ],
-            [
-                0.0,
-                0.0,
-                0.25,
-                0.0,
-                0.0,
-            ],
-            [
-                0.0,
-                0.0,
-                0.75,
-                0.0,
-                0.0,
-            ],
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-            ],
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-            ],
-        ]
-    )
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ],
+        [
+            0.0,
+            0.0,
+            0.25,
+            0.0,
+            0.0,
+        ],
+        [
+            0.0,
+            0.0,
+            0.75,
+            0.0,
+            0.0,
+        ],
+        [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ],
+        [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ],
+    ])
     assert np.allclose(y, y_true, atol=ATOL)
 
 
@@ -121,15 +121,13 @@ def test_fourier_shift_operator():
     x = FourierSeries(params, domain)
 
     y = operators.shift_operator(x, dx=[0.125, 0.0]).on_grid[..., 0]
-    y_true = jnp.asarray(
-        [
-            [0.0, 0.0, -0.15872093, 0.0, 0.0],
-            [0.0, 0.0, 0.3115073, 0.0, 0.0],
-            [0.0, 0.0, 0.9040295, 0.0, 0.0],
-            [0.0, 0.0, -0.20000003, 0.0, 0.0],
-            [0.0, 0.0, 0.14318419, 0.0, 0.0],
-        ]
-    )
+    y_true = jnp.asarray([
+        [0.0, 0.0, -0.15872093, 0.0, 0.0],
+        [0.0, 0.0, 0.3115073, 0.0, 0.0],
+        [0.0, 0.0, 0.9040295, 0.0, 0.0],
+        [0.0, 0.0, -0.20000003, 0.0, 0.0],
+        [0.0, 0.0, 0.14318419, 0.0, 0.0],
+    ])
     assert np.allclose(y, y_true, atol=ATOL)
 
 

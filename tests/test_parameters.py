@@ -20,6 +20,7 @@ Y_PARAMS = jnp.asarray([2.0])
 X = OnGrid(X_PARAMS, domain)
 Y = OnGrid(Y_PARAMS, domain)
 
+
 # Continuous fields
 def CONTINUOUS_FUN(p, x):
     return jnp.expand_dims(jnp.sum(p * (x**2)), -1)

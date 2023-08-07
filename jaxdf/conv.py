@@ -5,9 +5,9 @@ from jax import numpy as jnp
 from jax import scipy as jsp
 
 
-def reflection_conv(
-    kernel: jnp.ndarray, array: jnp.ndarray, reverse: bool = True
-) -> jnp.ndarray:
+def reflection_conv(kernel: jnp.ndarray,
+                    array: jnp.ndarray,
+                    reverse: bool = True) -> jnp.ndarray:
     r"""Convolves an array with a kernel, using reflection padding.
     The kernel is supposed to have the same number of dimensions as the array.
 
@@ -33,8 +33,7 @@ def reflection_conv(
 
 
 def bubble_sort_abs_value(
-    points_list: List[Union[float, int]]
-) -> List[Union[float, int]]:
+        points_list: List[Union[float, int]]) -> List[Union[float, int]]:
     r"""Sorts a sequence of grid points by their absolute value.
 
     Sorting is done __in place__. This function is written with numpy, so it can't
@@ -59,7 +58,8 @@ def bubble_sort_abs_value(
         for j in range(0, len(points_list) - i - 1):
             magnitude_condition = abs(points_list[j]) > abs(points_list[j + 1])
             same_mag_condition = abs(points_list[j]) == abs(points_list[j + 1])
-            sign_condition = np.sign(points_list[j]) < np.sign(points_list[j + 1])
+            sign_condition = np.sign(points_list[j]) < np.sign(points_list[j +
+                                                                           1])
             if magnitude_condition or (same_mag_condition and sign_condition):
                 temp = points_list[j]
                 points_list[j] = points_list[j + 1]
@@ -71,8 +71,8 @@ def bubble_sort_abs_value(
 # TODO (astanziola): This fails on mypy for some reason, but can't work out how to fix.
 @no_type_check
 def fd_coefficients_fornberg(
-    order: int, grid_points: List[Union[float, int]], x0: Union[float, int]
-) -> Tuple[List[None], List[Union[float, int]]]:
+        order: int, grid_points: List[Union[float, int]],
+        x0: Union[float, int]) -> Tuple[List[None], List[Union[float, int]]]:
     r"""Generate finite difference stencils for a given order and grid points, using
     the Fornberg algorithm described in [[Fornberg, 2018]](https://web.njit.edu/~jiang/math712/fornberg.pdf).
 
@@ -107,7 +107,7 @@ def fd_coefficients_fornberg(
 
     # Sort the grid points
     alpha = bubble_sort_abs_value(grid_points)
-    delta = dict()  # key: (m,n,v)
+    delta = dict()    # key: (m,n,v)
     delta[(0, 0, 0)] = 1.0
     c1 = 1.0
 
@@ -119,21 +119,17 @@ def fd_coefficients_fornberg(
             if n < M:
                 delta[(n, n - 1, v)] = 0.0
             for m in range(min([n, M]) + 1):
-                d1 = delta[(m, n - 1, v)] if (m, n - 1, v) in delta.keys() else 0.0
-                d2 = (
-                    delta[(m - 1, n - 1, v)]
-                    if (m - 1, n - 1, v) in delta.keys()
-                    else 0.0
-                )
+                d1 = delta[(m, n - 1, v)] if (m, n - 1,
+                                              v) in delta.keys() else 0.0
+                d2 = (delta[(m - 1, n - 1, v)] if
+                      (m - 1, n - 1, v) in delta.keys() else 0.0)
                 delta[(m, n, v)] = ((alpha[n] - x0) * d1 - m * d2) / c3
 
         for m in range(min([n, M]) + 1):
-            d1 = (
-                delta[(m - 1, n - 1, n - 1)]
-                if (m - 1, n - 1, n - 1) in delta.keys()
-                else 0.0
-            )
-            d2 = delta[(m, n - 1, n - 1)] if (m, n - 1, n - 1) in delta.keys() else 0.0
+            d1 = (delta[(m - 1, n - 1, n - 1)] if
+                  (m - 1, n - 1, n - 1) in delta.keys() else 0.0)
+            d2 = delta[(m, n - 1, n - 1)] if (m, n - 1,
+                                              n - 1) in delta.keys() else 0.0
             delta[(m, n, n)] = (c1 / c2) * (m * d1 - (alpha[n - 1] - x0) * d2)
         c1 = c2
 
