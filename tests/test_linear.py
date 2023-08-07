@@ -17,6 +17,6 @@ def test_op_neg():
     domain = Domain((1, ), (1.0, ))
     a = Linear(jnp.asarray([1.0]), domain)
 
-    b = (-a).on_grid
-    b_exp = -(a.on_grid)
+    b = (-a).params
+    b_exp = -(a.params)
     assert b == b_exp
