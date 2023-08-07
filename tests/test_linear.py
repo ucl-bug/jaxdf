@@ -5,7 +5,7 @@ from jaxdf.discretization import Linear
 from jaxdf.geometry import Domain
 
 
-@pytest.mark.parametrize("N", [(33,), (33, 33), (33, 33, 33)])
+@pytest.mark.parametrize("N", [(33, ), (33, 33), (33, 33, 33)])
 def test_create(N):
     domain = Domain(N, dx=[1.0] * len(N))
     params = jnp.zeros(N)

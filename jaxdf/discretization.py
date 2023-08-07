@@ -8,7 +8,6 @@ from jax import vmap
 from jaxdf.core import Field, discretization
 from jaxdf.geometry import Domain
 
-
 PyTree = TypeVar("PyTree")
 
 
@@ -27,7 +26,7 @@ class Linear(Field):
         aux=None,
     ):
         super().__init__(params, domain, aux)
-        
+
     def __eq__(self, other):
         return self.params == other.params
 
@@ -72,7 +71,7 @@ class Continuous(Field):
         return eval_shape(self.aux["get_field"], self.params, x).shape
 
     def tree_flatten(self):
-        children = (self.params,)
+        children = (self.params, )
         aux_data = (self.domain, self.aux["get_field"])
         return (children, aux_data)
 
@@ -114,7 +113,8 @@ class Continuous(Field):
         return self.__class__(params, self.domain, get_field)
 
     @classmethod
-    def from_function(cls, domain, init_fun: Callable, get_field: Callable, seed):
+    def from_function(cls, domain, init_fun: Callable, get_field: Callable,
+                      seed):
         r"""Creates a continuous discretization from a `init_fun` function.
 
         Args:
@@ -184,7 +184,7 @@ class OnGrid(Linear):
         """
         self.domain = domain
         self.params = params
-        
+
     def add_dim(self):
         """Adds a dimension at the end of the `params` array."""
         self.params = jnp.expand_dims(self.params, axis=-1)
@@ -196,8 +196,8 @@ class OnGrid(Linear):
         return self.params.shape[-1]
 
     def tree_flatten(self):
-        children = (self.params,)
-        aux_data = (self.domain,)
+        children = (self.params, )
+        aux_data = (self.domain, )
         return (children, aux_data)
 
     @classmethod
@@ -255,7 +255,7 @@ class OnGrid(Linear):
           bool: Whether the field is complex.
         """
         return self.params.dtype == jnp.complex64 or self.params.dtype == jnp.complex128
-    
+
     @classmethod
     def from_grid(cls, grid_values, domain):
         r"""Creates an OnGrid field from a grid of values.
@@ -305,7 +305,10 @@ class FourierSeries(OnGrid):
         domain_size = jnp.asarray(self.domain.N) * dx
         shift = x - domain_size / 2 + 0.5 * dx
 
-        k_vec = [jnp.exp(-1j * k * delta) for k, delta in zip(self._freq_axis, shift)]
+        k_vec = [
+            jnp.exp(-1j * k * delta)
+            for k, delta in zip(self._freq_axis, shift)
+        ]
         ffts = self._ffts
 
         new_params = self.params
@@ -327,14 +330,18 @@ class FourierSeries(OnGrid):
     def _freq_axis(self):
         r"""Returns the frequency axis of the grid"""
         if self.is_complex:
+
             def f(N, dx):
                 return jnp.fft.fftfreq(N, dx) * 2 * jnp.pi
 
         else:
+
             def f(N, dx):
                 return jnp.fft.rfftfreq(N, dx) * 2 * jnp.pi
 
-        k_axis = [f(n, delta) for n, delta in zip(self.domain.N, self.domain.dx)]
+        k_axis = [
+            f(n, delta) for n, delta in zip(self.domain.N, self.domain.dx)
+        ]
         return k_axis
 
     @property
@@ -356,20 +363,24 @@ class FourierSeries(OnGrid):
         def f(N, dx):
             return jnp.fft.fftfreq(N, dx) * 2 * jnp.pi
 
-        k_axis = [f(n, delta) for n, delta in zip(self.domain.N, self.domain.dx)]
+        k_axis = [
+            f(n, delta) for n, delta in zip(self.domain.N, self.domain.dx)
+        ]
         if not self.is_field_complex:
             k_axis[-1] = (
-                jnp.fft.rfftfreq(self.domain.N[-1], self.domain.dx[-1]) * 2 * jnp.pi
-            )
+                jnp.fft.rfftfreq(self.domain.N[-1], self.domain.dx[-1]) * 2 *
+                jnp.pi)
         return k_axis
 
     @property
     def _cut_freq_grid(self):
-        return jnp.stack(jnp.meshgrid(*self._cut_freq_axis, indexing="ij"), axis=-1)
+        return jnp.stack(jnp.meshgrid(*self._cut_freq_axis, indexing="ij"),
+                         axis=-1)
 
     @property
     def _freq_grid(self):
-        return jnp.stack(jnp.meshgrid(*self._freq_axis, indexing="ij"), axis=-1)
+        return jnp.stack(jnp.meshgrid(*self._freq_axis, indexing="ij"),
+                         axis=-1)
 
 
 @discretization
@@ -394,7 +405,7 @@ class FiniteDifferences(OnGrid):
         self.accuracy = accuracy
 
     def tree_flatten(self):
-        children = (self.params,)
+        children = (self.params, )
         aux_data = (self.domain, self.accuracy)
         return (children, aux_data)
 

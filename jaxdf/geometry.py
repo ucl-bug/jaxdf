@@ -101,7 +101,8 @@ class Domain(NamedTuple):
         def sample(seed):
             seeds = random.split(seed, 3)
             first = 2 * jnp.expand_dims(random.uniform(seeds[0]), 0) - 1
-            others = 2 * random.bernoulli(seeds[1], shape=(self.ndim - 1,)) - 1
+            others = 2 * random.bernoulli(seeds[1],
+                                          shape=(self.ndim - 1, )) - 1
             sample = jnp.concatenate([first, others]).astype(jnp.float32)
             random_perm = random.permutation(seeds[2], sample)
             sample = random_perm * L
@@ -144,7 +145,7 @@ class Domain(NamedTuple):
         L = jnp.asarray(self.size) / 2
 
         def sample(seed):
-            sample = 2 * random.uniform(seed, shape=(self.ndim,)) - 1
+            sample = 2 * random.uniform(seed, shape=(self.ndim, )) - 1
             return sample * L
 
         def multi_samples(seed, num_samples: int):
@@ -155,7 +156,7 @@ class Domain(NamedTuple):
 
     @property
     def origin(self):
-        return jnp.zeros((self.ndim,))
+        return jnp.zeros((self.ndim, ))
 
     @staticmethod
     def _make_grid_from_axis(axis):

@@ -8,9 +8,11 @@ from jaxdf.geometry import Domain
 
 PRNGKEY = random.PRNGKey(42)
 
+
 # Tests the initialization of fields OnGrid (and subclasses)
-@pytest.mark.parametrize("N", [(64,), (64, 64), (64, 64, 64)])
-@pytest.mark.parametrize("discretization", [OnGrid, FourierSeries, FiniteDifferences])
+@pytest.mark.parametrize("N", [(64, ), (64, 64), (64, 64, 64)])
+@pytest.mark.parametrize("discretization",
+                         [OnGrid, FourierSeries, FiniteDifferences])
 @pytest.mark.parametrize("out_dims", [0, 1, 3])
 @pytest.mark.parametrize("jitting", [True, False])
 def test_create_field(N, discretization, out_dims, jitting):
@@ -42,9 +44,10 @@ def test_create_field(N, discretization, out_dims, jitting):
     assert field.params.shape == tuple(true_size)
 
 
-@pytest.mark.parametrize("discretization", [OnGrid, FourierSeries, FiniteDifferences])
+@pytest.mark.parametrize("discretization",
+                         [OnGrid, FourierSeries, FiniteDifferences])
 def test_add(discretization):
-    N = (1,)
+    N = (1, )
     domain = Domain(N, dx=[1.0] * len(N))
     x = discretization.from_grid(jnp.asarray([1.0]), domain)
     y = discretization.from_grid(jnp.asarray([2.0]), domain)
@@ -74,9 +77,10 @@ def test_add(discretization):
     assert z.params == 6.0
 
 
-@pytest.mark.parametrize("discretization", [OnGrid, FourierSeries, FiniteDifferences])
+@pytest.mark.parametrize("discretization",
+                         [OnGrid, FourierSeries, FiniteDifferences])
 def test_sub(discretization):
-    N = (1,)
+    N = (1, )
     domain = Domain(N, dx=[1.0] * len(N))
     x = discretization.from_grid(jnp.asarray([1.0]), domain)
     y = discretization.from_grid(jnp.asarray([2.0]), domain)
@@ -106,9 +110,10 @@ def test_sub(discretization):
     assert z.params == -1.0
 
 
-@pytest.mark.parametrize("discretization", [OnGrid, FourierSeries, FiniteDifferences])
+@pytest.mark.parametrize("discretization",
+                         [OnGrid, FourierSeries, FiniteDifferences])
 def test_jit_with_float(discretization):
-    N = (1,)
+    N = (1, )
     domain = Domain(N, dx=[1.0] * len(N))
     x = discretization.from_grid(jnp.asarray([1.0]), domain)
     y = discretization.from_grid(jnp.asarray([2.0]), domain)
@@ -122,30 +127,30 @@ def test_jit_with_float(discretization):
     _ = add(-5.0, x)
 
 
-@pytest.mark.parametrize("N", [(64,), (64, 64), (64, 64, 64)])
+@pytest.mark.parametrize("N", [(64, ), (64, 64), (64, 64, 64)])
 def test_time_index(N):
     domain = Domain(N, dx=[1.0] * len(N))
-    params = jnp.ones((10,) + domain.N + (1,))
+    params = jnp.ones((10, ) + domain.N + (1, ))
     field = OnGrid(params, domain)
 
     field_at_10 = field[10]
-    assert jnp.allclose(field_at_10.params, jnp.ones(domain.N + (1,)))
+    assert jnp.allclose(field_at_10.params, jnp.ones(domain.N + (1, )))
 
 
 def test_time_index_raises():
-    N = (64,)
+    N = (64, )
     domain = Domain(N, dx=[1.0] * len(N))
-    params = jnp.ones(domain.N + (1,))
+    params = jnp.ones(domain.N + (1, ))
     field = OnGrid(params, domain)
 
     with pytest.raises(IndexError):
         field[0]
 
 
-@pytest.mark.parametrize("N", [(64,), (64, 64), (64, 64, 64)])
+@pytest.mark.parametrize("N", [(64, ), (64, 64), (64, 64, 64)])
 def from_grid(N):
     domain = Domain(N, dx=[1.0] * len(N))
-    params = jnp.ones(domain.N + (1,))
+    params = jnp.ones(domain.N + (1, ))
     field = OnGrid(params, domain)
     grid_values = field.on_grid
 
@@ -154,9 +159,9 @@ def from_grid(N):
 
 
 def test_op_bool():
-    N = (64,)
+    N = (64, )
     domain = Domain(N, dx=[1.0] * len(N))
-    params = jnp.ones(domain.N + (1,))
+    params = jnp.ones(domain.N + (1, ))
     field = OnGrid(params, domain)
     field_post = bool(field)
 
@@ -164,9 +169,9 @@ def test_op_bool():
 
 
 def test_op_pow_float():
-    N = (64,)
+    N = (64, )
     domain = Domain(N, dx=[1.0] * len(N))
-    params = jnp.ones(domain.N + (1,))
+    params = jnp.ones(domain.N + (1, ))
     field = OnGrid(params, domain)
     field_post = field**2
 
@@ -174,10 +179,10 @@ def test_op_pow_float():
 
 
 def test_op_pow():
-    N = (64,)
+    N = (64, )
     domain = Domain(N, dx=[1.0] * len(N))
-    params1 = jnp.ones(domain.N + (1,)) * 3.0
-    params2 = jnp.ones(domain.N + (1,)) * 2.0
+    params1 = jnp.ones(domain.N + (1, )) * 3.0
+    params2 = jnp.ones(domain.N + (1, )) * 2.0
     field1 = OnGrid(params1, domain)
     field2 = OnGrid(params2, domain)
     field_post = field1**field2
@@ -187,9 +192,9 @@ def test_op_pow():
 
 
 def test_op_rpow():
-    N = (64,)
+    N = (64, )
     domain = Domain(N, dx=[1.0] * len(N))
-    params = jnp.ones(domain.N + (1,))
+    params = jnp.ones(domain.N + (1, ))
     field = OnGrid(params, domain)
     field_post = 2**field
 
@@ -197,10 +202,10 @@ def test_op_rpow():
 
 
 def test_op_truediv():
-    N = (64,)
+    N = (64, )
     domain = Domain(N, dx=[1.0] * len(N))
-    params1 = jnp.ones(domain.N + (1,)) * 3.0
-    params2 = jnp.ones(domain.N + (1,)) * 2.0
+    params1 = jnp.ones(domain.N + (1, )) * 3.0
+    params2 = jnp.ones(domain.N + (1, )) * 2.0
     field1 = OnGrid(params1, domain)
     field2 = OnGrid(params2, domain)
     field_post = field1 / field2
@@ -210,9 +215,9 @@ def test_op_truediv():
 
 
 def test_op_rtrue_div():
-    N = (64,)
+    N = (64, )
     domain = Domain(N, dx=[1.0] * len(N))
-    params = jnp.ones(domain.N + (1,))
+    params = jnp.ones(domain.N + (1, ))
     field = OnGrid(params, domain)
     field_post = 2 / field
 

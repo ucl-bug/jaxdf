@@ -25,7 +25,7 @@ def test_readme_example():
     @jit
     def loss(u):
         v = custom_op(u)
-        return jnp.mean(jnp.abs(v.on_grid) ** 2)
+        return jnp.mean(jnp.abs(v.on_grid)**2)
 
     gradient = grad(loss)(u)
     assert gradient.on_grid.shape == (128, 128, 1)

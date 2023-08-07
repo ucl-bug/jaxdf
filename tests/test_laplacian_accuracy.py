@@ -13,14 +13,13 @@ from jaxdf.operators import laplacian
 TEST_DATA_PATH = os.path.dirname(os.path.realpath(__file__)) + "/test_data/"
 
 
-def get_filenames(
-    incipit: str, base_folder=TEST_DATA_PATH, extension=".json"
-) -> List[str]:
+def get_filenames(incipit: str,
+                  base_folder=TEST_DATA_PATH,
+                  extension=".json") -> List[str]:
     # Lists all the files in `base_folder` starting with `incipit`
     all_files = os.listdir(base_folder)
     good_files = [
-        base_folder + f
-        for f in all_files
+        base_folder + f for f in all_files
         if f.startswith(incipit) and f.endswith(extension)
     ]
     return good_files

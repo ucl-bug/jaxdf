@@ -100,6 +100,7 @@ def test_continuous_laplacian():
 
 
 def test_jit_continous_gradient():
+
     @jit
     def f(m, op_params):
         return operators.gradient(m, params=op_params)
@@ -114,10 +115,11 @@ def test_jit_continous_gradient():
 
 
 def test_continuous_derivative():
+
     def f(params, x):
         return jnp.sin(params * x)
 
-    domain = geometry.Domain((8,), (1.0,))
+    domain = geometry.Domain((8, ), (1.0, ))
     a = Continuous(1.5, domain, f)
     b = operators.derivative(a)
     da = lambda p, x: p * jnp.cos(p * x)
@@ -130,8 +132,8 @@ def test_continuous_derivative():
 
 
 def test_finite_difference_derivative():
-    domain = geometry.Domain((11,), (0.5,))
-    params = jnp.zeros((11,1))
+    domain = geometry.Domain((11, ), (0.5, ))
+    params = jnp.zeros((11, 1))
     params = params.at[5].set(1.0)
     u = FiniteDifferences(params, domain, accuracy=4)
     du = operators.gradient(u)
@@ -140,21 +142,19 @@ def test_finite_difference_derivative():
     print(kernel)
 
     grid_values = du.on_grid[:, 0]
-    true_values = jnp.asarray(
-        [
-            0.0,
-            -0.0,
-            0.0,
-            -0.16666667,
-            1.33333333,
-            0.0,
-            -1.33333333,
-            0.16666667,
-            0.0,
-            0.0,
-            0.0,
-        ]
-    )
+    true_values = jnp.asarray([
+        0.0,
+        -0.0,
+        0.0,
+        -0.16666667,
+        1.33333333,
+        0.0,
+        -1.33333333,
+        0.16666667,
+        0.0,
+        0.0,
+        0.0,
+    ])
     assert jnp.allclose(grid_values, true_values)
 
 
@@ -164,7 +164,7 @@ def test_checking_leaks():
         test_continuous_laplacian()
         test_fourier_gradient()
         test_continous_gradient()
-        test_jit_continous_gradient()  #
+        test_jit_continous_gradient()    #
 
 
 if __name__ == "__main__":
@@ -173,4 +173,4 @@ if __name__ == "__main__":
         test_fourier_laplacian()
         test_fourier_gradient()
         test_continous_gradient()
-        test_jit_continous_gradient()  #
+        test_jit_continous_gradient()    #

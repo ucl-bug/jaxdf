@@ -5,12 +5,8 @@ from jax import numpy as jnp
 
 from jaxdf.conv import reflection_conv
 from jaxdf.core import operator
-from jaxdf.discretization import (
-    Continuous,
-    FiniteDifferences,
-    FourierSeries,
-    OnGrid,
-)
+from jaxdf.discretization import (Continuous, FiniteDifferences, FourierSeries,
+                                  OnGrid)
 from jaxdf.operators.differential import get_fd_coefficients
 
 
@@ -19,12 +15,14 @@ from jaxdf.operators.differential import get_fd_coefficients
 def compose(x):
     raise NotImplementedError
 
-@operator  # type: ignore
+
+@operator    # type: ignore
 def compose(x: Continuous, *, params=None):
     r"""Applies function composition on the `get_fun` of the Continuous object."""
     get_x = x.aux["get_field"]
 
     def decorator(fun):
+
         def new_fun(p, coord):
             return fun(get_x(p, coord))
 
@@ -33,7 +31,7 @@ def compose(x: Continuous, *, params=None):
     return decorator
 
 
-@operator  # type: ignore
+@operator    # type: ignore
 def compose(x: OnGrid, *, params=None):
     r"""Maps the given function over the pytree of parameters
     of the `Field`.
@@ -46,7 +44,7 @@ def compose(x: OnGrid, *, params=None):
     return decorator
 
 
-@operator  # type: ignore
+@operator    # type: ignore
 def compose(x: object, *, params=None):
     r"""For non-field objects, the composition is simply the
     application of the `jax` function to the input.
@@ -62,7 +60,7 @@ def compose(x: object, *, params=None):
     return decorator
 
 
-@operator  # type: ignore
+@operator    # type: ignore
 def functional(x: object, *, params=None):
     r"""For non-field objects, a functional is simply the
     application of the `jax` function to the input.
@@ -78,7 +76,7 @@ def functional(x: object, *, params=None):
     return decorator
 
 
-@operator  # type: ignore
+@operator    # type: ignore
 def functional(x: OnGrid, *, params=None):
     r"""Maps the given function over the parameters of the field
 
@@ -101,6 +99,7 @@ def functional(x: OnGrid, *, params=None):
 def get_component(x):
     raise NotImplementedError
 
+
 @operator
 def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
     r"""Slices the parameters of the field along the last dimensions,
@@ -122,7 +121,8 @@ def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
 def shift_operator(x):
     raise NotImplementedError
 
-@operator  # type: ignore
+
+@operator    # type: ignore
 def shift_operator(x: Continuous, *, dx: object, params=None) -> Continuous:
     r"""Shifts the field by `dx` using function composition.
 
@@ -171,8 +171,11 @@ def fd_shift_kernels(x: FiniteDifferences, dx: List[float], *args, **kwargs):
     return params
 
 
-@operator(init_params=fd_shift_kernels)  # type: ignore
-def shift_operator(x: FiniteDifferences, *, dx=[0.0], params=None) -> FiniteDifferences:
+@operator(init_params=fd_shift_kernels)    # type: ignore
+def shift_operator(x: FiniteDifferences,
+                   *,
+                   dx=[0.0],
+                   params=None) -> FiniteDifferences:
     r"""Shifts the field by `dx` using finite differences.
 
     Args:
@@ -187,13 +190,16 @@ def shift_operator(x: FiniteDifferences, *, dx=[0.0], params=None) -> FiniteDiff
     array = x.on_grid
 
     # Apply the corresponding kernel to each dimension
-    outs = [reflection_conv(kernels[i], array[..., i], i) for i in range(x.domain.ndim)]
+    outs = [
+        reflection_conv(kernels[i], array[..., i], i)
+        for i in range(x.domain.ndim)
+    ]
     new_params = jnp.stack(outs, axis=-1)
 
     return x.replace_params(new_params)
 
 
-@operator(init_params=lambda x, dx: {"k_vec": x._freq_axis})  # type: ignore
+@operator(init_params=lambda x, dx: {"k_vec": x._freq_axis})    # type: ignore
 def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
     r"""Shifts the field by `dx` using the shift theorem in Fourier space.
 
@@ -226,13 +232,14 @@ def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
         return jnp.moveaxis(du, -1, axis)
 
     for ax in range(x.domain.ndim):
-        new_params = new_params.at[..., ax].set(single_grad(ax, x.params[..., ax]))
+        new_params = new_params.at[...,
+                                   ax].set(single_grad(ax, x.params[..., ax]))
 
     return FourierSeries(new_params, x.domain), params
 
 
 # sum_over_dims
-@operator  # type: ignore
+@operator    # type: ignore
 def sum_over_dims(x: Continuous, *, params=None):
     get_x = x.aux["get_field"]
 
@@ -242,7 +249,7 @@ def sum_over_dims(x: Continuous, *, params=None):
     return x.update_fun_and_params(x.params, fun)
 
 
-@operator  # type: ignore
+@operator    # type: ignore
 def sum_over_dims(x: OnGrid, *, params=None):
     new_params = jnp.sum(x.params, axis=-1, keepdims=True)
     return x.replace_params(new_params)

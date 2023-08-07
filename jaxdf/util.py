@@ -1,5 +1,6 @@
-from jax.numpy import expand_dims, ndarray
 import warnings
+
+from jax.numpy import expand_dims, ndarray
 
 
 def append_dimension(x: ndarray):
@@ -39,7 +40,6 @@ def get_implemented(f):
       None
 
     """
-    from inspect import signature
 
     # TODO: Why there are more instances for the same types?
 

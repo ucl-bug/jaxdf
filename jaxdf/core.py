@@ -1,12 +1,12 @@
 import types
+import warnings
 from functools import wraps
-from typing import Callable, Union, Any
+from typing import Callable, Union
 
-from jax.tree_util import register_pytree_node_class, tree_map
+from jax.tree_util import register_pytree_node_class
 from plum import Dispatcher
 
 from jaxdf.exceptions import check_fun_has_params
-import warnings
 
 # Initialize the dispatch table
 _jaxdf_dispatch = Dispatcher()
@@ -16,9 +16,11 @@ debug_config = {
     "debug_dispatch": False,
 }
 
+
 def _abstract_operator(evaluate):
     f = _jaxdf_dispatch.abstract(evaluate)
     return f
+
 
 def _operator(evaluate, precedence, init_params):
     check_fun_has_params(evaluate)
@@ -70,6 +72,7 @@ def _operator(evaluate, precedence, init_params):
     f.default_params = types.MethodType(_bound_init_params, f)
 
     return f
+
 
 class Operator:
 
@@ -145,16 +148,15 @@ class Operator:
             return decorator
         else:
             return _operator(evaluate, precedence, init_params)
-        
-    def abstract(
-        self,
-        evaluate: Callable
-    ):
-        """Decorator for defining abstract operators. This is mainly used 
+
+    def abstract(self, evaluate: Callable):
+        """Decorator for defining abstract operators. This is mainly used
         to define generic docstrings."""
         return _abstract_operator(evaluate)
 
+
 operator = Operator()
+
 
 def discretization(cls):
     r"""Wrapper around `jax.tree_util.register_pytree_node_class` that can
@@ -228,7 +230,7 @@ class Field(object):
         self.aux = aux
 
     def tree_flatten(self):
-        children = (self.params,)
+        children = (self.params, )
         aux_data = (self.domain, self.aux)
         return (children, aux_data)
 
@@ -239,13 +241,13 @@ class Field(object):
         a = cls(params, domain=domain, aux=aux)
         return a
 
-    def __repr__(self):  #
+    def __repr__(self):    #
         classname = self.__class__.__name__
         return f"{classname}"
 
     def __str__(self):
         return self.__repr__()
-    
+
     def __call__(self, x):
         r"""
         An Field can be called as a function, returning the field at a
@@ -258,18 +260,20 @@ class Field(object):
             field_at_x = a(1.0)
             ```
         """
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__} discretization")
-    
+        raise NotImplementedError(
+            f"Not implemented for {self.__class__.__name__} discretization")
+
     @property
     def on_grid(self):
         """Returns the field on the grid points of the domain."""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__} discretization")
+        raise NotImplementedError(
+            f"Not implemented for {self.__class__.__name__} discretization")
 
     @property
     def dims(self):
         r"""The dimension of the field values"""
         raise NotImplementedError
-    
+
     @property
     def is_complex(self) -> bool:
         r"""Checks if a field is complex.
@@ -278,7 +282,7 @@ class Field(object):
           bool: Whether the field is complex.
         """
         raise NotImplementedError
-    
+
     @property
     def is_field_complex(self) -> bool:
         warnings.warn(
@@ -286,7 +290,7 @@ class Field(object):
             DeprecationWarning,
         )
         return self.is_complex
-    
+
     @property
     def is_real(self) -> bool:
         return not self.is_complex
@@ -348,43 +352,37 @@ class Field(object):
 @operator
 def __add__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __radd__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __sub__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rsub__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __mul__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rmul__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
@@ -395,28 +393,24 @@ def __neg__(self, *, params=None):
 @operator
 def __pow__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rpow__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __truediv__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rtruediv__(self, other, *, params=None):
     raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}"
-    )
+        f"Function not implemented for {type(self)} and {type(other)}")
 
     # Lifted jax functions for convenience
