@@ -131,6 +131,28 @@ def test_continuous_derivative():
     assert jnp.allclose(f1, f2)
 
 
+def test_continuous_diag_jacobian():
+
+    # A function and its corresponding diagonal Jacobian.
+    def f(params, x):
+        return jnp.array([params[0] * x[0], params[1] * x[1]])
+
+    def diag_jac(params, x):
+        return jnp.array([params[0], params[1]])
+
+    domain = geometry.Domain((8, 8), (1.0, 1.0))
+    p = jnp.array([2.0, 3.0])
+    a = Continuous(p, domain, f)
+    b = operators.diag_jacobian(a)
+
+    x = jnp.array([1.0, 1.0])    # sample point in the domain
+
+    f1 = b(x)
+    f2 = diag_jac(p, x)
+
+    assert jnp.allclose(f1, f2)
+
+
 def test_finite_difference_derivative():
     domain = geometry.Domain((11, ), (0.5, ))
     params = jnp.zeros((11, 1))
@@ -158,19 +180,32 @@ def test_finite_difference_derivative():
     assert jnp.allclose(grid_values, true_values)
 
 
+def test_finite_difference_laplacian():
+    domain = geometry.Domain((11, ), (0.5, ))
+    params = jnp.zeros((11, 1))
+    params = params.at[5].set(1.0)
+    u = FiniteDifferences(params, domain, accuracy=4)
+    lap_u = operators.laplacian(u)
+
+    # If you want to print the kernel of the laplacian operator (similar to the gradient test):
+    kernel = operators.laplacian.default_params(u)
+
+    grid_values = lap_u.on_grid[:, 0]
+    true_values = jnp.asarray([
+        0, 0., 0., -0.08333334, 1.3333334, -2.5, 1.3333334, -0.08333334, 0.,
+        0., 0.
+    ])
+    assert jnp.allclose(grid_values, true_values)
+
+
 def test_checking_leaks():
     with jax.checking_leaks():
         test_fourier_laplacian()
         test_continuous_laplacian()
         test_fourier_gradient()
         test_continous_gradient()
-        test_jit_continous_gradient()    #
+        test_jit_continous_gradient()
 
 
 if __name__ == "__main__":
-    with jax.checking_leaks():
-        test_continuous_laplacian()
-        test_fourier_laplacian()
-        test_fourier_gradient()
-        test_continous_gradient()
-        test_jit_continous_gradient()    #
+    test_finite_difference_laplacian()

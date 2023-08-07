@@ -416,6 +416,9 @@ def fd_laplacian_init(x: FiniteDifferences, *args, **kwargs):
     kernel = get_fd_coefficients(x, order=2)
 
     # Make it into an ND kernel by repeating it
+    if x.domain.ndim == 1:
+        return kernel
+
     full_kernel_shape = [kernel.shape[0]] * x.domain.ndim
     full_kernel = np.zeros(full_kernel_shape, dtype=kernel.dtype)
     center = kernel.shape[0] // 2
