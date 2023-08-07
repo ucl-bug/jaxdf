@@ -12,7 +12,7 @@ from jaxdf.operators.differential import get_fd_coefficients
 
 # compose
 @operator.abstract
-def compose(x):
+def compose(x):    # pragma: no cover
     raise NotImplementedError
 
 
@@ -96,7 +96,7 @@ def functional(x: OnGrid, *, params=None):
 
 # get_component
 @operator.abstract
-def get_component(x):
+def get_component(x):    # pragma: no cover
     raise NotImplementedError
 
 
@@ -118,7 +118,7 @@ def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
 
 # shift_operator
 @operator.abstract
-def shift_operator(x):
+def shift_operator(x):    # pragma: no cover
     raise NotImplementedError
 
 

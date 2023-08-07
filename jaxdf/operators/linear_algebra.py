@@ -7,7 +7,7 @@ from .functions import compose
 
 
 @operator.abstract
-def dot_product(x, y):
+def dot_product(x, y):    # pragma: no cover
     raise NotImplementedError
 
 

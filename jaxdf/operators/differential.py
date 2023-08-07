@@ -11,7 +11,7 @@ from jaxdf.discretization import Continuous, FiniteDifferences, FourierSeries
 
 # derivative
 @operator.abstract
-def derivative(x):
+def derivative(x):    # pragma: no cover
     # Implements the derivative operator
     raise NotImplementedError
 
@@ -128,7 +128,7 @@ def fd_diag_jacobian_init(x: FiniteDifferences, stagger=[0], *args, **kwargs):
 
 # gradient
 @operator.abstract
-def gradient(x):
+def gradient(x):    # pragma: no cover
     # Implements the gradient operator
     raise NotImplementedError
 
@@ -231,7 +231,7 @@ def gradient(x: FourierSeries,
 
 # diag_jacobian
 @operator.abstract
-def diag_jacobian(x):
+def diag_jacobian(x):    # pragma: no cover
     # Extracts the diagonal of the Jacobian operator
     raise NotImplementedError
 
@@ -344,7 +344,7 @@ def diag_jacobian(x: FourierSeries,
 
 # laplacian
 @operator.abstract
-def laplacian(x):
+def laplacian(x):    # pragma: no cover
     # Implements the Laplacian operator
     raise NotImplementedError
 
@@ -450,7 +450,7 @@ def laplacian(x: FiniteDifferences, *, params=None) -> FiniteDifferences:
 
 # heterog_laplacian
 @operator.abstract
-def heterog_laplacian(x):
+def heterog_laplacian(x):    # pragma: no cover
     # Implements the Heterogeneous Laplacian operator
     raise NotImplementedError
 

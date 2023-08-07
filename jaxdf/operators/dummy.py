@@ -6,7 +6,7 @@ from jaxdf.discretization import Continuous, Field, OnGrid
 
 
 @operator.abstract
-def dummy(x, *, params=None):
+def dummy(x, *, params=None):    # pragma: no cover
     """Dummy operator for testing purposes. What it does is unspecified."""
     raise
 
@@ -39,7 +39,7 @@ def dummy(x: Continuous, *, params=None):
 
 
 @operator.abstract
-def yummy(x, *, params=None):
+def yummy(x, *, params=None):    # pragma: no cover
     """Dummy operator for testing initializations. What it does is unspecified."""
     raise
 
