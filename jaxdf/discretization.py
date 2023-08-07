@@ -4,31 +4,35 @@ from typing import Callable, TypeVar
 from jax import eval_shape
 from jax import numpy as jnp
 from jax import vmap
-from jax.tree_util import register_pytree_node_class
 
-from jaxdf.core import Field, new_discretization
+from jaxdf.core import Field, discretization
 from jaxdf.geometry import Domain
+
 
 PyTree = TypeVar("PyTree")
 
 
-@new_discretization
+@discretization
 class Linear(Field):
     r"""This discretization assumes that the field is a linear function of the
     parameters contained in `Linear.params`.
     """
+    params: PyTree
+    domain: Domain
 
     def __init__(
         self,
         params: PyTree,
         domain: Domain,
-        dims=1,
         aux=None,
     ):
-        super().__init__(params, domain, dims, aux)
+        super().__init__(params, domain, aux)
+        
+    def __eq__(self, other):
+        return self.params == other.params
 
 
-@register_pytree_node_class
+@discretization
 class Continuous(Field):
     r"""A continous discretization, which is defined via a `get_field` function stored
     in the `aux` parameters. Its operations are implemented using function composition
@@ -43,7 +47,6 @@ class Continuous(Field):
         domain = Domain((16,), (0.1,))
         a = Continuous(params, domain, get_field)
         ```
-
     """
 
     def __init__(self, params: PyTree, domain: Domain, get_fun: Callable):
@@ -65,9 +68,8 @@ class Continuous(Field):
 
     @property
     def dims(self):
-        get_fun = self.aux["get_field"]
         x = self.domain.origin
-        return eval_shape(get_fun, self.params, x).shape
+        return eval_shape(self.aux["get_field"], self.params, x).shape
 
     def tree_flatten(self):
         children = (self.params,)
@@ -113,7 +115,7 @@ class Continuous(Field):
 
     @classmethod
     def from_function(cls, domain, init_fun: Callable, get_field: Callable, seed):
-        r"""Creates a continuous discretization from a `get_field` function.
+        r"""Creates a continuous discretization from a `init_fun` function.
 
         Args:
           domain (Domain): The domain of the discretization.
@@ -142,11 +144,14 @@ class Continuous(Field):
             field_at_x = a(1.0)
             ```
         """
-        return self.get_field(x)
+        return self.aux["get_field"](self.params, x)
 
     def get_field(self, x):
-        r"""Same as `__call__`."""
-        return self.aux["get_field"](self.params, x)
+        warnings.warn(
+            "Continuous.get_field is deprecated. Use Continuous.__call__ instead.",
+            DeprecationWarning,
+        )
+        return self.__call__(x)
 
     @property
     def on_grid(self):
@@ -159,7 +164,7 @@ class Continuous(Field):
         return fun(self.params, self.domain.grid)
 
 
-@register_pytree_node_class
+@discretization
 class OnGrid(Linear):
     r"""A linear discretization on the grid points of the domain."""
 
@@ -179,19 +184,12 @@ class OnGrid(Linear):
         """
         self.domain = domain
         self.params = params
-
-    @property
-    def params(self):
-        return self._params
-
-    @params.setter
-    def params(self, value):
-        # Automatically add a dimension for scalar fields, if possible.
-        # See this for an explanation of the first if: https://jax.readthedocs.io/en/latest/pytrees.html#custom-pytrees-and-initialization
-        if not (type(value) is object or value is None or isinstance(value, OnGrid)):
-            if len(value.shape) == len(self.domain.N):
-                value = jnp.expand_dims(value, -1)
-        self._params = value
+        
+    def add_dim(self):
+        """Adds a dimension at the end of the `params` array."""
+        self.params = jnp.expand_dims(self.params, axis=-1)
+        # Returns a new object
+        return self
 
     @property
     def dims(self):
@@ -232,7 +230,7 @@ class OnGrid(Linear):
         Raises:
           IndexError: If the field is not indexable (single field).
         """
-        if self.ndim + 1 == len(self.params.shape):
+        if self.domain.ndim + 1 == len(self.params.shape):
             raise IndexError(
                 "Indexing is only supported if there's at least one batch / time dimension"
             )
@@ -240,42 +238,24 @@ class OnGrid(Linear):
         new_params = self.params[idx]
         return self.__class__(new_params, self.domain)
 
-    def __repr__(self):
-        dims = self.dims
-        size = self.domain.N
-        return f"{self.__class__.__name__}[dims={dims}, size={size}]"
-
     @classmethod
     def empty(cls, domain, dims=1):
         r"""Creates an empty OnGrid field (zero field). Equivalent to
         `OnGrid(jnp.zeros(domain.N), domain)`.
         """
-        N = tuple(
-            list(domain.N)
-            + [
-                dims,
-            ]
-        )
+        _N = list(domain.N) + [dims]
+        N = tuple(_N)
         return cls(jnp.zeros(N), domain)
 
     @property
-    def is_field_complex(self) -> bool:
+    def is_complex(self) -> bool:
         r"""Checks if a field is complex.
 
         Returns:
           bool: Whether the field is complex.
         """
         return self.params.dtype == jnp.complex64 or self.params.dtype == jnp.complex128
-
-    @property
-    def real(self) -> bool:
-        r"""Checks if a field is real.
-
-        Returns:
-          bool: Whether the field is real.
-        """
-        return not self.is_field_complex
-
+    
     @classmethod
     def from_grid(cls, grid_values, domain):
         r"""Creates an OnGrid field from a grid of values.
@@ -284,7 +264,10 @@ class OnGrid(Linear):
           grid_values (ndarray): The grid of values.
           domain (Domain): The domain of the discretization.
         """
-        return cls(grid_values, domain)
+        a = cls(grid_values, domain)
+        if len(a.params.shape) == len(domain.N):
+            a = a.add_dim()
+        return a
 
     def replace_params(self, new_params):
         r"""Replaces the parameters of the discretization with new ones. The domain
@@ -304,7 +287,7 @@ class OnGrid(Linear):
         return self.params
 
 
-@register_pytree_node_class
+@discretization
 class FourierSeries(OnGrid):
     r"""A Fourier series field defined on a collocation grid."""
 
@@ -334,29 +317,20 @@ class FourierSeries(OnGrid):
             du = ffts[1](iku, axis=-1, n=u.shape[-1])
             return jnp.moveaxis(du, -1, axis)
 
-        for ax in range(self.ndim):
+        for ax in range(self.domain.ndim):
             new_params = single_shift(ax, new_params)
 
-        origin = tuple([0] * self.ndim)
+        origin = tuple([0] * self.domain.ndim)
         return new_params[origin]
-
-    def get_field(self, x):
-        warnings.warn(
-            "FourierSeries.get_field is deprecated. Use FourierSeries.__call__ instead.",
-            DeprecationWarning,
-        )
-        return self.__call__(x)
 
     @property
     def _freq_axis(self):
         r"""Returns the frequency axis of the grid"""
-        if self.is_field_complex:
-
+        if self.is_complex:
             def f(N, dx):
                 return jnp.fft.fftfreq(N, dx) * 2 * jnp.pi
 
         else:
-
             def f(N, dx):
                 return jnp.fft.rfftfreq(N, dx) * 2 * jnp.pi
 
@@ -368,14 +342,14 @@ class FourierSeries(OnGrid):
         r"""Returns the FFT and iFFT functions that are appropriate for the
         field type (real or complex)
         """
-        if self.real:
+        if self.is_real:
             return [jnp.fft.rfft, jnp.fft.irfft]
         else:
             return [jnp.fft.fft, jnp.fft.ifft]
 
     @property
     def _cut_freq_axis(self):
-        r"""Same as _freq_axis, but last frequency axis is relative to a real FFT.
+        r"""Same as `FourierSeries._freq_axis`, but last frequency axis is relative to a real FFT.
         Those frequency axis match with the ones of the rfftn function
         """
 
@@ -398,7 +372,7 @@ class FourierSeries(OnGrid):
         return jnp.stack(jnp.meshgrid(*self._freq_axis, indexing="ij"), axis=-1)
 
 
-@register_pytree_node_class
+@discretization
 class FiniteDifferences(OnGrid):
     r"""A Finite Differences field defined on a collocation grid."""
 

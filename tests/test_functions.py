@@ -24,7 +24,7 @@ b = Continuous(6.0, domain, f)
 
 def test_compose_continuous():
     z = operators.compose(a)(jnp.exp)
-    assert np.allclose(z.get_field(domain.origin), 1.0)
+    assert np.allclose(z(domain.origin), 1.0)
 
 
 def test_compose_ongrid():
@@ -41,7 +41,7 @@ def test_compose_gradient():
         return operators.gradient(z)
 
     print(f(a))
-    print(f(a).get_field(domain.origin + 1))
+    print(f(a)(domain.origin + 1))
 
 
 def test_compose():

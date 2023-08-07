@@ -74,7 +74,7 @@ def test_continous_gradient():
     x = jnp.asarray([1.0])
     z = operators.gradient(a)
     _ = z
-    _ = (a.get_field(x), z.get_field(x))
+    _ = (a(x), z(x))
 
     @jit
     def f(a, op_params):
@@ -88,7 +88,7 @@ def test_continuous_laplacian():
     x = jnp.asarray([1.0])
     z = operators.laplacian(a)
     _ = z
-    _ = (a.get_field(x), z.get_field(x))
+    _ = (a(x), z(x))
     print(_)
 
     @jit
@@ -131,7 +131,7 @@ def test_continuous_derivative():
 
 def test_finite_difference_derivative():
     domain = geometry.Domain((11,), (0.5,))
-    params = jnp.zeros((11,))
+    params = jnp.zeros((11,1))
     params = params.at[5].set(1.0)
     u = FiniteDifferences(params, domain, accuracy=4)
     du = operators.gradient(u)
@@ -168,4 +168,9 @@ def test_checking_leaks():
 
 
 if __name__ == "__main__":
-    test_finite_difference_derivative()
+    with jax.checking_leaks():
+        test_continuous_laplacian()
+        test_fourier_laplacian()
+        test_fourier_gradient()
+        test_continous_gradient()
+        test_jit_continous_gradient()  #

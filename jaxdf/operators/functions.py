@@ -15,6 +15,10 @@ from jaxdf.operators.differential import get_fd_coefficients
 
 
 # compose
+@operator.abstract
+def compose(x):
+    raise NotImplementedError
+
 @operator  # type: ignore
 def compose(x: Continuous, *, params=None):
     r"""Applies function composition on the `get_fun` of the Continuous object."""
@@ -93,6 +97,11 @@ def functional(x: OnGrid, *, params=None):
 
 
 # get_component
+@operator.abstract
+def get_component(x):
+    raise NotImplementedError
+
+@operator
 def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
     r"""Slices the parameters of the field along the last dimensions,
     at the index specified by `dim`.
@@ -109,6 +118,10 @@ def get_component(x: OnGrid, *, dim: int, params=None) -> OnGrid:
 
 
 # shift_operator
+@operator.abstract
+def shift_operator(x):
+    raise NotImplementedError
+
 @operator  # type: ignore
 def shift_operator(x: Continuous, *, dx: object, params=None) -> Continuous:
     r"""Shifts the field by `dx` using function composition.
@@ -174,7 +187,7 @@ def shift_operator(x: FiniteDifferences, *, dx=[0.0], params=None) -> FiniteDiff
     array = x.on_grid
 
     # Apply the corresponding kernel to each dimension
-    outs = [reflection_conv(kernels[i], array[..., i], i) for i in range(x.ndim)]
+    outs = [reflection_conv(kernels[i], array[..., i], i) for i in range(x.domain.ndim)]
     new_params = jnp.stack(outs, axis=-1)
 
     return x.replace_params(new_params)
@@ -191,7 +204,7 @@ def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
     Returns:
       A new field corresponding to the shifted input field.
     """
-    if x.real:
+    if x.is_real:
         ffts = [jnp.fft.rfft, jnp.fft.irfft]
     else:
         ffts = [jnp.fft.fft, jnp.fft.ifft]
@@ -212,7 +225,7 @@ def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
         du = ffts[1](iku, axis=-1, n=u.shape[-1])
         return jnp.moveaxis(du, -1, axis)
 
-    for ax in range(x.ndim):
+    for ax in range(x.domain.ndim):
         new_params = new_params.at[..., ax].set(single_grad(ax, x.params[..., ax]))
 
     return FourierSeries(new_params, x.domain), params

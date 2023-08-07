@@ -29,7 +29,7 @@ def test_create_field(N, discretization, out_dims, jitting):
         if out_dims > 1:
             params = jnp.concatenate([params] * out_dims, -1)
 
-        field = discretization(params, domain)
+        field = discretization.from_grid(params, domain)
         return field
 
     get = jit(get) if jitting else get
@@ -46,8 +46,8 @@ def test_create_field(N, discretization, out_dims, jitting):
 def test_add(discretization):
     N = (1,)
     domain = Domain(N, dx=[1.0] * len(N))
-    x = discretization(jnp.asarray([1.0]), domain)
-    y = discretization(jnp.asarray([2.0]), domain)
+    x = discretization.from_grid(jnp.asarray([1.0]), domain)
+    y = discretization.from_grid(jnp.asarray([2.0]), domain)
 
     z = x + y
     assert z.params == 3.0
@@ -78,8 +78,8 @@ def test_add(discretization):
 def test_sub(discretization):
     N = (1,)
     domain = Domain(N, dx=[1.0] * len(N))
-    x = discretization(jnp.asarray([1.0]), domain)
-    y = discretization(jnp.asarray([2.0]), domain)
+    x = discretization.from_grid(jnp.asarray([1.0]), domain)
+    y = discretization.from_grid(jnp.asarray([2.0]), domain)
 
     z = x - y
     assert z.params == -1.0
@@ -110,8 +110,8 @@ def test_sub(discretization):
 def test_jit_with_float(discretization):
     N = (1,)
     domain = Domain(N, dx=[1.0] * len(N))
-    x = discretization(jnp.asarray([1.0]), domain)
-    y = discretization(jnp.asarray([2.0]), domain)
+    x = discretization.from_grid(jnp.asarray([1.0]), domain)
+    y = discretization.from_grid(jnp.asarray([2.0]), domain)
 
     @jit
     def add(x, y):

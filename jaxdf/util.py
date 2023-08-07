@@ -1,4 +1,5 @@
 from jax.numpy import expand_dims, ndarray
+import warnings
 
 
 def append_dimension(x: ndarray):
@@ -21,10 +22,18 @@ def update_dictionary(old: dict, new_entries: dict):
 
 
 def _get_implemented(f):
-    r"""Prints the implemented methods of a function. For internal use.
+    warnings.warn(
+        "jaxdf.util._get_implemented is deprecated. Use jaxdf.util.get_implemented instead.",
+        DeprecationWarning,
+    )
+    return get_implemented(f)
+
+
+def get_implemented(f):
+    r"""Prints the implemented methods of an operator
 
     Arguments:
-      f (function): The function to get the implemented methods of.
+      f (Callable): The operator to get the implemented methods of.
 
     Returns:
       None
@@ -36,16 +45,17 @@ def _get_implemented(f):
 
     print(f.__name__ + ":")
     instances = []
-    a = f.methods.values()
+    a = f.methods
     for f_instance in a:
-        instances.append(signature(f_instance[0]).__repr__()[11:-1])
+        # Get types
+        types = f_instance.types
+
+        # Change each type with its classname
+        types = tuple(map(lambda x: x.__name__, types))
+
+        # Append
+        instances.append(str(types))
 
     instances = set(instances)
     for instance in instances:
-        # if `self` is in the signature, skip
-        if "self" in instance:
-            continue
-        # Remove `jaxdf.discretization` from instance, wherever
-        # it is in the string
-        instance = instance.replace("jaxdf.discretization.", "")
         print(" ─ " + instance)

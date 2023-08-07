@@ -16,6 +16,9 @@ class Domain(NamedTuple):
     N: Iterable[int] = (32, 32)
     dx: Iterable[float] = (1.0, 1.0)
 
+    def __repr__(self):
+        return f"Domain(N={self.N}, dx={self.dx})"
+
     @property
     def size(self):
         r"""The lenght of the grid sides

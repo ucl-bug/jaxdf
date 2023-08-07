@@ -18,7 +18,7 @@ def test_update_dictionary():
 
 
 def test_get_implemented():
-    util._get_implemented(gradient)
+    util.get_implemented(gradient)
 
 
 if __name__ == "__main__":

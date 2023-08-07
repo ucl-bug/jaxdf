@@ -5,6 +5,9 @@ from jaxdf.discretization import OnGrid
 
 from .functions import compose
 
+@operator.abstract
+def dot_product(x, y):
+    raise NotImplementedError
 
 @operator
 def dot_product(x: OnGrid, y: OnGrid, *, params=None):

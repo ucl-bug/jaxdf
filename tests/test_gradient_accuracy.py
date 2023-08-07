@@ -60,7 +60,7 @@ def test_gradient_accuracy_fourier_series(
 
     # Making fields
     domain = Domain(test_data["x"].shape, test_data["step_size"])
-    x = FourierSeries(test_data["x"], domain)
+    x = FourierSeries.from_grid(test_data["x"], domain)
 
     # Getting gradient
     y_pred = gradient(x)
