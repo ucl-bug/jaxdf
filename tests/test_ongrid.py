@@ -5,6 +5,7 @@ from jax import random
 
 from jaxdf.discretization import FiniteDifferences, FourierSeries, OnGrid
 from jaxdf.geometry import Domain
+from jaxdf.operators import inverse
 
 PRNGKEY = random.PRNGKey(42)
 
@@ -222,3 +223,21 @@ def test_op_rtrue_div():
     field_post = 2 / field
 
     assert jnp.allclose(field_post.on_grid, 2 / field.on_grid)
+
+
+def test_op_bool():
+    domain = Domain((1, ), (1.0, ))
+    a = OnGrid(jnp.asarray([1.0]), domain)
+
+    b = bool(a)
+    b_exp = bool(a.on_grid)
+    assert b == b_exp
+
+
+def test_op_inverse():
+    domain = Domain((1, ), (1.0, ))
+    a = OnGrid(jnp.asarray([1.0]), domain)
+
+    b = inverse(a).on_grid
+    b_exp = 1.0 / a.on_grid
+    assert b == b_exp

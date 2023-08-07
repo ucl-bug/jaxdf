@@ -51,19 +51,6 @@ def __bool__(x: OnGrid, *, params=None):
     return x.replace_params(new_params), None
 
 
-# __divmod__
-@operator    # type: ignore
-def __divmod__(x: OnGrid, y: OnGrid, *, params=None):
-    new_params = tree_map(lambda x, y: divmod(x, y), x.params, y.params)
-    return x.replace_params(new_params), None
-
-
-@operator    # type: ignore
-def __divmod__(x: Linear, y, *, params=None):
-    new_params = tree_map(lambda x: divmod(x, y), x.params)
-    return x.replace_params(new_params), None
-
-
 # __mul__
 @operator    # type: ignore
 def __mul__(x: OnGrid, y: OnGrid, *, params=None):
