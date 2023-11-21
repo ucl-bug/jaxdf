@@ -1,20 +1,21 @@
 from functools import reduce
-from typing import Iterable, NamedTuple
+from typing import Iterable
 
+import equinox as eqx
 import jax
 from jax import numpy as jnp
 from jax import random
 
 
-class Domain(NamedTuple):
+class Domain(eqx.Module):
     r"""Domain class describing a rectangular domain
 
     Attributes:
         size (Tuple[int]): The size of the domain in absolute units.
         dx (Tuple(float)): The unit of measure
     """
-    N: Iterable[int] = (32, 32)
-    dx: Iterable[float] = (1.0, 1.0)
+    N: Iterable[int] = eqx.field(default=(32, 32), static=True)
+    dx: Iterable[float] = eqx.field(default=(1.0, 1.0), static=True)
 
     def __repr__(self):
         return f"Domain(N={self.N}, dx={self.dx})"

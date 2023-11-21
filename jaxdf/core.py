@@ -1,20 +1,42 @@
+import logging
 import types
 import warnings
 from functools import wraps
 from typing import Callable, Union
+from warnings import warn
 
-from jax.tree_util import register_pytree_node_class
+import equinox as eqx
+from jaxtyping import PyTree
 from plum import Dispatcher
 
 from jaxdf.exceptions import check_fun_has_params
 
+from .geometry import Domain
+from .logger import logger, set_logging_level
+
 # Initialize the dispatch table
 _jaxdf_dispatch = Dispatcher()
 
-# Configuration
-debug_config = {
-    "debug_dispatch": False,
-}
+
+# Configuration. This is just for backward compatibility
+class _DebugDict(dict):
+
+    def __setitem__(self, __key, __value):
+        if __key == "debug_dispatch":
+            warn(
+                "debug_dispatch is deprecated. Set the logger level to DEBUG instead.",
+                DeprecationWarning)
+            # Assuming you want to set the logger level based on this value
+            if __value:
+                set_logging_level(logging.DEBUG)
+            else:
+                set_logging_level(logging.INFO)
+            super().__setitem__(__key, __value)
+        else:
+            raise ValueError("Only debug_dispatch is supported for now")
+
+
+debug_config = _DebugDict()
 
 
 def _abstract_operator(evaluate):
@@ -39,13 +61,16 @@ def _operator(evaluate, precedence, init_params):
         if "params" not in kwargs:
             kwargs["params"] = init_params(*args, **kwargs)
 
-        if debug_config["debug_dispatch"]:
-            print(
-                f"Dispatching {evaluate.__name__} with for types {evaluate.__annotations__}"
-            )
+        # Log dispatch message
+        logger.debug(
+            f"Dispatching {evaluate.__name__} with for types {evaluate.__annotations__}"
+        )
 
         outs = evaluate(*args, **kwargs)
         if isinstance(outs, tuple) and len(outs) > 1:
+            logger.warning(
+                "Deprecation: Currently only the first output of a function is considered. This will change in a future release. If you need to return multiple outputs, please return a tuple and a None value, for example: ((out1, out2), None)"
+            )
             # Overload the field class with an extra attribute
             field = outs[0]
         else:
@@ -57,6 +82,8 @@ def _operator(evaluate, precedence, init_params):
     wrapper._initialize_parameters = init_params
 
     # Register the operator in the dispatch table
+    logger.debug(
+        f"Registering {evaluate.__name__} with precedence {precedence}")
     f = _jaxdf_dispatch(wrapper, precedence=precedence)
 
     # Bind an default_params method that returns the default parameters
@@ -64,9 +91,9 @@ def _operator(evaluate, precedence, init_params):
         # the method is resolved only on non-keyword arguments,
         # see: https://github.com/wesselb/plum/issues/40#issuecomment-1321164488
         self._resolve_pending_registrations()
-        sig_types = tuple(map(type, args))
+        # sig_types = tuple(map(type, args))
 
-        method, _ = self.resolve_method(args, types)
+        method, _ = self.resolve_method(args)
         return method._initialize_parameters(*args, **kwargs)
 
     f.default_params = types.MethodType(_bound_init_params, f)
@@ -159,28 +186,10 @@ operator = Operator()
 
 
 def discretization(cls):
-    r"""Wrapper around `jax.tree_util.register_pytree_node_class` that can
-    be used to register a new discretization.
-
-    If the discretization doesn't have the same `__init__` function as the
-    parent class, the methods `tree_flatten` and `tree_unflatten` must be
-    present (see [Extending pytrees](https://jax.readthedocs.io/en/latest/pytrees.html)
-    in the JAX documentation).
-
-    !!! example
-        ```python
-        @discretization
-        class Polynomial(Continuous):
-          @classmethod
-          def from_params(cls, params, domain):
-            def get_fun(params, x):
-              i = jnp.arange(len(params))
-              powers = x**i
-              return jnp.expand_dims(jnp.sum(params*(x**i)), -1)
-            return cls(params, domain, get_fun)
-        ```
-    """
-    return register_pytree_node_class(cls)
+    warn(
+        "jaxdf.discretization is deprecated since the discretization API has been moved to equinox. You don't need this decorator anymore. It iwll now simply act as a pass-through.",
+        DeprecationWarning)
+    return cls
 
 
 def constants(value) -> Callable:
@@ -208,40 +217,17 @@ def constants(value) -> Callable:
     return init_params
 
 
-@discretization
-class Field(object):
-    r"""The base-class for all discretizations. This class is also responsible
-    for binding the operators in `jaxdf.operators.magic` to
-    the magic methods of the discretization.
+class Field(eqx.Module):
+    params: PyTree
+    domain: Domain
 
-    Normally you should not use this class directly, but instead use the
-    `discretization` decorator to register
-    a new discretization based on this class.
-    """
+    # For concise code
+    @property
+    def θ(self):
+        r"""Handy alias for the `params` attribute"""
+        return self.params
 
-    def __init__(
-        self,
-        params,
-        domain,
-        aux=None,
-    ):
-        self.params = params
-        self.domain = domain
-        self.aux = aux
-
-    def tree_flatten(self):
-        children = (self.params, )
-        aux_data = (self.domain, self.aux)
-        return (children, aux_data)
-
-    @classmethod
-    def tree_unflatten(cls, aux_data, children):
-        params = children[0]
-        domain, aux = aux_data
-        a = cls(params, domain=domain, aux=aux)
-        return a
-
-    def __repr__(self):    #
+    def __repr__(self):
         classname = self.__class__.__name__
         return f"{classname}"
 
@@ -311,7 +297,7 @@ class Field(object):
         Returns:
           Field: A new field with the same domain and auxiliary data, but with new parameters.
         """
-        return self.__class__(new_params, self.domain, self.aux)
+        return self.__class__(new_params, self.domain)
 
     # Dummy magic functions to make it work with
     # the dispatch system
@@ -412,5 +398,3 @@ def __truediv__(self, other, *, params=None):
 def __rtruediv__(self, other, *, params=None):
     raise NotImplementedError(
         f"Function not implemented for {type(self)} and {type(other)}")
-
-    # Lifted jax functions for convenience

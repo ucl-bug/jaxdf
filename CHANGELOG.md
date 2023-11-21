@@ -6,24 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Changed
 - The Quickstart tutorial has been upgdated.
-- The `@new_discretization` decorator has been renamed `@discretization`
 - The property `Field.ndim` has now been moved into `Field.domain.ndim`, as it is fundamentally a property of the domain
-- Before, `OnGrid` fields were able to automatically add an extra dimension if needed at initialization. This however can easily clash with some of the internal operations of jax during compliation. This is now not possible, use `.from_grid` instead, which implements the same functionality.
 
 ### Removed
 - The `__about__` file has been removed, as it is redundant
 - The function `params_map` is removed, use `jax.tree_util.tree_map` instead.
+- Operators are now expected to return only their outputs, and not parameters. If you need to get the parameters of an operator use its `default_params` method. To minimize problems for packages relying on `jaxdf`, in this release the outputs of an `operator` are filtered to keep only the first one. This will change soon to allow the user to return arbitrary PyTrees.
 
 ### Added
-- The new `operator.abstract` decorator can be used to define an unimplemented operator, with the goal of specifying input arguments and docstrings.
-- `Linear` fields are now defined as equal if they have the same set of parameters.
-- `Ongrid` fields now have the property `.add_dim`, which adds an extra tailing dimension to its parameters. The method returns a new field.
+- JaxDF `Field`s are now based on [equinox](https://github.com/patrick-kidger/equinox). In theory, this should allow to use `jaxdf` with all the [scientific libraries for the jax ecosystem](https://github.com/patrick-kidger/equinox#see-also-other-libraries-in-the-jax-ecosystem). In practice, please raise an issue when you encounter one of the inevitable bugs :)
+- The new `operator.abstract` decorator can be used to define an unimplemented operator, for specifying input arguments and docstrings.
+- `Linear` fields are now defined as equal if they have the same set of parameters and the same `Domain`.
+- `Ongrid` fields now have the method `.add_dim()`, which adds an extra tailing dimension to its parameters. This **is not** an in-place update: the method returns a new field.
 - The function `jaxdf.util.get_implemented` is now exposed to the user.
 - Added `laplacian` operator for `FiniteDifferences` fields.
+- JaxDF now uses standard Python logging. To set the logging level, use `jaxdf.logger.set_logging_level`, for example `jaxdf.logger.set_logging_level("DEBUG")`. The default level is `INFO`.
+- Fields have now a handy property `.θ` which is an alias for `.params`
+- `Continuous` and `Linear` fields now have the `.is_complex` property
 
 ### Deprecated
-- The property `.is_field_complex` is now deprecated in favor of `.is_complex`. Same argument for `.is_real`
-- `Field.get_field` is now deprecated in favor of the `__call__` metho.
+- The property `.is_field_complex` is now deprecated in favor of `.is_complex`. Same goes for `.is_real`.
+- `Field.get_field` is now deprecated in favor of the `__call__` method.
+- The `@discretization` decorator is deprecated, as now `Fields` are `equinox` modules. It is just not needed now, and until removed it will act as a simple pass-trough
 
 ### Fixed
 - `OnGrid.from_grid` now automatically adds a dimension at the end of the array for scalar fields, if needed

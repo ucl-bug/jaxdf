@@ -27,7 +27,7 @@ def derivative(x: Continuous, *, axis=0, params=None) -> Continuous:
     Returns:
       Continuous field
     """
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def grad_fun(p, coords):
         f_jac = jax.jacfwd(get_x, argnums=(1, ))
@@ -143,7 +143,7 @@ def gradient(x: Continuous, *, params=None) -> Continuous:
     Returns:
       The gradient of the field
     """
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def grad_fun(p, coords):
         f_jac = jax.jacfwd(get_x, argnums=(1, ))
@@ -246,7 +246,7 @@ def diag_jacobian(x: Continuous, *, params=None) -> Continuous:
     Returns:
       The diagonal Jacobian of the field
     """
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def diag_fun(p, coords):
         f_jac = jax.jacfwd(get_x, argnums=(1, ))
@@ -359,7 +359,7 @@ def laplacian(x: Continuous, *, params=None) -> Continuous:
     Returns:
       The Laplacian of the field
     """
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def grad_fun(p, coords):
         hessian = jax.hessian(get_x, argnums=(1, ))(p, coords)[0][0][0]
@@ -396,7 +396,7 @@ def laplacian(x: FourierSeries, *, params=None):
         axis=-1,
         keepdims=True,
     )
-    return FourierSeries(new_params, x.domain), params
+    return FourierSeries(new_params, x.domain)
 
 
 def fd_laplacian_init(x: FiniteDifferences, *args, **kwargs):
@@ -445,7 +445,7 @@ def laplacian(x: FiniteDifferences, *, params=None) -> FiniteDifferences:
     """
     assert x.dims == 1, "Laplacian only defined for scalar fields"
     new_params = reflection_conv(params, x.on_grid[..., 0], reverse=False)
-    return x.replace_params(new_params).add_dim()
+    return x.replace_params(new_params)
 
 
 # heterog_laplacian
@@ -513,7 +513,7 @@ def heterog_laplacian(x: FourierSeries,
         axis=-1,
         keepdims=True,
     )
-    return FourierSeries(new_params, x.domain), params
+    return FourierSeries(new_params, x.domain)
 
 
 if __name__ == "__main__":

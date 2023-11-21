@@ -1,17 +1,18 @@
 import warnings
 from typing import Callable, TypeVar
 
+import equinox as eqx
 from jax import eval_shape
 from jax import numpy as jnp
 from jax import vmap
+from jaxtyping import PyTree
 
-from jaxdf.core import Field, discretization
+from jaxdf.core import Field
 from jaxdf.geometry import Domain
 
 PyTree = TypeVar("PyTree")
 
 
-@discretization
 class Linear(Field):
     r"""This discretization assumes that the field is a linear function of the
     parameters contained in `Linear.params`.
@@ -19,70 +20,54 @@ class Linear(Field):
     params: PyTree
     domain: Domain
 
-    def __init__(
-        self,
-        params: PyTree,
-        domain: Domain,
-        aux=None,
-    ):
-        super().__init__(params, domain, aux)
-
     def __eq__(self, other):
-        return self.params == other.params
+        return self.params == other.params and self.domain == other.domain
 
-
-@discretization
-class Continuous(Field):
-    r"""A continous discretization, which is defined via a `get_field` function stored
-    in the `aux` parameters. Its operations are implemented using function composition
-    and autograd.
-
-    !!! example
-        ```python
-        def get_field(params, x):
-          return jnp.tanh(params[0] * x + params[1])
-
-        params = jnp.array([1.0, 2.0])
-        domain = Domain((16,), (0.1,))
-        a = Continuous(params, domain, get_field)
-        ```
-    """
-
-    def __init__(self, params: PyTree, domain: Domain, get_fun: Callable):
-        r"""Initializes a continuous discretization.
-
-        Args:
-          params (PyTree): The parameters of the discretization.
-          domain (Domain): The domain of the discretization.
-          get_fun (Callable): A function that takes a parameter vector and a point in
-          the domain and returns the field at that point. The signature of this
-          function is `get_field(params, x)`.
+    @property
+    def is_complex(self) -> bool:
+        r"""Checks if a field is complex.
 
         Returns:
-          Continuous: A continuous discretization.
+          bool: Whether the field is complex.
         """
-        self.params = params
-        self.domain = domain
-        self.aux = {"get_field": get_fun}
+        return self.params.dtype == jnp.complex64 or self.params.dtype == jnp.complex128
+
+
+class Continuous(Field):
+    r"""A continuous discretization. This discretization assumes that the field is a
+    function of the parameters contained in `Continuous.params` and a point in the
+    domain. The function that computes the field from the parameters and the point in
+    the domain is contained in `Continuous.get_fun`. This function has the signature
+    `get_fun(params, x)`, where `params` is the parameter vector and `x` is the point
+    in the domain."""
+    params: PyTree
+    domain: Domain
+    get_fun: Callable = eqx.field(static=True)
+
+    def __eq__(self, other):
+        return (
+            self.params == other.params and \
+            self.domain == other.domain and \
+            self.get_fun == other.get_fun
+        )
+
+    @property
+    def is_complex(self) -> bool:
+        r"""Checks if a field is complex.
+
+        Returns:
+          bool: Whether the field is complex.
+        """
+        origin = self.domain.origin
+        value = self.get_fun(self.params, origin)
+        return jnp.iscomplexobj(value)
 
     @property
     def dims(self):
         x = self.domain.origin
-        return eval_shape(self.aux["get_field"], self.params, x).shape
+        return eval_shape(self.get_fun, self.params, x).shape
 
-    def tree_flatten(self):
-        children = (self.params, )
-        aux_data = (self.domain, self.aux["get_field"])
-        return (children, aux_data)
-
-    @classmethod
-    def tree_unflatten(cls, aux_data, children):
-        params = children[0]
-        domain, get_fun = aux_data
-        a = cls(params, domain=domain, get_fun=get_fun)
-        return a
-
-    def replace_params(self, new_params):
+    def replace_params(self, new_params: PyTree) -> "Continuous":
         r"""Replaces the parameters of the discretization with new ones. The domain
         and `get_field` function are not changed.
 
@@ -92,13 +77,13 @@ class Continuous(Field):
         Returns:
           Continuous: A continuous discretization with the new parameters.
         """
-        return self.__class__(new_params, self.domain, self.aux["get_field"])
+        return self.__class__(new_params, self.domain, self.get_field)
 
     def update_fun_and_params(
         self,
         params: PyTree,
         get_field: Callable,
-    ):
+    ) -> "Continuous":
         r"""Updates the parameters and the function of the discretization.
 
         Args:
@@ -115,7 +100,7 @@ class Continuous(Field):
     @classmethod
     def from_function(cls, domain, init_fun: Callable, get_field: Callable,
                       seed):
-        r"""Creates a continuous discretization from a `init_fun` function.
+        r"""Creates a continuous discretization from an `init_fun` function.
 
         Args:
           domain (Domain): The domain of the discretization.
@@ -144,7 +129,7 @@ class Continuous(Field):
             field_at_x = a(1.0)
             ```
         """
-        return self.aux["get_field"](self.params, x)
+        return self.get_fun(self.params, x)
 
     def get_field(self, x):
         warnings.warn(
@@ -156,7 +141,7 @@ class Continuous(Field):
     @property
     def on_grid(self):
         """Returns the field on the grid points of the domain."""
-        fun = self.aux["get_field"]
+        fun = self.get_fun
         ndims = len(self.domain.N)
         for _ in range(ndims):
             fun = vmap(fun, in_axes=(None, 0))
@@ -164,48 +149,30 @@ class Continuous(Field):
         return fun(self.params, self.domain.grid)
 
 
-@discretization
 class OnGrid(Linear):
-    r"""A linear discretization on the grid points of the domain."""
 
-    def __init__(
-        self,
-        params: PyTree,
-        domain: Domain,
-    ):
-        r"""Initializes a linear discretization on the grid points of the domain.
+    def __check_init__(self):
+        # Check if the number of dimensions of the parameters is correct, fix if needed
+        if len(self.params.shape) == len(self.domain.N):
+            # If only the last one is missing, add it
+            if self.params.shape == self.domain.N:
+                object.__setattr__(self, "params",
+                                   jnp.expand_dims(self.params, axis=-1))
 
-        Args:
-          params (PyTree): The parameters of the discretization.
-          domain (Domain): The domain of the discretization.
-
-        Returns:
-          OnGrid: A linear discretization on the grid points of the domain.
-        """
-        self.domain = domain
-        self.params = params
+        if self.params.shape == self.domain.N:
+            raise ValueError(
+                f"The number of dimensions of the parameters is incorrect. It should be the number of dimensions of the domain plus at least one more. The parameters have shape {self.params.shape} and the domain has shape {self.domain.N}"
+            )
 
     def add_dim(self):
         """Adds a dimension at the end of the `params` array."""
-        self.params = jnp.expand_dims(self.params, axis=-1)
+        new_params = jnp.expand_dims(self.params, axis=-1)
         # Returns a new object
-        return self
+        return self.__class__(new_params, self.domain)
 
     @property
     def dims(self):
         return self.params.shape[-1]
-
-    def tree_flatten(self):
-        children = (self.params, )
-        aux_data = (self.domain, )
-        return (children, aux_data)
-
-    @classmethod
-    def tree_unflatten(cls, aux_data, children):
-        params = children[0]
-        domain = aux_data[0]
-        a = cls(params, domain=domain)
-        return a
 
     def __getitem__(self, idx):
         r"""Allow indexing when leading batch / time dimensions are
@@ -247,15 +214,6 @@ class OnGrid(Linear):
         N = tuple(_N)
         return cls(jnp.zeros(N), domain)
 
-    @property
-    def is_complex(self) -> bool:
-        r"""Checks if a field is complex.
-
-        Returns:
-          bool: Whether the field is complex.
-        """
-        return self.params.dtype == jnp.complex64 or self.params.dtype == jnp.complex128
-
     @classmethod
     def from_grid(cls, grid_values, domain):
         r"""Creates an OnGrid field from a grid of values.
@@ -287,7 +245,6 @@ class OnGrid(Linear):
         return self.params
 
 
-@discretization
 class FourierSeries(OnGrid):
     r"""A Fourier series field defined on a collocation grid."""
 
@@ -383,35 +340,8 @@ class FourierSeries(OnGrid):
                          axis=-1)
 
 
-@discretization
 class FiniteDifferences(OnGrid):
     r"""A Finite Differences field defined on a collocation grid."""
-
-    def __init__(
-        self,
-        params,
-        domain,
-        accuracy=8,
-    ):
-        r"""Initializes a Finite Differences field on a collocation grid.
-        Args:
-          params (PyTree): The parameters of the discretization.
-          domain (Domain): The domain of the discretization.
-        Returns:
-          FiniteDifferences: A Finite Differences field on a collocation grid.
-        """
-        self.domain = domain
-        self.params = params
-        self.accuracy = accuracy
-
-    def tree_flatten(self):
-        children = (self.params, )
-        aux_data = (self.domain, self.accuracy)
-        return (children, aux_data)
-
-    @classmethod
-    def tree_unflatten(cls, aux_data, children):
-        params = children[0]
-        domain, accuracy = aux_data
-        a = cls(params, domain=domain, accuracy=accuracy)
-        return a
+    params: PyTree
+    domain: Domain
+    accuracy: int = eqx.field(default=8, static=True)

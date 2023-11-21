@@ -115,6 +115,24 @@ def test_on_grid():
     assert jnp.allclose(grid, grid_true)
 
 
+def test_is_complex():
+
+    def f(params, x):
+        return params * jnp.sum(x)
+
+    def g(params, x):
+        return 1j * params * jnp.sum(x)
+
+    params = jnp.ones((1, ))
+
+    domain = Domain((4, ), dx=(0.1, ))
+    real_field = Continuous(params, domain, f)
+    complex_field = Continuous(params, domain, g)
+
+    assert real_field.is_complex == False
+    assert complex_field.is_complex == True
+
+
 def test_replace_params():
 
     def f(params, x):

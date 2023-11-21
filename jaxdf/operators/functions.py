@@ -19,7 +19,7 @@ def compose(x):    # pragma: no cover
 @operator    # type: ignore
 def compose(x: Continuous, *, params=None):
     r"""Applies function composition on the `get_fun` of the Continuous object."""
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def decorator(fun):
 
@@ -133,7 +133,7 @@ def shift_operator(x: Continuous, *, dx: object, params=None) -> Continuous:
     Returns:
       A new field corresponding to the shifted input field.
     """
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def fun(p, coord):
         return get_x(p, coord + dx)
@@ -241,7 +241,7 @@ def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
 # sum_over_dims
 @operator    # type: ignore
 def sum_over_dims(x: Continuous, *, params=None):
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def fun(p, coords):
         return jnp.sum(get_x(p, coords), axis=-1, keepdims=True)

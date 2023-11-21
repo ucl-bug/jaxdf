@@ -29,13 +29,13 @@ def dummy(x: OnGrid, *, params=None):
 def dummy(x: Continuous, *, params=None):
     if params is None:
         params = {"k": 3.0}
-    get_x = x.aux["get_field"]
+    get_x = x.get_fun
 
     def get_fun(p__par, coords):
         p, params = p__par
         return get_x(p, coords) + params["k"]
 
-    return x.update_fun_and_params([x.params, params], get_fun), params
+    return x.update_fun_and_params([x.params, params], get_fun)
 
 
 @operator.abstract

@@ -131,14 +131,13 @@ def test_replace_param_for_abstract_field():
     params = jnp.asarray([1.0])
     aux = {"a": 1, "f": lambda x: x, "s": "string"}
 
-    a = Field(params, domain, aux)
+    a = Field(params, domain)
 
     new_params = jnp.asarray([2.0])
 
     b = a.replace_params(new_params)
 
     assert b.params == new_params
-    assert b.aux == aux
     assert b.domain == domain
 
 
@@ -160,10 +159,9 @@ def test_replace_param_for_abstract_field():
 def test_non_implemented_binary_methods(function):
     domain = geometry.Domain((1, ), (1.0, ))
     params = jnp.asarray([1.0])
-    aux = {"a": 1, "f": lambda x: x, "s": "string"}
 
-    a = Field(params, domain, aux)
-    b = Field(params, domain, aux)
+    a = Field(params, domain)
+    b = Field(params, domain)
     c = FourierSeries(params, domain)
 
     with pytest.raises(NotImplementedError):
@@ -174,6 +172,14 @@ def test_non_implemented_binary_methods(function):
 
     with pytest.raises(NotImplementedError):
         getattr(c, function)(a)
+
+
+def test_params_alias():
+    domain = geometry.Domain((1, ), (1.0, ))
+    params = jnp.asarray([1.0])
+    a = Field(params, domain)
+
+    assert jnp.all(a.θ == a.params)
 
 
 @pytest.mark.parametrize(
@@ -187,7 +193,7 @@ def test_non_implemented_unary_methods(function):
     params = jnp.asarray([1.0])
     aux = {"a": 1, "f": lambda x: x, "s": "string"}
 
-    a = Field(params, domain, aux)
+    a = Field(params, domain)
 
     with pytest.raises(NotImplementedError):
         getattr(a, function)()

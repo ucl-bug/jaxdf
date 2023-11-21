@@ -51,9 +51,9 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-plum-dispatch = "^2.1"
+plum-dispatch = "^2.2.2"
 jax = "^0.4"
-equinox = "^0.10.11"
+equinox = "^0.11.2"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.7"
@@ -61,7 +61,7 @@ mypy = "^1.4.0"
 plumkdocs = "^0.0.4"
 pre-commit = "^3.3.3"
 mkdocs-material-extensions = "^1.0.3"
-mkdocs-material = "^9.1.21"
+mkdocs-material = "^9.4.10"
 mkdocs-jupyter = "^0.24.1"
 mkdocs-autorefs = "^0.4.1"
 mkdocs-mermaid2-plugin = "^0.6.0"
