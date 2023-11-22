@@ -114,7 +114,7 @@ def test_override_operator_new_discretization(get_ongrid_fields):
         def decorator(fun):
             return x.replace_params(fun(x.params) + 10)
 
-        return decorator, None
+        return decorator
 
     a_new = MyDiscr(a.params, a.domain)
 
@@ -197,3 +197,10 @@ def test_non_implemented_unary_methods(function):
 
     with pytest.raises(NotImplementedError):
         getattr(a, function)()
+
+
+if __name__ == "__main__":
+    domain = geometry.Domain((1, ), (1.0, ))
+    a = OnGrid(jnp.asarray([1.0]), domain)
+    b = OnGrid(jnp.asarray([2.0]), domain)
+    test_override_operator_new_discretization((a, b))

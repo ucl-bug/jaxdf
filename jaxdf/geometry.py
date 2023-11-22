@@ -6,8 +6,10 @@ import jax
 from jax import numpy as jnp
 from jax import random
 
+from .mods import JaxDFModule
 
-class Domain(eqx.Module):
+
+class Domain(JaxDFModule):
     r"""Domain class describing a rectangular domain
 
     Attributes:
@@ -16,9 +18,6 @@ class Domain(eqx.Module):
     """
     N: Iterable[int] = eqx.field(default=(32, 32), static=True)
     dx: Iterable[float] = eqx.field(default=(1.0, 1.0), static=True)
-
-    def __repr__(self):
-        return f"Domain(N={self.N}, dx={self.dx})"
 
     @property
     def size(self):

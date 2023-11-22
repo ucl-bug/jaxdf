@@ -365,7 +365,7 @@ def laplacian(x: Continuous, *, params=None) -> Continuous:
         hessian = jax.hessian(get_x, argnums=(1, ))(p, coords)[0][0][0]
         return jnp.diag(hessian)
 
-    return x.update_fun_and_params(x.params, grad_fun), None
+    return x.update_fun_and_params(x.params, grad_fun)
 
 
 @operator(init_params=lambda x, *args, **kwargs: {"k_vec": x._freq_axis}

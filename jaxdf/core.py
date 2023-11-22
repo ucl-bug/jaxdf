@@ -5,7 +5,6 @@ from functools import wraps
 from typing import Callable, Union
 from warnings import warn
 
-import equinox as eqx
 from jaxtyping import PyTree
 from plum import Dispatcher
 
@@ -13,6 +12,7 @@ from jaxdf.exceptions import check_fun_has_params
 
 from .geometry import Domain
 from .logger import logger, set_logging_level
+from .mods import JaxDFModule
 
 # Initialize the dispatch table
 _jaxdf_dispatch = Dispatcher()
@@ -69,7 +69,7 @@ def _operator(evaluate, precedence, init_params):
         outs = evaluate(*args, **kwargs)
         if isinstance(outs, tuple) and len(outs) > 1:
             logger.warning(
-                "Deprecation: Currently only the first output of a function is considered. This will change in a future release. If you need to return multiple outputs, please return a tuple and a None value, for example: ((out1, out2), None)"
+                f"Deprecation: Currently only the first output of an operator is considered. This will change in a future release. If you need to return multiple outputs, please return a tuple and a None value, for example: ((out1, out2), None). This happened for the operator `{evaluate.__name__}`."
             )
             # Overload the field class with an extra attribute
             field = outs[0]
@@ -217,7 +217,7 @@ def constants(value) -> Callable:
     return init_params
 
 
-class Field(eqx.Module):
+class Field(JaxDFModule):
     params: PyTree
     domain: Domain
 
@@ -226,13 +226,6 @@ class Field(eqx.Module):
     def θ(self):
         r"""Handy alias for the `params` attribute"""
         return self.params
-
-    def __repr__(self):
-        classname = self.__class__.__name__
-        return f"{classname}"
-
-    def __str__(self):
-        return self.__repr__()
 
     def __call__(self, x):
         r"""
