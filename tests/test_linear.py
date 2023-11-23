@@ -20,3 +20,16 @@ def test_op_neg():
     b = (-a).params
     b_exp = -(a.params)
     assert b == b_exp
+
+
+def test_equality():
+    domain = Domain((1, ), (1.0, ))
+    a = Linear(jnp.asarray([1.0]), domain)
+    b = Linear(jnp.asarray([1.0]), domain)
+    assert a == b
+
+    c = Linear(jnp.asarray([2.0]), domain)
+    assert a != c
+
+    d = Linear(jnp.asarray([1.0]), Domain((2, ), (1.0, )))
+    assert a != d
