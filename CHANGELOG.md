@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - The Quickstart tutorial has been upgdated.
 - The property `Field.ndim` has now been moved into `Field.domain.ndim`, as it is fundamentally a property of the domain
+- The `init_params` function now will inherit the default parameters from its operator, to remove any source of ambiguity. This means that it should not have any default values, and an error is raised if it does.
 
 ### Removed
 - The `__about__` file has been removed, as it is redundant

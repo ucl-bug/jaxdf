@@ -180,7 +180,7 @@ def shift_operator(x: FiniteDifferences,
 
     Args:
       x: The field to shift
-      dx: The shift to apply
+      dx: The shift to apply. It is ignored if the `params` argument is not `None`.
 
     Returns:
       A new field corresponding to the shifted input field.
@@ -199,7 +199,8 @@ def shift_operator(x: FiniteDifferences,
     return x.replace_params(new_params)
 
 
-@operator(init_params=lambda x, dx: {"k_vec": x._freq_axis})    # type: ignore
+@operator(
+    init_params=lambda x, *, dx: {"k_vec": x._freq_axis})    # type: ignore
 def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
     r"""Shifts the field by `dx` using the shift theorem in Fourier space.
 

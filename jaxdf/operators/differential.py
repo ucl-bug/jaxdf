@@ -103,7 +103,7 @@ def fd_derivative_init(x: FiniteDifferences,
     return kernel
 
 
-def fd_diag_jacobian_init(x: FiniteDifferences, stagger=[0], *args, **kwargs):
+def fd_diag_jacobian_init(x: FiniteDifferences, stagger, *args, **kwargs):
     r"""Initializes the parameters for the diagonal Jacobian of a FiniteDifferences field. Accepts
     an arbitrary number of positional and keyword arguments after the
     mandatory arguments, which are ignored.

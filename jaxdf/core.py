@@ -1,3 +1,4 @@
+import inspect
 import logging
 import types
 import warnings
@@ -8,7 +9,8 @@ from warnings import warn
 from jaxtyping import PyTree
 from plum import Dispatcher
 
-from jaxdf.exceptions import check_fun_has_params
+from jaxdf.signatures import (add_defaults, check_eval_init_signatures,
+                              check_fun_has_params)
 
 from .geometry import Domain
 from .logger import logger, set_logging_level
@@ -54,11 +56,29 @@ def _operator(evaluate, precedence, init_params):
         def init_params(*args, **kwargs):
             return None
 
+    # Verify that the init_params function does not have defaults, as they are inherited from
+    # the operator function, so they are not needed and can cause ambiguity
+    sig_init_params = inspect.signature(init_params)
+    defaults = {
+        k: v.default
+        for k, v in sig_init_params.parameters.items()
+        if v.default is not inspect.Parameter.empty
+    }
+    if len(defaults) > 0:
+        raise ValueError(
+            f"The init_params function {init_params.__name__} must not have default values, as they are inherited from the operator function {evaluate.__name__}. The init_params function has the following default values: {defaults}"
+        )
+
+    # Check that the init_params function is compatible with the evaluate function
+    check_eval_init_signatures(evaluate, init_params)
+
     # Create the operator function
     @wraps(evaluate)
     def wrapper(*args, **kwargs):
         # Check if the parameters are not passed
         if "params" not in kwargs:
+            # Generate them
+            kwargs = add_defaults(evaluate, kwargs, skip=["params"])
             kwargs["params"] = init_params(*args, **kwargs)
 
         # Log dispatch message
@@ -94,6 +114,7 @@ def _operator(evaluate, precedence, init_params):
         # sig_types = tuple(map(type, args))
 
         method, _ = self.resolve_method(args)
+        kwargs = add_defaults(method, kwargs, skip=["params"])
         return method._initialize_parameters(*args, **kwargs)
 
     f.default_params = types.MethodType(_bound_init_params, f)

@@ -5,8 +5,8 @@ from plum.function import NotFoundLookupError
 from pytest import mark, raises
 
 from jaxdf import *
-from jaxdf.exceptions import SignatureError
 from jaxdf.operators.dummy import dummy, yummy
+from jaxdf.signatures import SignatureError
 
 domain = geometry.Domain()
 
