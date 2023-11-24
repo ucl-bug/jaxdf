@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.2.7] - 2023-11-24
 ### Changed
 - The Quickstart tutorial has been upgdated.
 - The property `Field.ndim` has now been moved into `Field.domain.ndim`, as it is fundamentally a property of the domain
@@ -60,6 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Renamed ode variable update, removed wrong test in utils
 - Updated support/packaging files
 
-[Unreleased]: https://github.com/ucl-bug/jaxdf/compare/0.2.6...master
+[Unreleased]: https://github.com/ucl-bug/jaxdf/compare/0.2.7...master
+[0.2.7]: https://github.com/ucl-bug/jaxdf/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/ucl-bug/jaxdf/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/ucl-bug/jaxdf/tree/0.2.5
+
