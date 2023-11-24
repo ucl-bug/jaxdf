@@ -438,7 +438,6 @@ def laplacian(x: FiniteDifferences, *, params=None) -> FiniteDifferences:
 
     Args:
       x: FiniteDifferences field
-      stagger: Stagger of the derivative
 
     Returns:
       The gradient of the field

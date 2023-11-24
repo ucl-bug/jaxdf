@@ -68,7 +68,6 @@ nav:
       - differential: operators/differential.md
       - functions: operators/functions.md
       - linear algebra: operators/linear_algebra.md
-      - magic: operators/magic.md
     - util: util.md
   - Changelog: changelog.md
   - Contributing: contributing.md
@@ -93,7 +92,6 @@ plugins:
         python:
           rendering:
             show_source: false
-      custom_templates: templates
   - search
   - mermaid2
   - macros:

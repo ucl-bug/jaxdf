@@ -21,6 +21,7 @@ $$
 $$
 
 {{ implementations('jaxdf.operators.differential', 'diag_jacobian') }}
+
 ## `gradient`
 
 Given a field $u$, it returns the vector field
