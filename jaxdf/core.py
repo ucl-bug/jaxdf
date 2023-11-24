@@ -14,7 +14,7 @@ from jaxdf.signatures import (SignatureError, add_defaults,
 
 from .geometry import Domain
 from .logger import logger, set_logging_level
-from .mods import JaxDFModule
+from .mods import Module
 
 # Initialize the dispatch table
 _jaxdf_dispatch = Dispatcher()
@@ -129,64 +129,6 @@ class Operator:
       init_params: Union[Callable, None] = None,
       precedence: int = 0,
   ):
-    r"""Decorator for defining operators using multiple dispatch. The type annotation of the
-        `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the
-        same as the Julia one, that is: operators are dispatched on the types of the positional arguments.
-        Keyword arguments are not considered for dispatching.
-
-        Keyword arguments are defined after the `*` in the function signature.
-
-        !!! example
-            ```python
-            @operator
-            def my_operator(x: FourierSeries, *, dx: float, params=None):
-            ...
-            ```
-
-        The argument `params` is mandatory and it must be a keyword argument. It is used to pass the
-        parameters of the operator, for example the stencil coefficients of a finite difference operator.
-
-        The default value of the parameters is specified by the `init_params` function, as follows:
-
-        !!! example
-            ```python
-
-            def params_initializer(x, *, dx):
-            return {"stencil": jnp.ones(x.shape) * dx}
-
-            @operator(init_params=params_initializer)
-            def my_operator(x, *, dx, params=None):
-            b = params["stencil"] / dx
-            y_params = jnp.convolve(x.params, b, mode="same")
-            return x.replace_params(y_params)
-            ```
-
-        The default value of `params` is not considered during computation.
-        If the operator has no parameters, the `init_params` function can be omitted. In this case, the
-        `params` value is set to `None`.
-
-        For constant parameters, the `constants` function can be used:
-
-        !!! example
-            ```python
-            @operator(init_params=constants({"a": 1, "b": 2.0}))
-            def my_operator(x, *, params):
-            return x + params["a"] + params["b"]
-            ```
-
-
-        Args:
-        evaluate (Callable): A function with the signature `evaluate(field, *args, **kwargs, params)`.
-            It must return a tuple, with the first element being a field and the second
-            element being the default parameters for the operator.
-        init_params (Callable): A function that overrides the default parameters initializer for the
-            operator. Useful when running the operator just to get the parameters is expensive.
-        precedence (int): The precedence of the operator if an ambiguous match is found.
-
-        Returns:
-        Callable: The operator function with signature `evaluate(field, *args, **kwargs, params)`.
-
-        """
     if evaluate is None:
       # Returns the decorator
       def decorator(evaluate):
@@ -203,6 +145,63 @@ class Operator:
 
 
 operator = Operator()
+r"""Decorator for defining operators using multiple dispatch. The type annotation of the
+    `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the
+    same as the Julia one, that is: operators are dispatched on the types of the positional arguments.
+
+    Args:
+      evaluate (Callable): A function with the signature `evaluate(field, *args, **kwargs, params)`.
+          It must return a tuple, with the first element being a field and the second
+          element being the default parameters for the operator.
+      init_params (Callable): A function that overrides the default parameters initializer for the
+          operator. Useful when running the operator just to get the parameters is expensive.
+      precedence (int): The precedence of the operator if an ambiguous match is found.
+
+    Returns:
+      Callable: The operator function with signature `evaluate(field, *args, **kwargs, params)`.
+
+    Keyword arguments are not considered for dispatching.
+    Keyword arguments are defined after the `*` in the function signature.
+
+    !!! example
+        ```python
+        @operator
+        def my_operator(x: FourierSeries, *, dx: float, params=None):
+          ...
+        ```
+
+    The argument `params` is mandatory and it must be a keyword argument. It is used to pass the
+    parameters of the operator, for example the stencil coefficients of a finite difference operator.
+
+    The default value of the parameters is specified by the `init_params` function, as follows:
+
+    !!! example
+        ```python
+
+        def params_initializer(x, *, dx):
+          return {"stencil": jnp.ones(x.shape) * dx}
+
+        @operator(init_params=params_initializer)
+        def my_operator(x, *, dx, params=None):
+          b = params["stencil"] / dx
+          y_params = jnp.convolve(x.params, b, mode="same")
+          return x.replace_params(y_params)
+        ```
+
+    The default value of `params` is not considered during computation.
+    If the operator has no parameters, the `init_params` function can be omitted. In this case, the
+    `params` value is set to `None`.
+
+    For constant parameters, the `constants` function can be used:
+
+    !!! example
+        ```python
+        @operator(init_params=constants({"a": 1, "b": 2.0}))
+          def my_operator(x, *, params):
+          return x + params["a"] + params["b"]
+        ```
+
+    """
 
 
 def discretization(cls):
@@ -237,7 +236,7 @@ def constants(value) -> Callable:
   return init_params
 
 
-class Field(JaxDFModule):
+class Field(Module):
   params: PyTree
   domain: Domain
 

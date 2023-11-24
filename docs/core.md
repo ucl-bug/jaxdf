@@ -1,9 +1,12 @@
-
 # `jaxdf.core`
 
-The `core` module contains the basic abstractions of the `jaxdf` framework.
+## Module Overview
 
-The key component is the `Field` class, which is a PyTree (see [`equinox`](https://github.com/patrick-kidger/equinox) and [`treeo`](https://github.com/cgarciae/treeo) for two great libraries that deal with defining JAX-compatible PyTrees from classes) from which all discretizations are defined, and the `operator` decorator which allows the use of multiple-dispatch (vial [`plum`](https://github.com/wesselb/plum)) for defining novel operators.
+This module is the fundamental part of the `jaxdf` framework.
+
+At its core is the `Field` class, a key element of `jaxdf`. This class is designed as a module derived from [`equinox.Module`](https://github.com/patrick-kidger/equinox), which means it's a JAX-compatible dataclass. All types of discretizations within `jaxdf` are derived from the `Field` class.
+
+Another crucial feature of `jaxdf` is the `operator` decorator. This decorator enables the implementation of multiple-dispatch functionality through the [`plum`](https://github.com/wesselb/plum) library. This is particularly useful for creating new operators within the framework.
 
 ::: jaxdf.core
     handler: python

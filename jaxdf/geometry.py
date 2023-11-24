@@ -6,10 +6,10 @@ import jax
 from jax import numpy as jnp
 from jax import random
 
-from .mods import JaxDFModule
+from .mods import Module
 
 
-class Domain(JaxDFModule):
+class Domain(Module):
   r"""Domain class describing a rectangular domain
 
     Attributes:

@@ -64,6 +64,7 @@ nav:
     - discretization: discretization.md
     - exceptions: exceptions.md
     - geometry: geometry.md
+    - mods: mods.md
     - operators:
       - differential: operators/differential.md
       - functions: operators/functions.md

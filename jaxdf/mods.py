@@ -2,12 +2,9 @@ import equinox as eqx
 from jaxtyping import PyTree
 
 
-class JaxDFModule(eqx.Module):
+class Module(eqx.Module):
   """
     A custom module inheriting from Equinox's Module class.
-
-    This module is designed to work with JAX and Equinox libraries, providing
-    functionalities that are specific to deep learning models and operations in JAX.
     """
 
   def replace(self, name: str, value: PyTree):
@@ -23,12 +20,15 @@ class JaxDFModule(eqx.Module):
                             compatible with JAX's PyTree structure.
 
         Returns:
-            A new instance of JaxDFModule with the specified attribute updated.
+            A new instance of Module with the specified attribute updated.
             The rest of the module's attributes remain unchanged.
 
-        Example:
-            >>> module = JaxDFModule(...)
-            >>> new_module = module.replace("weight", new_weight_value)
+        !!! example
+        ```python
+            >>> module = jaxdf.Module(weight=1.0, bias=2.0)
+            >>> new_module = module.replace("weight", 3.0)
+            >>> new_module.weight == 3.0    # True
+        ```
         """
     f = lambda m: m.__getattribute__(name)
     return eqx.tree_at(f, self, value)
