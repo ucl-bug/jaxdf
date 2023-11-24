@@ -313,7 +313,7 @@ class FourierSeries(OnGrid):
       return jnp.fft.fftfreq(N, dx) * 2 * jnp.pi
 
     k_axis = [f(n, delta) for n, delta in zip(self.domain.N, self.domain.dx)]
-    if not self.is_field_complex:
+    if not self.is_complex:
       k_axis[-1] = (jnp.fft.rfftfreq(self.domain.N[-1], self.domain.dx[-1]) *
                     2 * jnp.pi)
     return k_axis

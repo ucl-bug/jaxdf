@@ -10,7 +10,7 @@ from jaxdf.discretization import (    # isort:skip
 
 from jaxdf.core import Field    # isort:skip
 
-from jaxdf import util, geometry, mods    # isort:skip
+from jaxdf import util, geometry, mods, operators    # isort:skip
 
 # Must be imported after discretization
 from jaxdf.operators.magic import *    # isort:skip
@@ -24,6 +24,7 @@ __all__ = [
     'geometry',
     'logger',
     'operator',
+    'operators',
     'util',
     'Continuous',
     'Domain',
