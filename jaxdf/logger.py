@@ -20,7 +20,7 @@ logger.addHandler(ch)
 
 # Function to set logging level
 def set_logging_level(level: int) -> None:
-    """
+  """
     Set the logging level for both the logger and all its handlers.
 
     This function updates the logging level of the logger to the specified
@@ -35,6 +35,6 @@ def set_logging_level(level: int) -> None:
     Returns:
     None
     """
-    logger.setLevel(level)
-    for handler in logger.handlers:
-        handler.setLevel(level)
+  logger.setLevel(level)
+  for handler in logger.handlers:
+    handler.setLevel(level)

@@ -3,15 +3,15 @@ from jaxtyping import PyTree
 
 
 class JaxDFModule(eqx.Module):
-    """
+  """
     A custom module inheriting from Equinox's Module class.
 
     This module is designed to work with JAX and Equinox libraries, providing
     functionalities that are specific to deep learning models and operations in JAX.
     """
 
-    def replace(self, name: str, value: PyTree):
-        """
+  def replace(self, name: str, value: PyTree):
+    """
         Replaces the attribute of the module with the given name with a new value.
 
         This method utilizes `eqx.tree_at` to update the attribute in a functional
@@ -30,5 +30,5 @@ class JaxDFModule(eqx.Module):
             >>> module = JaxDFModule(...)
             >>> new_module = module.replace("weight", new_weight_value)
         """
-        f = lambda m: m.__getattribute__(name)
-        return eqx.tree_at(f, self, value)
+    f = lambda m: m.__getattribute__(name)
+    return eqx.tree_at(f, self, value)

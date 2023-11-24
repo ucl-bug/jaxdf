@@ -5,10 +5,10 @@ from jaxdf import OnGrid, geometry
 
 
 def test_equinox_omega_wrapper():
-    domain = geometry.Domain((1, ), (1.0, ))
-    a = OnGrid(jnp.asarray([1.0]), domain)
+  domain = geometry.Domain((1, ), (1.0, ))
+  a = OnGrid(jnp.asarray([1.0]), domain)
 
-    b = a**ω
-    c = ω(a)
+  b = a**ω
+  c = ω(a)
 
-    assert type(b) == type(c)
+  assert type(b) == type(c)
