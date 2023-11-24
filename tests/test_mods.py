@@ -1,9 +1,9 @@
-from jaxdf.mods import JaxDFModule
+from jaxdf.mods import Module
 
 
 def test_replace_params():
 
-  class TestModule(JaxDFModule):
+  class TestModule(Module):
     a: float = 1.0
     b: float = 2.0
 

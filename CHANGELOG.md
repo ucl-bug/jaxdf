@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - JaxDF now uses standard Python logging. To set the logging level, use `jaxdf.logger.set_logging_level`, for example `jaxdf.logger.set_logging_level("DEBUG")`. The default level is `INFO`.
 - Fields have now a handy property `.θ` which is an alias for `.params`
 - `Continuous` and `Linear` fields now have the `.is_complex` property
-- `Field` and `Domain` are now `JaxDFModules`s, which are based on from `equinox.Module`. They are entirely equivalent to `equinox.Module`, but have the extra `.replace` method that is used to update a single field.
+- `Field` and `Domain` are now `Modules`s, which are based on from `equinox.Module`. They are entirely equivalent to `equinox.Module`, but have the extra `.replace` method that is used to update a single field.
 
 ### Deprecated
 - The property `.is_field_complex` is now deprecated in favor of `.is_complex`. Same goes for `.is_real`.
