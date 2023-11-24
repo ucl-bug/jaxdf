@@ -9,8 +9,8 @@ from warnings import warn
 from jaxtyping import PyTree
 from plum import Dispatcher
 
-from jaxdf.signatures import (add_defaults, check_eval_init_signatures,
-                              check_fun_has_params)
+from jaxdf.signatures import (SignatureError, add_defaults,
+                              check_eval_init_signatures, check_fun_has_params)
 
 from .geometry import Domain
 from .logger import logger, set_logging_level
@@ -65,7 +65,7 @@ def _operator(evaluate, precedence, init_params):
       if v.default is not inspect.Parameter.empty
   }
   if len(defaults) > 0:
-    raise ValueError(
+    raise SignatureError(
         f"The init_params function {init_params.__name__} must not have default values, as they are inherited from the operator function {evaluate.__name__}. The init_params function has the following default values: {defaults}"
     )
 

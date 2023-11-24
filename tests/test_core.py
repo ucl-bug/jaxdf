@@ -5,6 +5,7 @@ from jax import jit
 from jax import numpy as jnp
 
 from jaxdf import *
+from jaxdf.signatures import SignatureError
 
 
 @pytest.fixture
@@ -191,12 +192,43 @@ def test_params_alias():
 def test_non_implemented_unary_methods(function):
   domain = geometry.Domain((1, ), (1.0, ))
   params = jnp.asarray([1.0])
-  aux = {"a": 1, "f": lambda x: x, "s": "string"}
 
   a = Field(params, domain)
 
   with pytest.raises(NotImplementedError):
     getattr(a, function)()
+
+
+@pytest.mark.parametrize(
+    "property",
+    [
+        "on_grid",
+        "dims",
+        "is_complex",
+    ],
+)
+def test_non_implemented_field_properties(property):
+  domain = geometry.Domain((1, ), (1.0, ))
+  params = jnp.asarray([1.0])
+
+  a = Field(params, domain)
+
+  with pytest.raises(NotImplementedError):
+    getattr(a, property)(b)
+
+
+def test_raise_default_in_init():
+
+  def init_params(x, *, settings=1.0, params=None):
+    return settings
+
+  expected_error = "The init_params function init_params must not have default values, as they are inherited from the operator function test_operator. The init_params function has the following default values: {'settings': 1.0, 'params': None}"
+
+  with pytest.raises(SignatureError, match=expected_error):
+
+    @operator(init_params=init_params)
+    def test_operator(x: Continuous, *, settings=1.0, params=None):
+      return x
 
 
 if __name__ == "__main__":

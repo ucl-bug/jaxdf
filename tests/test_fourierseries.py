@@ -50,3 +50,13 @@ def test_ffts_funcs():
   field = FourierSeries(params, domain)
   ffts = field._ffts
   assert ffts == [jnp.fft.fft, jnp.fft.ifft]
+
+
+def test_cut_freq_axis():
+  domain = Domain((6, 6), dx=[1.0])
+  params = jnp.zeros((6, 6))
+  field = FourierSeries(params, domain)
+
+  cut_freq = field._cut_freq_axis[0]
+  ref = jnp.asarray([0., 1.0471976, 2.0943952, 3.1415927])
+  assert jnp.allclose(cut_freq, ref)

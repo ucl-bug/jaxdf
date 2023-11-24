@@ -241,3 +241,13 @@ def test_op_inverse():
   b = inverse(a).on_grid
   b_exp = 1.0 / a.on_grid
   assert b == b_exp
+
+
+def test_add_dim():
+  domain = Domain((1, ), (1.0, ))
+  a = OnGrid(jnp.asarray([[1.0]]), domain)
+
+  b = a.add_dim()
+
+  # It must have three axis: [new_dim, old_dim, 1 (for scalar fields)]
+  assert b.params.shape == (1, 1, 1)

@@ -2,6 +2,7 @@ import warnings
 from typing import Callable, TypeVar
 
 import equinox as eqx
+from equinox import tree_equal
 from jax import eval_shape
 from jax import numpy as jnp
 from jax import vmap
@@ -21,7 +22,7 @@ class Linear(Field):
   domain: Domain
 
   def __eq__(self, other):
-    return self.params == other.params and self.domain == other.domain
+    return tree_equal(self, other) * (self.domain == other.domain)
 
   @property
   def is_complex(self) -> bool:
@@ -45,11 +46,7 @@ class Continuous(Field):
   get_fun: Callable = eqx.field(static=True)
 
   def __eq__(self, other):
-    return (
-        self.params == other.params and \
-        self.domain == other.domain and \
-        self.get_fun == other.get_fun
-    )
+    return tree_equal(self, other) * (self.get_fun == other.get_fun)
 
   @property
   def is_complex(self) -> bool:
@@ -223,8 +220,6 @@ class OnGrid(Linear):
           domain (Domain): The domain of the discretization.
         """
     a = cls(grid_values, domain)
-    if len(a.params.shape) == len(domain.N):
-      a = a.add_dim()
     return a
 
   def replace_params(self, new_params):

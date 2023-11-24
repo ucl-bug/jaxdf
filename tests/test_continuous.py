@@ -88,6 +88,29 @@ def test_add(N, jitting, get_fields):
   )
 
 
+@pytest.mark.parametrize("jitting", [True, False])
+def test_equality(jitting):
+  get_fun = lambda params, x: jnp.dot(params, x)
+  second_get_fun = lambda params, x: jnp.dot(params, x) + 1.0
+
+  a = Continuous(5.0, Domain((64, 64), dx=(1.0, 1.0)), get_fun)
+  b = Continuous(5.0, Domain((64, 64), dx=(1.0, 1.0)), get_fun)
+  c = Continuous(6.0, Domain((64, 64), dx=(1.0, 1.0)), get_fun)
+  d = Continuous(5.0, Domain((64, 64), dx=(1.0, 1.0)), second_get_fun)
+  e = Continuous(5.0, Domain((64, 64), dx=(2.0, 1.0)), get_fun)
+
+  def check_equal(a, b):
+    return a == b
+
+  if jitting:
+    check_equal = jit(check_equal)
+
+  assert check_equal(a, b) == True
+  assert check_equal(a, c) == False
+  assert check_equal(a, d) == False
+  assert check_equal(a, e) == False
+
+
 def test_from_function():
 
   def f(params, x):
