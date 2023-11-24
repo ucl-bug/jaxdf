@@ -6,46 +6,46 @@ from jaxdf import conv
 
 
 def test_reflection_conv():
-    array = jnp.zeros((5, 6))
-    array = array.at[2, 3].set(1.0)
-    kernel = jnp.ones((2, 3))
+  array = jnp.zeros((5, 6))
+  array = array.at[2, 3].set(1.0)
+  kernel = jnp.ones((2, 3))
 
-    output = conv.reflection_conv(kernel, array)
-    true_output = jnp.array([
-        [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ],
-        [
-            0.0,
-            0.0,
-            1.0,
-            1.0,
-            1.0,
-            0.0,
-        ],
-        [
-            0.0,
-            0.0,
-            1.0,
-            1.0,
-            1.0,
-            0.0,
-        ],
-        [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ],
-    ])
-    assert jnp.allclose(output, true_output)
+  output = conv.reflection_conv(kernel, array)
+  true_output = jnp.array([
+      [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+      ],
+      [
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+      ],
+      [
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+      ],
+      [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+      ],
+  ])
+  assert jnp.allclose(output, true_output)
 
 
 @mark.parametrize(
@@ -62,8 +62,8 @@ def test_reflection_conv():
     ],
 )
 def test_bubble_sort_abs(pair):
-    in_list, out_list = pair.values()
-    assert conv.bubble_sort_abs_value(in_list) == out_list
+  in_list, out_list = pair.values()
+  assert conv.bubble_sort_abs_value(in_list) == out_list
 
 
 @mark.parametrize(
@@ -104,6 +104,6 @@ def test_bubble_sort_abs(pair):
     ],
 )
 def test_fornberg_coefficients(pair):
-    points, order, stencil_true = pair.values()
-    stencil, grid_points = conv.fd_coefficients_fornberg(order, points, 0.0)
-    assert np.allclose(stencil, stencil_true)
+  points, order, stencil_true = pair.values()
+  stencil, grid_points = conv.fd_coefficients_fornberg(order, points, 0.0)
+  assert np.allclose(stencil, stencil_true)

@@ -1,88 +1,135 @@
+import inspect
+import logging
 import types
 import warnings
 from functools import wraps
 from typing import Callable, Union
+from warnings import warn
 
-from jax.tree_util import register_pytree_node_class
+from jaxtyping import PyTree
 from plum import Dispatcher
 
-from jaxdf.exceptions import check_fun_has_params
+from jaxdf.signatures import (SignatureError, add_defaults,
+                              check_eval_init_signatures, check_fun_has_params)
+
+from .geometry import Domain
+from .logger import logger, set_logging_level
+from .mods import JaxDFModule
 
 # Initialize the dispatch table
 _jaxdf_dispatch = Dispatcher()
 
-# Configuration
-debug_config = {
-    "debug_dispatch": False,
-}
+
+# Configuration. This is just for backward compatibility
+class _DebugDict(dict):
+
+  def __setitem__(self, __key, __value):
+    if __key == "debug_dispatch":
+      warn(
+          "debug_dispatch is deprecated. Set the logger level to DEBUG instead.",
+          DeprecationWarning)
+      # Assuming you want to set the logger level based on this value
+      if __value:
+        set_logging_level(logging.DEBUG)
+      else:
+        set_logging_level(logging.INFO)
+      super().__setitem__(__key, __value)
+    else:
+      raise ValueError("Only debug_dispatch is supported for now")
+
+
+debug_config = _DebugDict()
 
 
 def _abstract_operator(evaluate):
-    f = _jaxdf_dispatch.abstract(evaluate)
-    return f
+  f = _jaxdf_dispatch.abstract(evaluate)
+  return f
 
 
 def _operator(evaluate, precedence, init_params):
-    check_fun_has_params(evaluate)
+  check_fun_has_params(evaluate)
 
-    # If the parameter initialization function is not provided, then
-    # assume that the operator has no parameters
-    if init_params is None:
+  # If the parameter initialization function is not provided, then
+  # assume that the operator has no parameters
+  if init_params is None:
 
-        def init_params(*args, **kwargs):
-            return None
+    def init_params(*args, **kwargs):
+      return None
 
-    # Create the operator function
-    @wraps(evaluate)
-    def wrapper(*args, **kwargs):
-        # Check if the parameters are not passed
-        if "params" not in kwargs:
-            kwargs["params"] = init_params(*args, **kwargs)
+  # Verify that the init_params function does not have defaults, as they are inherited from
+  # the operator function, so they are not needed and can cause ambiguity
+  sig_init_params = inspect.signature(init_params)
+  defaults = {
+      k: v.default
+      for k, v in sig_init_params.parameters.items()
+      if v.default is not inspect.Parameter.empty
+  }
+  if len(defaults) > 0:
+    raise SignatureError(
+        f"The init_params function {init_params.__name__} must not have default values, as they are inherited from the operator function {evaluate.__name__}. The init_params function has the following default values: {defaults}"
+    )
 
-        if debug_config["debug_dispatch"]:
-            print(
-                f"Dispatching {evaluate.__name__} with for types {evaluate.__annotations__}"
-            )
+  # Check that the init_params function is compatible with the evaluate function
+  check_eval_init_signatures(evaluate, init_params)
 
-        outs = evaluate(*args, **kwargs)
-        if isinstance(outs, tuple) and len(outs) > 1:
-            # Overload the field class with an extra attribute
-            field = outs[0]
-        else:
-            field = outs
+  # Create the operator function
+  @wraps(evaluate)
+  def wrapper(*args, **kwargs):
+    # Check if the parameters are not passed
+    if "params" not in kwargs:
+      # Generate them
+      kwargs = add_defaults(evaluate, kwargs, skip=["params"])
+      kwargs["params"] = init_params(*args, **kwargs)
 
-        return field
+    # Log dispatch message
+    logger.debug(
+        f"Dispatching {evaluate.__name__} with for types {evaluate.__annotations__}"
+    )
 
-    # Adds the parameters initializer to the functin wrapper
-    wrapper._initialize_parameters = init_params
+    outs = evaluate(*args, **kwargs)
+    if isinstance(outs, tuple) and len(outs) > 1:
+      logger.warning(
+          f"Deprecation: Currently only the first output of an operator is considered. This will change in a future release. If you need to return multiple outputs, please return a tuple and a None value, for example: ((out1, out2), None). This happened for the operator `{evaluate.__name__}`."
+      )
+      # Overload the field class with an extra attribute
+      field = outs[0]
+    else:
+      field = outs
 
-    # Register the operator in the dispatch table
-    f = _jaxdf_dispatch(wrapper, precedence=precedence)
+    return field
 
-    # Bind an default_params method that returns the default parameters
-    def _bound_init_params(self, *args, **kwargs):
-        # the method is resolved only on non-keyword arguments,
-        # see: https://github.com/wesselb/plum/issues/40#issuecomment-1321164488
-        self._resolve_pending_registrations()
-        sig_types = tuple(map(type, args))
+  # Adds the parameters initializer to the functin wrapper
+  wrapper._initialize_parameters = init_params
 
-        method, _ = self.resolve_method(args, types)
-        return method._initialize_parameters(*args, **kwargs)
+  # Register the operator in the dispatch table
+  logger.debug(f"Registering {evaluate.__name__} with precedence {precedence}")
+  f = _jaxdf_dispatch(wrapper, precedence=precedence)
 
-    f.default_params = types.MethodType(_bound_init_params, f)
+  # Bind an default_params method that returns the default parameters
+  def _bound_init_params(self, *args, **kwargs):
+    # the method is resolved only on non-keyword arguments,
+    # see: https://github.com/wesselb/plum/issues/40#issuecomment-1321164488
+    self._resolve_pending_registrations()
+    # sig_types = tuple(map(type, args))
 
-    return f
+    method, _ = self.resolve_method(args)
+    kwargs = add_defaults(method, kwargs, skip=["params"])
+    return method._initialize_parameters(*args, **kwargs)
+
+  f.default_params = types.MethodType(_bound_init_params, f)
+
+  return f
 
 
 class Operator:
 
-    def __call__(
-        self,
-        evaluate: Union[Callable, None] = None,
-        init_params: Union[Callable, None] = None,
-        precedence: int = 0,
-    ):
-        r"""Decorator for defining operators using multiple dispatch. The type annotation of the
+  def __call__(
+      self,
+      evaluate: Union[Callable, None] = None,
+      init_params: Union[Callable, None] = None,
+      precedence: int = 0,
+  ):
+    r"""Decorator for defining operators using multiple dispatch. The type annotation of the
         `evaluate` function are used to determine the dispatch rules. The dispatch syntax is the
         same as the Julia one, that is: operators are dispatched on the types of the positional arguments.
         Keyword arguments are not considered for dispatching.
@@ -140,51 +187,33 @@ class Operator:
         Callable: The operator function with signature `evaluate(field, *args, **kwargs, params)`.
 
         """
-        if evaluate is None:
-            # Returns the decorator
-            def decorator(evaluate):
-                return _operator(evaluate, precedence, init_params)
+    if evaluate is None:
+      # Returns the decorator
+      def decorator(evaluate):
+        return _operator(evaluate, precedence, init_params)
 
-            return decorator
-        else:
-            return _operator(evaluate, precedence, init_params)
+      return decorator
+    else:
+      return _operator(evaluate, precedence, init_params)
 
-    def abstract(self, evaluate: Callable):
-        """Decorator for defining abstract operators. This is mainly used
+  def abstract(self, evaluate: Callable):
+    """Decorator for defining abstract operators. This is mainly used
         to define generic docstrings."""
-        return _abstract_operator(evaluate)
+    return _abstract_operator(evaluate)
 
 
 operator = Operator()
 
 
 def discretization(cls):
-    r"""Wrapper around `jax.tree_util.register_pytree_node_class` that can
-    be used to register a new discretization.
-
-    If the discretization doesn't have the same `__init__` function as the
-    parent class, the methods `tree_flatten` and `tree_unflatten` must be
-    present (see [Extending pytrees](https://jax.readthedocs.io/en/latest/pytrees.html)
-    in the JAX documentation).
-
-    !!! example
-        ```python
-        @discretization
-        class Polynomial(Continuous):
-          @classmethod
-          def from_params(cls, params, domain):
-            def get_fun(params, x):
-              i = jnp.arange(len(params))
-              powers = x**i
-              return jnp.expand_dims(jnp.sum(params*(x**i)), -1)
-            return cls(params, domain, get_fun)
-        ```
-    """
-    return register_pytree_node_class(cls)
+  warn(
+      "jaxdf.discretization is deprecated since the discretization API has been moved to equinox. You don't need this decorator anymore. It iwll now simply act as a pass-through.",
+      DeprecationWarning)
+  return cls
 
 
 def constants(value) -> Callable:
-    r"""This is a higher order function for defining constant parameters of
+  r"""This is a higher order function for defining constant parameters of
     operators, independent of the operator arguments.
 
     !!! example
@@ -202,54 +231,24 @@ def constants(value) -> Callable:
       Callable: The parameters initializer function that returns the constant value.
     """
 
-    def init_params(*args, **kwargs):
-        return value
+  def init_params(*args, **kwargs):
+    return value
 
-    return init_params
+  return init_params
 
 
-@discretization
-class Field(object):
-    r"""The base-class for all discretizations. This class is also responsible
-    for binding the operators in `jaxdf.operators.magic` to
-    the magic methods of the discretization.
+class Field(JaxDFModule):
+  params: PyTree
+  domain: Domain
 
-    Normally you should not use this class directly, but instead use the
-    `discretization` decorator to register
-    a new discretization based on this class.
-    """
+  # For concise code
+  @property
+  def θ(self):
+    r"""Handy alias for the `params` attribute"""
+    return self.params
 
-    def __init__(
-        self,
-        params,
-        domain,
-        aux=None,
-    ):
-        self.params = params
-        self.domain = domain
-        self.aux = aux
-
-    def tree_flatten(self):
-        children = (self.params, )
-        aux_data = (self.domain, self.aux)
-        return (children, aux_data)
-
-    @classmethod
-    def tree_unflatten(cls, aux_data, children):
-        params = children[0]
-        domain, aux = aux_data
-        a = cls(params, domain=domain, aux=aux)
-        return a
-
-    def __repr__(self):    #
-        classname = self.__class__.__name__
-        return f"{classname}"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __call__(self, x):
-        r"""
+  def __call__(self, x):
+    r"""
         An Field can be called as a function, returning the field at a
         desired point.
 
@@ -260,43 +259,43 @@ class Field(object):
             field_at_x = a(1.0)
             ```
         """
-        raise NotImplementedError(
-            f"Not implemented for {self.__class__.__name__} discretization")
+    raise NotImplementedError(
+        f"Not implemented for {self.__class__.__name__} discretization")
 
-    @property
-    def on_grid(self):
-        """Returns the field on the grid points of the domain."""
-        raise NotImplementedError(
-            f"Not implemented for {self.__class__.__name__} discretization")
+  @property
+  def on_grid(self):
+    """Returns the field on the grid points of the domain."""
+    raise NotImplementedError(
+        f"Not implemented for {self.__class__.__name__} discretization")
 
-    @property
-    def dims(self):
-        r"""The dimension of the field values"""
-        raise NotImplementedError
+  @property
+  def dims(self):
+    r"""The dimension of the field values"""
+    raise NotImplementedError
 
-    @property
-    def is_complex(self) -> bool:
-        r"""Checks if a field is complex.
+  @property
+  def is_complex(self) -> bool:
+    r"""Checks if a field is complex.
 
         Returns:
           bool: Whether the field is complex.
         """
-        raise NotImplementedError
+    raise NotImplementedError
 
-    @property
-    def is_field_complex(self) -> bool:
-        warnings.warn(
-            "Field.is_field_complex is deprecated. Use Field.is_complex instead.",
-            DeprecationWarning,
-        )
-        return self.is_complex
+  @property
+  def is_field_complex(self) -> bool:
+    warnings.warn(
+        "Field.is_field_complex is deprecated. Use Field.is_complex instead.",
+        DeprecationWarning,
+    )
+    return self.is_complex
 
-    @property
-    def is_real(self) -> bool:
-        return not self.is_complex
+  @property
+  def is_real(self) -> bool:
+    return not self.is_complex
 
-    def replace_params(self, new_params):
-        r"""Returns a new field of the same type, with the same domain and auxiliary data, but with new parameters.
+  def replace_params(self, new_params):
+    r"""Returns a new field of the same type, with the same domain and auxiliary data, but with new parameters.
 
         !!! example
             ```python
@@ -311,106 +310,104 @@ class Field(object):
         Returns:
           Field: A new field with the same domain and auxiliary data, but with new parameters.
         """
-        return self.__class__(new_params, self.domain, self.aux)
+    return self.__class__(new_params, self.domain)
 
-    # Dummy magic functions to make it work with
-    # the dispatch system
-    def __add__(self, other):
-        return __add__(self, other)
+  # Dummy magic functions to make it work with
+  # the dispatch system
+  def __add__(self, other):
+    return __add__(self, other)
 
-    def __radd__(self, other):
-        return __radd__(self, other)
+  def __radd__(self, other):
+    return __radd__(self, other)
 
-    def __sub__(self, other):
-        return __sub__(self, other)
+  def __sub__(self, other):
+    return __sub__(self, other)
 
-    def __rsub__(self, other):
-        return __rsub__(self, other)
+  def __rsub__(self, other):
+    return __rsub__(self, other)
 
-    def __mul__(self, other):
-        return __mul__(self, other)
+  def __mul__(self, other):
+    return __mul__(self, other)
 
-    def __rmul__(self, other):
-        return __rmul__(self, other)
+  def __rmul__(self, other):
+    return __rmul__(self, other)
 
-    def __neg__(self):
-        return __neg__(self)
+  def __neg__(self):
+    return __neg__(self)
 
-    def __pow__(self, other):
-        return __pow__(self, other)
+  def __pow__(self, other):
+    return __pow__(self, other)
 
-    def __rpow__(self, other):
-        return __rpow__(self, other)
+  def __rpow__(self, other):
+    return __rpow__(self, other)
 
-    def __truediv__(self, other):
-        return __truediv__(self, other)
+  def __truediv__(self, other):
+    return __truediv__(self, other)
 
-    def __rtruediv__(self, other):
-        return __rtruediv__(self, other)
+  def __rtruediv__(self, other):
+    return __rtruediv__(self, other)
 
 
 @operator
 def __add__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __radd__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __sub__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rsub__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __mul__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rmul__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __neg__(self, *, params=None):
-    raise NotImplementedError(f"Function not implemented for {type(self)}")
+  raise NotImplementedError(f"Function not implemented for {type(self)}")
 
 
 @operator
 def __pow__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rpow__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __truediv__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
 
 
 @operator
 def __rtruediv__(self, other, *, params=None):
-    raise NotImplementedError(
-        f"Function not implemented for {type(self)} and {type(other)}")
-
-    # Lifted jax functions for convenience
+  raise NotImplementedError(
+      f"Function not implemented for {type(self)} and {type(other)}")
