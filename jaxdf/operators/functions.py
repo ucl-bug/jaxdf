@@ -89,7 +89,7 @@ def functional(x: OnGrid, *, params=None):
     """
 
   def decorator(fun):
-    return fun(x.params)
+    return x.replace_params(fun(x.params))
 
   return decorator
 
@@ -235,7 +235,7 @@ def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
   for ax in range(x.domain.ndim):
     new_params = new_params.at[..., ax].set(single_grad(ax, x.params[..., ax]))
 
-  return FourierSeries(new_params, x.domain), params
+  return FourierSeries(new_params, x.domain)
 
 
 # sum_over_dims

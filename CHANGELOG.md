@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - `OnGrid.from_grid` now automatically adds a dimension at the end of the array for scalar fields, if needed
 - Added a custom operator for `equinox.internal._omega._Metaω` objects and Fields, which makes the library compatible with `diffrax`
+- Fixed an error for `functional` operator on `OnGrid` fields that was returning a `PyTree` instead of a `Field`.
 
 ## [0.2.6] - 2023-06-28
 ### Changed

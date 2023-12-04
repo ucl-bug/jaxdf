@@ -64,7 +64,8 @@ def test_functional_ongrid():
   x = OnGrid(jnp.asarray([1.0]), domain)
   y = jnp.sum(x.on_grid)
   z = operators.functions.functional(x)(jnp.sum)
-  assert np.allclose(z, y)
+  assert type(z) == OnGrid
+  assert np.allclose(z.on_grid, y)
 
 
 def test_fd_shift_operator():
