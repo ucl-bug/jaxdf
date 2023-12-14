@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## Added
+- Added support to replace multiple elements at once to `Module`. Also added support for keyword inputs to the `replace` method
 
 ## [0.2.7] - 2023-11-24
 ### Changed
@@ -27,7 +29,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fields have now a handy property `.θ` which is an alias for `.params`
 - `Continuous` and `Linear` fields now have the `.is_complex` property
 - `Field` and `Domain` are now `Modules`s, which are based on from `equinox.Module`. They are entirely equivalent to `equinox.Module`, but have the extra `.replace` method that is used to update a single field.
-- Added support to replace multiple elements at once to `Module`. Also added support for keyword inputs to the `replace` method
 
 ### Deprecated
 - The property `.is_field_complex` is now deprecated in favor of `.is_complex`. Same goes for `.is_real`.
@@ -68,4 +69,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [0.2.7]: https://github.com/ucl-bug/jaxdf/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/ucl-bug/jaxdf/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/ucl-bug/jaxdf/tree/0.2.5
-

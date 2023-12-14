@@ -14,5 +14,5 @@ It also contains a growing open-source library of differentiable discretizations
   - [Quickstart](notebooks/quickstart)
   - [Physics informed neural nerworks](notebooks/pinn_burgers/)
   - [Optimize acoustic simulations](notebooks/simulate_helmholtz_equation/)
-  - [(⚠️ WIP) Discretization API](notebooks/api_discretization/)
+  - [Discretization API](notebooks/api_discretization/)
   - [Solving the Helmholtz equation with PINNs](notebooks/helmholtz_pinn/)
