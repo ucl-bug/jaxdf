@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fields have now a handy property `.θ` which is an alias for `.params`
 - `Continuous` and `Linear` fields now have the `.is_complex` property
 - `Field` and `Domain` are now `Modules`s, which are based on from `equinox.Module`. They are entirely equivalent to `equinox.Module`, but have the extra `.replace` method that is used to update a single field.
+- Added support to replace multiple elements at once to `Module`. Also added support for keyword inputs to the `replace` method
 
 ### Deprecated
 - The property `.is_field_complex` is now deprecated in favor of `.is_complex`. Same goes for `.is_real`.

@@ -1,5 +1,4 @@
 import equinox as eqx
-from jaxtyping import PyTree
 
 
 class Module(eqx.Module):
@@ -7,7 +6,7 @@ class Module(eqx.Module):
     A custom module inheriting from Equinox's Module class.
     """
 
-  def replace(self, name: str, value: PyTree):
+  def replace(self, *args, **kwargs):
     """
         Replaces the attribute of the module with the given name with a new value.
 
@@ -26,9 +25,24 @@ class Module(eqx.Module):
         !!! example
         ```python
             >>> module = jaxdf.Module(weight=1.0, bias=2.0)
-            >>> new_module = module.replace("weight", 3.0)
+            >>> new_module = module.replace(weight=3.0) # Alternatively, module.replace('weight', 3.0)
             >>> new_module.weight == 3.0    # True
         ```
         """
-    f = lambda m: m.__getattribute__(name)
-    return eqx.tree_at(f, self, value)
+    # Make sure that the number of args is even
+    assert len(
+        args
+    ) % 2 == 0, "The number of arguments must be even, since they are passed as name-value pairs. E.g. `.replace('weight', 1.0, 'bias', 2.0)`"
+
+    # Check that no name is repeated
+    names = args[::2] + tuple(kwargs.keys())
+    if len(args) > 0:
+      duplicated_names = [name for name in names if names.count(name) > 1]
+      assert len(
+          duplicated_names
+      ) == 0, f"The following names are repeated: {duplicated_names}"
+
+    values = args[1::2] + tuple(kwargs.values())
+
+    f = lambda m: [m.__getattribute__(name) for name in names]
+    return eqx.tree_at(f, self, values)
