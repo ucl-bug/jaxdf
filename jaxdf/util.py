@@ -48,7 +48,7 @@ def get_implemented(f):
   a = f.methods
   for f_instance in a:
     # Get types
-    types = f_instance.types
+    types = f_instance.signature.types
 
     # Change each type with its classname
     types = tuple(map(lambda x: x.__name__, types))
