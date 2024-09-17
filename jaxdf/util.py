@@ -1,5 +1,3 @@
-import warnings
-
 from jax.numpy import expand_dims, ndarray
 
 
@@ -20,14 +18,6 @@ def update_dictionary(old: dict, new_entries: dict):
   for key, val in zip(new_entries.keys(), new_entries.values()):
     old[key] = val
   return old
-
-
-def _get_implemented(f):
-  warnings.warn(
-      "jaxdf.util._get_implemented is deprecated. Use jaxdf.util.get_implemented instead.",
-      DeprecationWarning,
-  )
-  return get_implemented(f)
 
 
 def get_implemented(f):

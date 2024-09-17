@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - Fixed `util.get_implemented` bug that was happening with the new version of `plum`
 
+### Removed
+- Removed the deprecated `util._get_implemented` function
+
 ## [0.2.7] - 2023-11-24
 ### Changed
 - The Quickstart tutorial has been upgdated.
