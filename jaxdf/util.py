@@ -1,5 +1,3 @@
-import warnings
-
 from jax.numpy import expand_dims, ndarray
 
 
@@ -22,14 +20,6 @@ def update_dictionary(old: dict, new_entries: dict):
   return old
 
 
-def _get_implemented(f):
-  warnings.warn(
-      "jaxdf.util._get_implemented is deprecated. Use jaxdf.util.get_implemented instead.",
-      DeprecationWarning,
-  )
-  return get_implemented(f)
-
-
 def get_implemented(f):
   r"""Prints the implemented methods of an operator
 
@@ -48,7 +38,7 @@ def get_implemented(f):
   a = f.methods
   for f_instance in a:
     # Get types
-    types = f_instance.types
+    types = f_instance.signature.types
 
     # Change each type with its classname
     types = tuple(map(lambda x: x.__name__, types))
