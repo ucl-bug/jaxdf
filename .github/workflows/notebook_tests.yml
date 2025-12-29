@@ -16,16 +16,50 @@ on:
     - cron: '0 0 * * 1'  # Weekly on Monday at midnight
 
 jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      notebooks: ${{ steps.get-notebooks.outputs.notebooks }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Get notebooks to test
+        id: get-notebooks
+        run: |
+          # Read excluded notebooks from config and generate matrix
+          python3 << 'EOF'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          # Import config
+          sys.path.insert(0, str(Path.cwd() / "tests"))
+          from notebooks_config import EXCLUDED_NOTEBOOKS
+
+          # Get all notebooks
+          notebooks_dir = Path("docs/notebooks")
+          all_notebooks = sorted([nb.name for nb in notebooks_dir.glob("*.ipynb")])
+
+          # Filter out excluded notebooks
+          included_notebooks = [
+              nb for nb in all_notebooks
+              if nb not in EXCLUDED_NOTEBOOKS
+          ]
+
+          # Output as JSON array for matrix
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"notebooks={json.dumps(included_notebooks)}\n")
+          EOF
+
   test-notebooks:
     runs-on: ubuntu-latest
+    needs: generate-matrix
     strategy:
       fail-fast: false
       matrix:
-        notebook:
-          - api_discretization.ipynb
-          - pinn_burgers.ipynb
-          - quickstart.ipynb
-          - simulate_helmholtz_equation.ipynb
+        notebook: ${{ fromJson(needs.generate-matrix.outputs.notebooks) }}
 
     steps:
       - name: Checkout current branch
@@ -89,13 +123,24 @@ jobs:
         run: |
           cd base
           uv sync --all-groups
+
+          # Get excluded notebooks from config
+          EXCLUDED=$(python3 -c "
+          import sys
+          sys.path.insert(0, 'tests')
+          from notebooks_config import EXCLUDED_NOTEBOOKS
+          print(' '.join(EXCLUDED_NOTEBOOKS))
+          ")
+
           for notebook in docs/notebooks/*.ipynb; do
-            # Skip excluded notebooks
             basename_nb=$(basename $notebook)
-            if [[ "$basename_nb" == "example_1_paper.ipynb" ]] || [[ "$basename_nb" == "helmholtz_pinn.ipynb" ]]; then
+
+            # Skip excluded notebooks
+            if echo "$EXCLUDED" | grep -q "$basename_nb"; then
               echo "Skipping $basename_nb (excluded from tests)"
               continue
             fi
+
             echo "Testing $basename_nb on base branch..."
             JAX_PLATFORMS=cpu uv run jupyter nbconvert \
               --to notebook \
@@ -111,13 +156,24 @@ jobs:
         run: |
           cd current
           uv sync --all-groups
+
+          # Get excluded notebooks from config
+          EXCLUDED=$(python3 -c "
+          import sys
+          sys.path.insert(0, 'tests')
+          from notebooks_config import EXCLUDED_NOTEBOOKS
+          print(' '.join(EXCLUDED_NOTEBOOKS))
+          ")
+
           for notebook in docs/notebooks/*.ipynb; do
-            # Skip excluded notebooks
             basename_nb=$(basename $notebook)
-            if [[ "$basename_nb" == "example_1_paper.ipynb" ]] || [[ "$basename_nb" == "helmholtz_pinn.ipynb" ]]; then
+
+            # Skip excluded notebooks
+            if echo "$EXCLUDED" | grep -q "$basename_nb"; then
               echo "Skipping $basename_nb (excluded from tests)"
               continue
             fi
+
             echo "Testing $basename_nb on PR branch..."
             JAX_PLATFORMS=cpu uv run jupyter nbconvert \
               --to notebook \

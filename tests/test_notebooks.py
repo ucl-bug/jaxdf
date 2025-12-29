@@ -19,15 +19,13 @@ from pathlib import Path
 
 import pytest
 
-NOTEBOOKS_DIR = Path(__file__).parent.parent / "docs" / "notebooks"
-NOTEBOOKS = list(NOTEBOOKS_DIR.glob("*.ipynb"))
+from .notebooks_config import EXCLUDED_NOTEBOOKS, SLOW_NOTEBOOKS
 
-# Mark slow notebooks (>60 seconds execution time)
-SLOW_NOTEBOOKS = {
-    "helmholtz_pinn.ipynb",
-    "simulate_helmholtz_equation.ipynb",
-    "example_1_paper.ipynb",
-}
+NOTEBOOKS_DIR = Path(__file__).parent.parent / "docs" / "notebooks"
+NOTEBOOKS = [
+    nb for nb in NOTEBOOKS_DIR.glob("*.ipynb")
+    if nb.name not in EXCLUDED_NOTEBOOKS
+]
 
 
 def get_notebook_name(notebook_path):
@@ -72,10 +70,9 @@ def test_notebook_execution(notebook, tmp_path):
     print(f"{'='*60}")
     print(f"STDERR:\n{result.stderr}")
     print(f"{'='*60}")
-    pytest.fail(
-        f"Notebook {notebook.name} failed to execute.\n"
-        f"Return code: {result.returncode}\n"
-        f"See output above for details.")
+    pytest.fail(f"Notebook {notebook.name} failed to execute.\n"
+                f"Return code: {result.returncode}\n"
+                f"See output above for details.")
 
   # Verify output file was created
   assert output_path.exists(), f"Output notebook not created: {output_path}"
