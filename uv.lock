@@ -1057,7 +1057,7 @@ dev = [
     { name = "ipykernel", specifier = ">=6.31.0,<7.0.0" },
     { name = "isort", specifier = ">=5.13.2,<6.0.0" },
     { name = "jupyterlab", specifier = ">=4.5.1,<5.0.0" },
-    { name = "matplotlib", specifier = ">=3.10.8" },
+    { name = "matplotlib", specifier = ">=3.10.8,<4.0.0" },
     { name = "mkdocs-autorefs", specifier = ">=0.5.0,<0.6.0" },
     { name = "mkdocs-jupyter", specifier = ">=0.24.8,<0.25.0" },
     { name = "mkdocs-macros-plugin", specifier = ">=1.5.0,<2.0.0" },
@@ -1070,14 +1070,14 @@ dev = [
     { name = "nbformat", specifier = ">=5.10.4,<6.0.0" },
     { name = "nbval", specifier = ">=0.11.0,<0.12.0" },
     { name = "opencv-python", specifier = ">=4.12.0.88,<5.0.0" },
-    { name = "optax", specifier = ">=0.2.6" },
+    { name = "optax", specifier = ">=0.2.6,<0.3.0" },
     { name = "plumkdocs", specifier = ">=0.0.5,<0.1.0" },
     { name = "pre-commit", specifier = ">=3.8.0,<4.0.0" },
     { name = "pycln", specifier = ">=2.6.0,<3.0.0" },
     { name = "pymdown-extensions", specifier = ">=10.19.1,<11.0" },
     { name = "pytest", specifier = ">=7.4.4,<8.0.0" },
     { name = "python-kacl", specifier = ">=0.4.7,<0.5.0" },
-    { name = "tqdm", specifier = ">=4.67.1" },
+    { name = "tqdm", specifier = ">=4.67.1,<5.0.0" },
 ]
 
 [[package]]

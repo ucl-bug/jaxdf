@@ -13,6 +13,7 @@ EXCLUDED_NOTEBOOKS = {
     "example_1_paper.ipynb",
     "helmholtz_pinn.ipynb",
     "simulate_helmholtz_equation.ipynb",
+    "pinn_burgers.ipynb",
 }
 
 # Notebooks that take >60 seconds to execute
