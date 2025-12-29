@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout current branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Setup Python + uv environment
         uses: ./.github/actions/python-uv-env
@@ -54,7 +54,7 @@ jobs:
 
       - name: Upload executed notebook (artifact)
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: executed-notebooks
           path: /tmp/executed_current_*.ipynb
@@ -65,18 +65,18 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout base branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.base_ref }}
           path: base
 
       - name: Checkout PR branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: current
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@6
         with:
           python-version: '3.11'
 
