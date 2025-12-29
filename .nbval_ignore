@@ -1,0 +1,30 @@
+# .nbval_ignore - Regex patterns for sanitizing notebook outputs
+# Format: INI-style sections with regex and replace lines
+
+[regex1]
+regex: 0x[0-9a-fA-F]+
+replace: 0xADDRESS
+
+[regex2]
+regex: <matplotlib\..*at 0x[0-9a-fA-F]+>
+replace: <matplotlib.OBJECT at 0xADDRESS>
+
+[regex3]
+regex: \d+\.\d{8,}
+replace: FLOAT
+
+[regex4]
+regex: \d{4}-\d{2}-\d{2}
+replace: DATE-STAMP
+
+[regex5]
+regex: \d{2}:\d{2}:\d{2}
+replace: TIME-STAMP
+
+[regex6]
+regex: \d+\.?\d*e[+-]?\d+
+replace: SCIENTIFIC
+
+[regex7]
+regex: DeviceArray
+replace: Array

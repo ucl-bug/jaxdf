@@ -105,9 +105,7 @@ def test_override_operator_new_discretization(get_ongrid_fields):
   z_old = z.params
 
   class MyDiscr(OnGrid):
-
-    def __init__(self, *args, **kwargs):
-      super().__init__(*args, **kwargs)
+    pass
 
   @operator
   def compose(x: MyDiscr, *, params=None):

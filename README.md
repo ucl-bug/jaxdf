@@ -72,8 +72,8 @@ pip install jaxdf
 
 For development purposes, install `jaxdf` by either cloning the repository or downloading and extracting the compressed archive. Afterward, navigate to the root folder in a terminal, and execute the following command:
 ```bash
-pip install --upgrade poetry
-poetry install
+pip install --upgrade uv
+uv sync
 ```
 This will install the dependencies and the package itself (in editable mode).
 

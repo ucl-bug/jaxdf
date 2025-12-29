@@ -1,5 +1,5 @@
 import warnings
-from typing import Callable, TypeVar
+from typing import Callable
 
 import equinox as eqx
 from equinox import tree_equal
@@ -10,8 +10,6 @@ from jaxtyping import PyTree
 
 from jaxdf.core import Field
 from jaxdf.geometry import Domain
-
-PyTree = TypeVar("PyTree")
 
 
 class Linear(Field):
@@ -74,7 +72,7 @@ class Continuous(Field):
         Returns:
           Continuous: A continuous discretization with the new parameters.
         """
-    return self.__class__(new_params, self.domain, self.get_field)
+    return self.__class__(new_params, self.domain, self.get_fun)
 
   def update_fun_and_params(
       self,
@@ -148,7 +146,7 @@ class Continuous(Field):
 
 class OnGrid(Linear):
 
-  def __check_init__(self):
+  def __post_init__(self):
     # Check if the number of dimensions of the parameters is correct, fix if needed
     if len(self.params.shape) == len(self.domain.N):
       # If only the last one is missing, add it
@@ -158,7 +156,9 @@ class OnGrid(Linear):
 
     if self.params.shape == self.domain.N:
       raise ValueError(
-          f"The number of dimensions of the parameters is incorrect. It should be the number of dimensions of the domain plus at least one more. The parameters have shape {self.params.shape} and the domain has shape {self.domain.N}"
+          f"The number of dimensions of the parameters is incorrect. "
+          f"It should be the number of dimensions of the domain plus at least one more. "
+          f"The parameters have shape {self.params.shape} and the domain has shape {self.domain.N}"
       )
 
   def add_dim(self):

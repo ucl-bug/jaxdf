@@ -8,9 +8,6 @@
 site/*
 build/*
 
-# poetry
-poetry.lock
-
 # Testing
 .coverage
 coverage.xml

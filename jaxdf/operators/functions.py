@@ -5,8 +5,12 @@ from jax import numpy as jnp
 
 from jaxdf.conv import reflection_conv
 from jaxdf.core import operator
-from jaxdf.discretization import (Continuous, FiniteDifferences, FourierSeries,
-                                  OnGrid)
+from jaxdf.discretization import (
+    Continuous,
+    FiniteDifferences,
+    FourierSeries,
+    OnGrid,
+)
 from jaxdf.operators.differential import get_fd_coefficients
 
 
@@ -235,7 +239,7 @@ def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
   for ax in range(x.domain.ndim):
     new_params = new_params.at[..., ax].set(single_grad(ax, x.params[..., ax]))
 
-  return FourierSeries(new_params, x.domain), params
+  return FourierSeries(new_params, x.domain)
 
 
 # sum_over_dims
@@ -253,17 +257,3 @@ def sum_over_dims(x: Continuous, *, params=None):
 def sum_over_dims(x: OnGrid, *, params=None):
   new_params = jnp.sum(x.params, axis=-1, keepdims=True)
   return x.replace_params(new_params)
-
-
-if __name__ == "__main__":
-  from jaxdf.util import _get_implemented
-
-  print(compose.__name__)
-  print(compose.__doc__)
-  funcs = [compose, sum_over_dims]
-
-  print("functions.py:")
-  print("----------------")
-  for f in funcs:
-    _get_implemented(f)
-  print("\n")

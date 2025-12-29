@@ -1,0 +1,188 @@
+# Notebook Regression Tests
+# Executes Jupyter notebooks to ensure they work with current codebase
+
+name: Notebook Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - '**.ipynb'
+      - 'pyproject.toml'
+  workflow_dispatch:  # Allow manual trigger
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Monday at midnight
+
+jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      notebooks: ${{ steps.get-notebooks.outputs.notebooks }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Get notebooks to test
+        id: get-notebooks
+        run: |
+          # Read excluded notebooks from config and generate matrix
+          python3 << 'EOF'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          # Import config
+          sys.path.insert(0, str(Path.cwd() / "tests"))
+          from notebooks_config import EXCLUDED_NOTEBOOKS
+
+          # Get all notebooks
+          notebooks_dir = Path("docs/notebooks")
+          all_notebooks = sorted([nb.name for nb in notebooks_dir.glob("*.ipynb")])
+
+          # Filter out excluded notebooks
+          included_notebooks = [
+              nb for nb in all_notebooks
+              if nb not in EXCLUDED_NOTEBOOKS
+          ]
+
+          # Output as JSON array for matrix
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"notebooks={json.dumps(included_notebooks)}\n")
+          EOF
+
+  test-notebooks:
+    runs-on: ubuntu-latest
+    needs: generate-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        notebook: ${{ fromJson(needs.generate-matrix.outputs.notebooks) }}
+
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v6
+
+      - name: Setup Python + uv environment
+        uses: ./.github/actions/python-uv-env
+
+      - name: Execute notebook (current branch)
+        id: execute_current
+        run: |
+          JAX_PLATFORMS=cpu uv run jupyter nbconvert \
+            --to notebook \
+            --execute \
+            --ExecutePreprocessor.timeout=600 \
+            --ExecutePreprocessor.kernel_name=python3 \
+            --output /tmp/executed_current_${{ matrix.notebook }} \
+            docs/notebooks/${{ matrix.notebook }}
+        continue-on-error: true
+
+      - name: Check execution result
+        if: steps.execute_current.outcome == 'failure'
+        run: |
+          echo "::error::Notebook ${{ matrix.notebook }} failed to execute on current branch"
+          exit 1
+
+      - name: Upload executed notebook (artifact)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: executed-notebook-${{ matrix.notebook }}
+          path: /tmp/executed_current_${{ matrix.notebook }}
+          retention-days: 7
+
+  regression-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python + uv environment
+        uses: ./.github/actions/python-uv-env
+
+      - name: Run nbval regression tests
+        run: |
+          JAX_PLATFORMS=cpu uv run pytest \
+            docs/notebooks/api_discretization.ipynb \
+            docs/notebooks/quickstart.ipynb \
+            --nbval \
+            --nbval-sanitize-with=.nbval_ignore \
+            -v
+        continue-on-error: false
+
+      - name: Report results
+        if: failure()
+        run: |
+          echo "::error::Notebook output regression test failed. Outputs have changed unexpectedly."
+          echo "If this is intentional, update the notebook outputs with: ./scripts/update_notebook_outputs.sh"
+
+  compare-with-base:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          path: current
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: |
+          pip install uv
+
+      - name: Test notebooks on base branch
+        uses: ./base/.github/actions/test-notebooks
+        with:
+          working-directory: base
+          output-prefix: base_
+          failure-log: /tmp/base_failures.txt
+        continue-on-error: true
+
+      - name: Test notebooks on PR branch
+        uses: ./current/.github/actions/test-notebooks
+        with:
+          working-directory: current
+          output-prefix: pr_
+          failure-log: /tmp/pr_failures.txt
+        continue-on-error: true
+
+      - name: Compare results
+        run: |
+          echo "## Notebook Comparison Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f /tmp/base_failures.txt ]; then
+            echo "### ❌ Failed on base branch:" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/base_failures.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ All notebooks passed on base branch" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f /tmp/pr_failures.txt ]; then
+            echo "### ❌ Failed on PR branch:" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/pr_failures.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ All notebooks passed on PR branch" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Fail if PR introduces new failures
+          if [ -f /tmp/pr_failures.txt ] && [ ! -f /tmp/base_failures.txt ]; then
+            echo "::error::PR introduces notebook failures that weren't present in base branch"
+            exit 1
+          fi
