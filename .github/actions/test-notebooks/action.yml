@@ -1,0 +1,53 @@
+name: 'Test Notebooks'
+description: 'Execute notebooks and report failures'
+
+inputs:
+  working-directory:
+    required: true
+    description: 'Directory containing the jaxdf repository'
+  output-prefix:
+    required: true
+    description: 'Prefix for output files (e.g., "base_" or "pr_")'
+  failure-log:
+    required: true
+    description: 'Path to failure log file'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install uv
+      run: pip install uv
+      shell: bash
+
+    - name: Test notebooks
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        uv sync --all-groups
+
+        # Get excluded notebooks from config
+        EXCLUDED=$(python3 -c "
+        import sys
+        sys.path.insert(0, 'tests')
+        from notebooks_config import EXCLUDED_NOTEBOOKS
+        print(' '.join(EXCLUDED_NOTEBOOKS))
+        ")
+
+        for notebook in docs/notebooks/*.ipynb; do
+          basename_nb=$(basename $notebook)
+
+          # Skip excluded notebooks
+          if echo "$EXCLUDED" | grep -q "$basename_nb"; then
+            echo "Skipping $basename_nb (excluded from tests)"
+            continue
+          fi
+
+          echo "Testing $basename_nb..."
+          JAX_PLATFORMS=cpu uv run jupyter nbconvert \
+            --to notebook \
+            --execute \
+            --ExecutePreprocessor.timeout=600 \
+            --ExecutePreprocessor.kernel_name=python3 \
+            --output /tmp/${{ inputs.output-prefix }}$basename_nb \
+            "$notebook" || echo "FAILED: $basename_nb" >> ${{ inputs.failure-log }}
+        done

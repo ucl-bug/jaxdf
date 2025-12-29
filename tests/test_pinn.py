@@ -53,12 +53,6 @@ def domain_2d_spacetime():
   return Domain((32, 64), (0.1, 0.01))    # [space, time]
 
 
-@pytest.fixture
-def seed():
-  """Random seed for reproducibility."""
-  return random.PRNGKey(42)
-
-
 # Tests
 def test_continuous_field_with_neural_network(domain_2d, seed):
   """Test Continuous discretization with NN get_fun."""

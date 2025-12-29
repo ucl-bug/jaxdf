@@ -5,13 +5,9 @@
 
 set -e
 
-NOTEBOOKS_DIR="docs/notebooks"
-
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+# Get script directory and source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/notebook_common.sh"
 
 echo -e "${YELLOW}================================================${NC}"
 echo -e "${YELLOW}Notebook Output Update Tool${NC}"
@@ -34,13 +30,7 @@ update_notebook() {
     echo "  Created backup: ${notebook}.backup"
 
     # Execute and update in place
-    if JAX_PLATFORMS=cpu jupyter nbconvert \
-        --to notebook \
-        --execute \
-        --inplace \
-        --ExecutePreprocessor.timeout=600 \
-        --ExecutePreprocessor.kernel_name=python3 \
-        "$notebook" 2>&1 | grep -v "^$"; then
+    if run_nbconvert "$notebook" "$notebook" --inplace 2>&1 | grep -v "^$"; then
         echo -e "${GREEN}✓ Updated: $basename${NC}"
         rm "${notebook}.backup"
         echo "  Removed backup"
@@ -78,12 +68,7 @@ if [ $# -eq 0 ]; then
         fi
     done
 
-    echo "=================================="
-    echo "Summary:"
-    echo "  Total: $total"
-    echo "  Updated: $((total - failed))"
-    echo "  Failed: $failed"
-    echo "=================================="
+    print_summary $total $failed
     echo ""
     echo -e "${YELLOW}Important: Review the changes before committing!${NC}"
     echo "Run: git diff docs/notebooks/"
@@ -93,15 +78,11 @@ if [ $# -eq 0 ]; then
     fi
 else
     # Update specific notebook
-    notebook="$NOTEBOOKS_DIR/$1"
-    if [ ! -f "$notebook" ]; then
-        notebook="$1"
-        if [ ! -f "$notebook" ]; then
-            echo -e "${RED}Error: Notebook not found: $1${NC}"
-            echo "Available notebooks:"
-            ls -1 "$NOTEBOOKS_DIR"/*.ipynb
-            exit 1
-        fi
+    notebook=$(resolve_notebook_path "$1")
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error: Notebook not found: $1${NC}"
+        list_notebooks
+        exit 1
     fi
 
     update_notebook "$notebook"

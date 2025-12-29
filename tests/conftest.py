@@ -1,8 +1,16 @@
 import sys
 
 import pytest
+from jax import random
 
 from tests.notebooks_config import EXCLUDED_NOTEBOOKS
+
+
+# Shared random seed fixture for reproducible tests
+@pytest.fixture
+def seed():
+  """Random seed for reproducibility."""
+  return random.PRNGKey(42)
 
 
 # each test runs on cwd to its temp dir

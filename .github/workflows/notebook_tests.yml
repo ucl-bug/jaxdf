@@ -145,69 +145,19 @@ jobs:
           pip install uv
 
       - name: Test notebooks on base branch
-        id: base_test
-        run: |
-          cd base
-          uv sync --all-groups
-
-          # Get excluded notebooks from config
-          EXCLUDED=$(python3 -c "
-          import sys
-          sys.path.insert(0, 'tests')
-          from notebooks_config import EXCLUDED_NOTEBOOKS
-          print(' '.join(EXCLUDED_NOTEBOOKS))
-          ")
-
-          for notebook in docs/notebooks/*.ipynb; do
-            basename_nb=$(basename $notebook)
-
-            # Skip excluded notebooks
-            if echo "$EXCLUDED" | grep -q "$basename_nb"; then
-              echo "Skipping $basename_nb (excluded from tests)"
-              continue
-            fi
-
-            echo "Testing $basename_nb on base branch..."
-            JAX_PLATFORMS=cpu uv run jupyter nbconvert \
-              --to notebook \
-              --execute \
-              --ExecutePreprocessor.timeout=600 \
-              --output /tmp/base_$basename_nb \
-              "$notebook" || echo "FAILED: $basename_nb" >> /tmp/base_failures.txt
-          done
+        uses: ./base/.github/actions/test-notebooks
+        with:
+          working-directory: base
+          output-prefix: base_
+          failure-log: /tmp/base_failures.txt
         continue-on-error: true
 
       - name: Test notebooks on PR branch
-        id: pr_test
-        run: |
-          cd current
-          uv sync --all-groups
-
-          # Get excluded notebooks from config
-          EXCLUDED=$(python3 -c "
-          import sys
-          sys.path.insert(0, 'tests')
-          from notebooks_config import EXCLUDED_NOTEBOOKS
-          print(' '.join(EXCLUDED_NOTEBOOKS))
-          ")
-
-          for notebook in docs/notebooks/*.ipynb; do
-            basename_nb=$(basename $notebook)
-
-            # Skip excluded notebooks
-            if echo "$EXCLUDED" | grep -q "$basename_nb"; then
-              echo "Skipping $basename_nb (excluded from tests)"
-              continue
-            fi
-
-            echo "Testing $basename_nb on PR branch..."
-            JAX_PLATFORMS=cpu uv run jupyter nbconvert \
-              --to notebook \
-              --execute \
-              --ExecutePreprocessor.timeout=600 \
-              --output /tmp/pr_$basename_nb \
-              "$notebook" || echo "FAILED: $basename_nb" >> /tmp/pr_failures.txt
-          done
+        uses: ./current/.github/actions/test-notebooks
+        with:
+          working-directory: current
+          output-prefix: pr_
+          failure-log: /tmp/pr_failures.txt
         continue-on-error: true
 
       - name: Compare results

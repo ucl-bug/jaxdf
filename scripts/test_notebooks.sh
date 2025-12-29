@@ -5,14 +5,11 @@
 
 set -e
 
-NOTEBOOKS_DIR="docs/notebooks"
-OUTPUT_DIR="/tmp/jaxdf_notebook_tests"
+# Get script directory and source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/notebook_common.sh"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+OUTPUT_DIR="/tmp/jaxdf_notebook_tests"
 
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
@@ -24,13 +21,7 @@ test_notebook() {
 
     echo -e "${YELLOW}Testing: $basename${NC}"
 
-    if JAX_PLATFORMS=cpu jupyter nbconvert \
-        --to notebook \
-        --execute \
-        --ExecutePreprocessor.timeout=600 \
-        --ExecutePreprocessor.kernel_name=python3 \
-        --output "$OUTPUT_DIR/$basename" \
-        "$notebook" 2>&1 | tee "$OUTPUT_DIR/${basename}.log"; then
+    if run_nbconvert "$notebook" "$OUTPUT_DIR/$basename" 2>&1 | tee "$OUTPUT_DIR/${basename}.log"; then
         echo -e "${GREEN}✓ PASSED: $basename${NC}"
         return 0
     else
@@ -61,28 +52,18 @@ if [ $# -eq 0 ]; then
     done
 
     # Summary
-    echo "=================================="
-    echo "Summary:"
-    echo "  Total: $total"
-    echo "  Passed: $((total - failed))"
-    echo "  Failed: $failed"
-    echo "=================================="
+    print_summary $total $failed
 
     if [ $failed -gt 0 ]; then
         exit 1
     fi
 else
     # Test specific notebook
-    notebook="$NOTEBOOKS_DIR/$1"
-    if [ ! -f "$notebook" ]; then
-        # Try without directory prefix
-        notebook="$1"
-        if [ ! -f "$notebook" ]; then
-            echo -e "${RED}Error: Notebook not found: $1${NC}"
-            echo "Available notebooks:"
-            ls -1 "$NOTEBOOKS_DIR"/*.ipynb
-            exit 1
-        fi
+    notebook=$(resolve_notebook_path "$1")
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error: Notebook not found: $1${NC}"
+        list_notebooks
+        exit 1
     fi
 
     test_notebook "$notebook"

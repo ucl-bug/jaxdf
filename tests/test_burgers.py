@@ -7,7 +7,6 @@ for Burgers equation patterns with PINNs.
 import jax
 import jax.numpy as jnp
 import pytest
-from jax import random
 from jax.example_libraries import stax
 
 from jaxdf.discretization import Continuous
@@ -56,12 +55,6 @@ def burgers_operator(u, nu=0.01 / jnp.pi):
 def spacetime_domain():
   """Space-time domain for Burgers equation."""
   return Domain((32, 64), (0.1, 0.01))    # [space, time]
-
-
-@pytest.fixture
-def seed():
-  """Random seed for reproducibility."""
-  return random.PRNGKey(42)
 
 
 # Tests
