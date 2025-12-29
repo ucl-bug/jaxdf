@@ -31,8 +31,8 @@ jobs:
       - name: Checkout current branch
         uses: actions/checkout@v3
 
-      - name: Setup Python + Poetry environment
-        uses: ./.github/actions/python-poetry-env
+      - name: Setup Python + uv environment
+        uses: ./.github/actions/python-uv-env
 
       - name: Install notebook dependencies
         run: |
@@ -86,13 +86,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install nbconvert nbformat ipykernel poetry
+          pip install nbconvert nbformat ipykernel uv
 
       - name: Test notebooks on base branch
         id: base_test
         run: |
           cd base
-          poetry install
+          uv sync
           for notebook in docs/notebooks/*.ipynb; do
             echo "Testing $(basename $notebook) on base branch..."
             JAX_PLATFORMS=cpu jupyter nbconvert \
@@ -108,7 +108,7 @@ jobs:
         id: pr_test
         run: |
           cd current
-          poetry install
+          uv sync
           for notebook in docs/notebooks/*.ipynb; do
             echo "Testing $(basename $notebook) on PR branch..."
             JAX_PLATFORMS=cpu jupyter nbconvert \

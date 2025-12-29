@@ -19,21 +19,28 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - uses: ./.github/actions/python-poetry-env
+      - uses: ./.github/actions/python-uv-env
       - name: Update version
         id: updated_version
         shell: bash
         run: |
-          poetry version ${{ github.event.inputs.version }}
-          version=$(poetry version --short)
+          version_input="${{ github.event.inputs.version }}"
+          if [[ "$version_input" =~ ^(patch|minor|major|prepatch|preminor|premajor|prerelease)$ ]]; then
+            # It's a bump rule
+            uv run bump-my-version bump "$version_input"
+          else
+            # It's a specific version number
+            uv run bump-my-version bump patch --new-version "$version_input"
+          fi
+          version=$(uv run bump-my-version show current_version 2>/dev/null)
           echo ::set-output name="version::$version"
       - name: Update changelog
         id: changelog
         shell: bash
         run: |
-          poetry run kacl-cli release ${{ steps.updated_version.outputs.version }} --modify --auto-link
+          uv run kacl-cli release ${{ steps.updated_version.outputs.version }} --modify --auto-link
           echo "" >> CHANGELOG.md
-          body=$(poetry run kacl-cli get ${{ steps.updated_version.outputs.version }})
+          body=$(uv run kacl-cli get ${{ steps.updated_version.outputs.version }})
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
@@ -41,7 +48,7 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
         with:
-          add: 'CHANGELOG.md pyproject.toml'
+          add: 'CHANGELOG.md jaxdf/__init__.py pyproject.toml'
           message: 'Release ${{ steps.updated_version.outputs.version }}'
       - name: Create tag
         run: |

@@ -13,8 +13,8 @@ Next, clone and install the library in development mode:
 ```bash
 git clone git@github.com:YOUR_GIT_USERNAME/jaxdf.git
 cd jaxdf
-pip install poetry
-poetry install
+pip install uv
+uv sync
 ```
 
 After that, install the pre-commit hooks:
