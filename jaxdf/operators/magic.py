@@ -256,23 +256,3 @@ def __truediv__(x: Linear, y, *, params=None):
 def inverse(x: OnGrid, *, params=None):
   new_params = tree.map(lambda x: 1 / x, x.params)
   return x.replace_params(new_params)
-
-
-"""
-if __name__ == "__main__":
-
-    from jaxdf.util import _get_implemented
-
-    magic = [
-      __add__, __bool__, __divmod__,
-      __mul__, __neg__, __pow__, __radd__,
-      __rmul__, __rpow__, __rsub__, __rtruediv__,
-      __sub__, __truediv__, inverse
-    ]
-
-    print('magic.py:')
-    print('----------------')
-    for f in magic:
-      _get_implemented(f)
-    print('\n')
-"""

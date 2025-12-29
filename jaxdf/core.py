@@ -9,8 +9,12 @@ from warnings import warn
 from jaxtyping import PyTree
 from plum import Dispatcher
 
-from jaxdf.signatures import (SignatureError, add_defaults,
-                              check_eval_init_signatures, check_fun_has_params)
+from jaxdf.signatures import (
+    SignatureError,
+    add_defaults,
+    check_eval_init_signatures,
+    check_fun_has_params,
+)
 
 from .geometry import Domain
 from .logger import logger, set_logging_level
@@ -206,7 +210,7 @@ r"""Decorator for defining operators using multiple dispatch. The type annotatio
 
 def discretization(cls):
   warn(
-      "jaxdf.discretization is deprecated since the discretization API has been moved to equinox. You don't need this decorator anymore. It iwll now simply act as a pass-through.",
+      "jaxdf.discretization is deprecated since the discretization API has been moved to equinox. You don't need this decorator anymore. It will now simply act as a pass-through.",
       DeprecationWarning)
   return cls
 

@@ -511,19 +511,3 @@ def heterog_laplacian(x: FourierSeries,
       keepdims=True,
   )
   return FourierSeries(new_params, x.domain)
-
-
-if __name__ == "__main__":
-    """# Gets implemented functions
-    from jaxdf.util import _get_implemented
-
-    funcs = [
-      derivative, diag_jacobian, gradient, laplacian,
-    ]
-
-    print('differential.py:')
-    print('----------------')
-    for f in funcs:
-      _get_implemented(f)
-    print('\n')
-    """
