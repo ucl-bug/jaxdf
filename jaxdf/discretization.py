@@ -74,7 +74,7 @@ class Continuous(Field):
         Returns:
           Continuous: A continuous discretization with the new parameters.
         """
-    return self.__class__(new_params, self.domain, self.get_field)
+    return self.__class__(new_params, self.domain, self.get_fun)
 
   def update_fun_and_params(
       self,

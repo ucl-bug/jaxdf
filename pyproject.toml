@@ -50,10 +50,10 @@ packages = [
 "Support" = "https://discord.gg/VtUb4fFznt"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-plum-dispatch = "^2.5.2"
-jax = "^0.4.20"
-equinox = "^0.11.2"
+python = "^3.11"
+plum-dispatch = "^2.6.0"
+jax = "^0.8.0"
+equinox = "^0.13.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.3.2"
