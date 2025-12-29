@@ -3,7 +3,7 @@ This file contains the operators that are
 bind with the magic functions of fields
 """
 from equinox.internal._omega import _Metaω, ω
-from jax.tree_util import tree_map
+from jax import tree
 from jax.typing import ArrayLike
 
 from jaxdf.core import operator
@@ -13,13 +13,13 @@ from jaxdf.discretization import Continuous, Field, Linear, OnGrid
 # __add__
 @operator    # type: ignore
 def __add__(x: Linear, y: Linear, *, params=None):
-  new_params = tree_map(lambda x, y: x + y, x.params, y.params)
+  new_params = tree.map(lambda x, y: x + y, x.params, y.params)
   return x.replace_params(new_params)
 
 
 @operator(precedence=-1)    # type: ignore
 def __add__(x: OnGrid, y: ArrayLike, *, params=None):
-  new_params = tree_map(lambda x: x + y, x.params)
+  new_params = tree.map(lambda x: x + y, x.params)
   return x.replace_params(new_params)
 
 
@@ -47,20 +47,20 @@ def __add__(x: Continuous, y: ArrayLike, *, params=None):
 # __bool__
 @operator    # type: ignore
 def __bool__(x: OnGrid, *, params=None):
-  new_params = tree_map(lambda x: bool(x), x.params)
+  new_params = tree.map(lambda x: bool(x), x.params)
   return x.replace_params(new_params)
 
 
 # __mul__
 @operator    # type: ignore
 def __mul__(x: OnGrid, y: OnGrid, *, params=None):
-  new_params = tree_map(lambda x, y: x * y, x.params, y.params)
+  new_params = tree.map(lambda x, y: x * y, x.params, y.params)
   return x.replace_params(new_params)
 
 
 @operator(precedence=-1)    # type: ignore
 def __mul__(x: Linear, y, *, params=None):
-  new_params = tree_map(lambda x: x * y, x.params)
+  new_params = tree.map(lambda x: x * y, x.params)
   return x.replace_params(new_params)
 
 
@@ -88,7 +88,7 @@ def __mul__(x: Continuous, y, *, params=None):
 # __neg__
 @operator    # type: ignore
 def __neg__(x: Linear, *, params=None):
-  new_params = tree_map(lambda x: -x, x.params)
+  new_params = tree.map(lambda x: -x, x.params)
   return x.replace_params(new_params)
 
 
@@ -105,13 +105,13 @@ def __neg__(x: Continuous, *, params=None):
 # __pow__
 @operator    # type: ignore
 def __pow__(x: OnGrid, y: OnGrid, *, params=None):
-  new_params = tree_map(lambda x, y: x**y, x.params, y.params)
+  new_params = tree.map(lambda x, y: x**y, x.params, y.params)
   return x.replace_params(new_params)
 
 
 @operator(precedence=-1)    # type: ignore
 def __pow__(x: OnGrid, y: ArrayLike, *, params=None):
-  new_params = tree_map(lambda x: x**y, x.params)
+  new_params = tree.map(lambda x: x**y, x.params)
   return x.replace_params(new_params)
 
 
@@ -157,7 +157,7 @@ def __rmul__(x: Field, y: ArrayLike, *, params=None):
 # __rpow__
 @operator(precedence=-1)    # type: ignore
 def __rpow__(x: OnGrid, y: ArrayLike, *, params=None):
-  new_params = tree_map(lambda x: y**x, x.params)
+  new_params = tree.map(lambda x: y**x, x.params)
   return x.replace_params(new_params)
 
 
@@ -170,7 +170,7 @@ def __rsub__(x: Field, y: ArrayLike, *, params=None):
 # __rtruediv__
 @operator    # type: ignore
 def __rtruediv__(x: OnGrid, y: ArrayLike, *, params=None):
-  new_params = tree_map(lambda x: y / x, x.params)
+  new_params = tree.map(lambda x: y / x, x.params)
   return x.replace_params(new_params)
 
 
@@ -186,13 +186,13 @@ def __rtruediv__(x: Continuous, y: ArrayLike, *, params=None):
 # __sub__
 @operator    # type: ignore
 def __sub__(x: Linear, y: Linear, *, params=None):
-  new_params = tree_map(lambda x, y: x - y, x.params, y.params)
+  new_params = tree.map(lambda x, y: x - y, x.params, y.params)
   return x.replace_params(new_params)
 
 
 @operator(precedence=-1)    # type: ignore
 def __sub__(x: OnGrid, y: ArrayLike, *, params=None):
-  new_params = tree_map(lambda x: x - y, x.params)
+  new_params = tree.map(lambda x: x - y, x.params)
   return x.replace_params(new_params)
 
 
@@ -241,20 +241,20 @@ def __truediv__(x: Continuous, y: ArrayLike, *, params=None):
 
 @operator    # type: ignore
 def __truediv__(x: OnGrid, y: OnGrid, *, params=None):
-  new_params = tree_map(lambda x, y: x / y, x.params, y.params)
+  new_params = tree.map(lambda x, y: x / y, x.params, y.params)
   return x.replace_params(new_params)
 
 
 @operator(precedence=-1)    # type: ignore
 def __truediv__(x: Linear, y, *, params=None):
-  new_params = tree_map(lambda x: x / y, x.params)
+  new_params = tree.map(lambda x: x / y, x.params)
   return x.replace_params(new_params)
 
 
 # inverse
 @operator    # type: ignore
 def inverse(x: OnGrid, *, params=None):
-  new_params = tree_map(lambda x: 1 / x, x.params)
+  new_params = tree.map(lambda x: 1 / x, x.params)
   return x.replace_params(new_params)
 
 
