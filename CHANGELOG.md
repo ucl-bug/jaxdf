@@ -5,11 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- Added comprehensive notebook development guidelines in `docs/notebooks/README.md`
+
 ### Changed
 - **Breaking**: Minimum Python version increased to 3.11 (from 3.9)
+- **Breaking**: Migrated build system from Poetry to uv for faster dependency management
 - Updated JAX dependency to 0.8.x (from 0.4.x) for compatibility with latest features
 - Updated Equinox dependency to 0.13.x (from 0.11.x)
 - Updated plum-dispatch dependency to 2.6.x (from 2.5.x)
+
+### Removed
+- Removed Makefile in favor of direct uv commands
 
 ### Fixed
 - Fixed bug in `Continuous.replace_params` where deprecated `self.get_field` was used instead of `self.get_fun`
@@ -83,4 +90,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [0.2.7]: https://github.com/ucl-bug/jaxdf/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/ucl-bug/jaxdf/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/ucl-bug/jaxdf/tree/0.2.5
-
