@@ -1,0 +1,148 @@
+# Notebook Regression Tests
+# Executes Jupyter notebooks to ensure they work with current codebase
+
+name: Notebook Tests
+
+on:
+  pull_request:
+    paths:
+      - '**.py'
+      - '**.ipynb'
+      - 'pyproject.toml'
+  workflow_dispatch:  # Allow manual trigger
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Monday at midnight
+
+jobs:
+  test-notebooks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        notebook:
+          - api_discretization.ipynb
+          - example_1_paper.ipynb
+          - helmholtz_pinn.ipynb
+          - pinn_burgers.ipynb
+          - quickstart.ipynb
+          - simulate_helmholtz_equation.ipynb
+
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v3
+
+      - name: Setup Python + Poetry environment
+        uses: ./.github/actions/python-poetry-env
+
+      - name: Install notebook dependencies
+        run: |
+          pip install nbconvert nbformat ipykernel
+
+      - name: Execute notebook (current branch)
+        id: execute_current
+        run: |
+          JAX_PLATFORMS=cpu jupyter nbconvert \
+            --to notebook \
+            --execute \
+            --ExecutePreprocessor.timeout=600 \
+            --ExecutePreprocessor.kernel_name=python3 \
+            --output /tmp/executed_current_${{ matrix.notebook }} \
+            docs/notebooks/${{ matrix.notebook }}
+        continue-on-error: true
+
+      - name: Check execution result
+        if: steps.execute_current.outcome == 'failure'
+        run: |
+          echo "::error::Notebook ${{ matrix.notebook }} failed to execute on current branch"
+          exit 1
+
+      - name: Upload executed notebook (artifact)
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: executed-notebooks
+          path: /tmp/executed_current_*.ipynb
+          retention-days: 7
+
+  compare-with-base:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v3
+        with:
+          path: current
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install nbconvert nbformat ipykernel poetry
+
+      - name: Test notebooks on base branch
+        id: base_test
+        run: |
+          cd base
+          poetry install
+          for notebook in docs/notebooks/*.ipynb; do
+            echo "Testing $(basename $notebook) on base branch..."
+            JAX_PLATFORMS=cpu jupyter nbconvert \
+              --to notebook \
+              --execute \
+              --ExecutePreprocessor.timeout=600 \
+              --output /tmp/base_$(basename $notebook) \
+              "$notebook" || echo "FAILED: $(basename $notebook)" >> /tmp/base_failures.txt
+          done
+        continue-on-error: true
+
+      - name: Test notebooks on PR branch
+        id: pr_test
+        run: |
+          cd current
+          poetry install
+          for notebook in docs/notebooks/*.ipynb; do
+            echo "Testing $(basename $notebook) on PR branch..."
+            JAX_PLATFORMS=cpu jupyter nbconvert \
+              --to notebook \
+              --execute \
+              --ExecutePreprocessor.timeout=600 \
+              --output /tmp/pr_$(basename $notebook) \
+              "$notebook" || echo "FAILED: $(basename $notebook)" >> /tmp/pr_failures.txt
+          done
+        continue-on-error: true
+
+      - name: Compare results
+        run: |
+          echo "## Notebook Comparison Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f /tmp/base_failures.txt ]; then
+            echo "### ❌ Failed on base branch:" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/base_failures.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ All notebooks passed on base branch" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f /tmp/pr_failures.txt ]; then
+            echo "### ❌ Failed on PR branch:" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/pr_failures.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ All notebooks passed on PR branch" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Fail if PR introduces new failures
+          if [ -f /tmp/pr_failures.txt ] && [ ! -f /tmp/base_failures.txt ]; then
+            echo "::error::PR introduces notebook failures that weren't present in base branch"
+            exit 1
+          fi

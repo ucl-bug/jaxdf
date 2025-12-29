@@ -36,6 +36,12 @@ After making your changes, verify that all tests pass.
 coverage run --source=jaxdf -m pytest -xvs
 ```
 
+If you modified library code that affects the notebooks, test them too:
+
+```bash
+./scripts/test_notebooks.sh
+```
+
 Once you are satisfied with your changes, add an entry to the changelog using kacl-cli, for example:
 
 ```bash

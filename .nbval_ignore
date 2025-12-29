@@ -1,0 +1,45 @@
+# .nbval_ignore - Patterns to ignore in notebook output comparison
+# This helps reduce false positives from non-deterministic or environment-specific outputs
+
+# Timestamps and dates
+/\d{4}-\d{2}-\d{2}/
+/\d{2}:\d{2}:\d{2}/
+
+# Memory addresses
+/0x[0-9a-fA-F]+/
+
+# Floating point variations (small numerical differences)
+/\d+\.\d{10,}/
+
+# JAX/NumPy array output variations
+/DeviceArray/
+/Array/
+
+# Matplotlib/plotting artifacts
+/<Figure size/
+/<Axes:/
+/<matplotlib/
+
+# Progress bars and timing
+/\[.*\]/.*s
+/ETA:/
+/\d+it\/s/
+/\d+\.\d+s/
+
+# Python object representations
+/<.*object at 0x/
+/<function.*at 0x/
+
+# Warning messages that vary
+/UserWarning/
+/DeprecationWarning/
+/FutureWarning/
+
+# Jax platform info
+/Platform 'METAL'/
+/Platform 'CPU'/
+/Platform 'GPU'/
+
+# Random seeds and random state
+/RandomState/
+/PRNGKey/

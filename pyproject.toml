@@ -73,6 +73,10 @@ pymdown-extensions = "^10.4"
 pytest = "^7.4.0"
 plumkdocs = "^0.0.5"
 jupyterlab = "^4.0.9"
+nbconvert = "^7.16.0"
+nbformat = "^5.9.0"
+ipykernel = "^6.29.0"
+nbval = "^0.11.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -111,7 +115,13 @@ indent_width = 2
 [tool.pytest.ini_options]
 addopts = """\
     --doctest-modules \
+    --nbval-lax \
+    --nbval-sanitize-with=.nbval_ignore \
 """
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "nbval: marks tests that use nbval for output comparison"
+]
 
 [tool.coverage.report]
 exclude_lines = [
