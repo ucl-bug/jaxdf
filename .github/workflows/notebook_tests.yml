@@ -5,6 +5,8 @@ name: Notebook Tests
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - '**.py'
       - '**.ipynb'
@@ -37,7 +39,7 @@ jobs:
       - name: Execute notebook (current branch)
         id: execute_current
         run: |
-          JAX_PLATFORMS=cpu jupyter nbconvert \
+          JAX_PLATFORMS=cpu uv run jupyter nbconvert \
             --to notebook \
             --execute \
             --ExecutePreprocessor.timeout=600 \
@@ -76,7 +78,7 @@ jobs:
           path: current
 
       - name: Setup Python
-        uses: actions/setup-python@6
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -91,7 +93,7 @@ jobs:
           uv sync --all-groups
           for notebook in docs/notebooks/*.ipynb; do
             echo "Testing $(basename $notebook) on base branch..."
-            JAX_PLATFORMS=cpu jupyter nbconvert \
+            JAX_PLATFORMS=cpu uv run jupyter nbconvert \
               --to notebook \
               --execute \
               --ExecutePreprocessor.timeout=600 \
@@ -107,7 +109,7 @@ jobs:
           uv sync --all-groups
           for notebook in docs/notebooks/*.ipynb; do
             echo "Testing $(basename $notebook) on PR branch..."
-            JAX_PLATFORMS=cpu jupyter nbconvert \
+            JAX_PLATFORMS=cpu uv run jupyter nbconvert \
               --to notebook \
               --execute \
               --ExecutePreprocessor.timeout=600 \
