@@ -16,7 +16,7 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - uses: ./.github/actions/python-uv-env
@@ -26,11 +26,11 @@ jobs:
         run: |
           version_input="${{ github.event.inputs.version }}"
           if [[ "$version_input" =~ ^(patch|minor|major|prepatch|preminor|premajor|prerelease)$ ]]; then
-            # It's a bump rule
+            # It's a bump rule - bump the specified version part
             uv run bump-my-version bump "$version_input"
           else
-            # It's a specific version number
-            uv run bump-my-version bump patch --new-version "$version_input"
+            # It's a specific version number - set it explicitly
+            uv run bump-my-version bump --new-version "$version_input"
           fi
           # Read version directly from pyproject.toml for reliability
           version=$(grep -oP 'current_version = "\K[^"]+' pyproject.toml)

@@ -18,6 +18,20 @@ echo "Use this when you've made intentional changes to the library"
 echo "that affect notebook results."
 echo ""
 
+# Track current backup file for cleanup on interrupt
+CURRENT_BACKUP=""
+
+# Cleanup function to remove backup on interrupt
+cleanup_backup() {
+    if [ -n "$CURRENT_BACKUP" ] && [ -f "$CURRENT_BACKUP" ]; then
+        echo -e "\n${YELLOW}Cleaning up backup file: $CURRENT_BACKUP${NC}"
+        rm -f "$CURRENT_BACKUP"
+    fi
+}
+
+# Set trap to cleanup on exit/interrupt
+trap cleanup_backup EXIT INT TERM
+
 # Function to update a single notebook
 update_notebook() {
     local notebook=$1
@@ -25,20 +39,23 @@ update_notebook() {
 
     echo -e "${YELLOW}Updating: $basename${NC}"
 
-    # Create backup
-    cp "$notebook" "${notebook}.backup"
-    echo "  Created backup: ${notebook}.backup"
+    # Create backup and track it
+    CURRENT_BACKUP="${notebook}.backup"
+    cp "$notebook" "$CURRENT_BACKUP"
+    echo "  Created backup: $CURRENT_BACKUP"
 
     # Execute and update in place
     if run_nbconvert "$notebook" "$notebook" --inplace 2>&1 | grep -v "^$"; then
         echo -e "${GREEN}✓ Updated: $basename${NC}"
-        rm "${notebook}.backup"
+        rm "$CURRENT_BACKUP"
+        CURRENT_BACKUP=""  # Clear tracking since we successfully removed it
         echo "  Removed backup"
         return 0
     else
         echo -e "${RED}✗ Failed to update: $basename${NC}"
         echo "  Restoring from backup..."
-        mv "${notebook}.backup" "$notebook"
+        mv "$CURRENT_BACKUP" "$notebook"
+        CURRENT_BACKUP=""  # Clear tracking since we moved it back
         return 1
     fi
 }

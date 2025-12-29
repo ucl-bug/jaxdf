@@ -8,7 +8,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/python-uv-env
       - name: Publish to pypi
         run: uv publish --token ${{ secrets.PYPI_TOKEN }}
