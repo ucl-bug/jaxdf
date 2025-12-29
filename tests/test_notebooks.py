@@ -82,9 +82,8 @@ def test_notebook_execution(notebook, tmp_path, request):
 
 
 @pytest.mark.slow
-def test_all_notebooks_different_outputs():
-  """Verify that all notebooks produce different outputs (sanity check)."""
-  # This test ensures notebooks aren't just copies of each other
+def test_all_notebooks_unique_names():
+  """Verify that all notebook filenames are unique."""
   notebook_names = {nb.stem for nb in NOTEBOOKS}
   assert len(notebook_names) == len(
       NOTEBOOKS), "Duplicate notebook names found"

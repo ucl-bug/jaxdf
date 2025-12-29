@@ -7,7 +7,6 @@ to provide fast unit test coverage for PINN patterns.
 import jax
 import jax.numpy as jnp
 import pytest
-from jax import random
 from jax.example_libraries import stax
 
 from jaxdf.discretization import Continuous
@@ -106,11 +105,10 @@ def test_boundary_sampler(domain_2d, seed):
   assert jnp.sum(on_boundary) > 0, "Some samples should be on boundary"
 
 
-def test_boundary_sampler_1d():
+def test_boundary_sampler_1d(seed):
   """Test boundary sampler for 1D domain."""
   domain_1d = Domain((32, ), (1.0, ))
   sampler = domain_1d.boundary_sampler
-  seed = random.PRNGKey(0)
   batch_size = 64
 
   samples = sampler(seed, batch_size)
