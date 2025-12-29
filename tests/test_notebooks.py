@@ -4,13 +4,16 @@ Notebook regression tests using pytest.
 EXECUTION TESTS (default):
   pytest tests/test_notebooks.py -v
   - Checks notebooks run without errors
+  - Runs automatically in CI
 
 OUTPUT COMPARISON TESTS (nbval):
-  pytest tests/test_notebooks.py --nbval
+  pytest docs/notebooks/ --nbval
   - Compares cell outputs against stored values
+  - Runs automatically in CI on pull requests
   - Use after updating outputs: ./scripts/update_notebook_outputs.sh
 
 Run specific notebook: pytest tests/test_notebooks.py -k quickstart
+Test specific notebook with regression: pytest docs/notebooks/quickstart.ipynb --nbval
 Skip slow tests: pytest tests/test_notebooks.py -m "not slow"
 """
 import os
@@ -85,42 +88,3 @@ def test_all_notebooks_different_outputs():
   notebook_names = {nb.stem for nb in NOTEBOOKS}
   assert len(notebook_names) == len(
       NOTEBOOKS), "Duplicate notebook names found"
-
-
-# =============================================================================
-# OUTPUT COMPARISON TESTS (using nbval plugin)
-# =============================================================================
-# These tests compare notebook cell outputs against stored reference outputs
-# Run with: pytest tests/test_notebooks.py --nbval
-#
-# To update reference outputs after intentional changes:
-#   ./scripts/update_notebook_outputs.sh
-#
-# nbval configuration is in pyproject.toml [tool.pytest.ini_options]
-# =============================================================================
-
-
-@pytest.mark.nbval
-@pytest.mark.parametrize("notebook", NOTEBOOKS, ids=get_notebook_name)
-def test_notebook_output_regression(notebook, request):
-  """
-    Compare notebook outputs against reference values.
-
-    This test uses the nbval plugin to verify that notebook outputs
-    haven't changed unexpectedly. It's automatically run when pytest
-    is invoked with the --nbval flag.
-
-    To skip comparison for specific cells, add to the cell:
-        # SKIP_COMPARE
-
-    Or tag the cell with metadata: {"tags": ["nbval-skip"]}
-
-    To update outputs after intentional changes:
-        ./scripts/update_notebook_outputs.sh [notebook_name]
-    """
-  # Mark slow notebooks
-  if notebook.name in SLOW_NOTEBOOKS:
-    request.applymarker(pytest.mark.slow)
-
-  # nbval plugin handles the actual comparison automatically
-  # This test just provides the parametrization and documentation

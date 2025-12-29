@@ -94,6 +94,32 @@ jobs:
           path: /tmp/executed_current_${{ matrix.notebook }}
           retention-days: 7
 
+  regression-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python + uv environment
+        uses: ./.github/actions/python-uv-env
+
+      - name: Run nbval regression tests
+        run: |
+          JAX_PLATFORMS=cpu uv run pytest \
+            docs/notebooks/api_discretization.ipynb \
+            docs/notebooks/quickstart.ipynb \
+            --nbval \
+            --nbval-sanitize-with=.nbval_ignore \
+            -v
+        continue-on-error: false
+
+      - name: Report results
+        if: failure()
+        run: |
+          echo "::error::Notebook output regression test failed. Outputs have changed unexpectedly."
+          echo "If this is intentional, update the notebook outputs with: ./scripts/update_notebook_outputs.sh"
+
   compare-with-base:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
