@@ -2,7 +2,7 @@
 __version__ = "0.2.8"
 
 from jaxdf import conv, logger
-from jaxdf.core import constants, debug_config, discretization, operator
+from jaxdf.core import constants, operator
 # Import geometry elements
 from jaxdf.geometry import Domain
 from jaxdf.mods import Module
@@ -22,8 +22,6 @@ __all__ = [
     '__version__',
     'constants',
     'conv',
-    'discretization',
-    'debug_config',
     'geometry',
     'logger',
     'operator',
