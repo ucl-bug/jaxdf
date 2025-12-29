@@ -1,10 +1,7 @@
 import inspect
-import logging
 import types
-import warnings
 from functools import wraps
 from typing import Callable, Union
-from warnings import warn
 
 from jaxtyping import PyTree
 from plum import Dispatcher
@@ -17,32 +14,11 @@ from jaxdf.signatures import (
 )
 
 from .geometry import Domain
-from .logger import logger, set_logging_level
+from .logger import logger
 from .mods import Module
 
 # Initialize the dispatch table
 _jaxdf_dispatch = Dispatcher()
-
-
-# Configuration. This is just for backward compatibility
-class _DebugDict(dict):
-
-  def __setitem__(self, __key, __value):
-    if __key == "debug_dispatch":
-      warn(
-          "debug_dispatch is deprecated. Set the logger level to DEBUG instead.",
-          DeprecationWarning)
-      # Assuming you want to set the logger level based on this value
-      if __value:
-        set_logging_level(logging.DEBUG)
-      else:
-        set_logging_level(logging.INFO)
-      super().__setitem__(__key, __value)
-    else:
-      raise ValueError("Only debug_dispatch is supported for now")
-
-
-debug_config = _DebugDict()
 
 
 def _abstract_operator(evaluate):
@@ -208,13 +184,6 @@ r"""Decorator for defining operators using multiple dispatch. The type annotatio
     """
 
 
-def discretization(cls):
-  warn(
-      "jaxdf.discretization is deprecated since the discretization API has been moved to equinox. You don't need this decorator anymore. It will now simply act as a pass-through.",
-      DeprecationWarning)
-  return cls
-
-
 def constants(value) -> Callable:
   r"""This is a higher order function for defining constant parameters of
     operators, independent of the operator arguments.
@@ -284,14 +253,6 @@ class Field(Module):
           bool: Whether the field is complex.
         """
     raise NotImplementedError
-
-  @property
-  def is_field_complex(self) -> bool:
-    warnings.warn(
-        "Field.is_field_complex is deprecated. Use Field.is_complex instead.",
-        DeprecationWarning,
-    )
-    return self.is_complex
 
   @property
   def is_real(self) -> bool:

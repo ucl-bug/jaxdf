@@ -7,8 +7,8 @@ It's used by both pytest (tests/test_notebooks.py) and GitHub Actions
 """
 
 # Notebooks to exclude from all testing (pytest and CI)
-# These are computationally heavy notebooks that have unit tests
-# extracted to tests/test_notebook_examples.py instead
+# These are computationally heavy notebooks that are not
+# suitable for regular test runs.
 EXCLUDED_NOTEBOOKS = {
     "example_1_paper.ipynb",
     "helmholtz_pinn.ipynb",
