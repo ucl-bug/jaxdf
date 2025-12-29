@@ -88,13 +88,13 @@ split_before_logical_operator = true
 indent_width = 2
 
 [tool.pytest.ini_options]
-addopts = ""
+addopts = "--nbval-sanitize-with=.nbval_ignore"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "nbval: marks tests that use nbval for output comparison"
 ]
-# nbval options: use when running nbval tests explicitly
-# pytest --nbval-lax --nbval-sanitize-with=.nbval_ignore tests/test_notebooks.py
+# nbval options are now applied by default via addopts
+# You can also use: pytest --nbval-lax for less strict checking
 
 [tool.coverage.report]
 exclude_lines = [

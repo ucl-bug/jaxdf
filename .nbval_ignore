@@ -1,57 +1,30 @@
-# .nbval_ignore - Patterns to ignore in notebook output comparison
-# This helps reduce false positives from non-deterministic or environment-specific outputs
+# .nbval_ignore - Regex patterns for sanitizing notebook outputs
+# Format: INI-style sections with regex and replace lines
 
-# Timestamps and dates
-/\d{4}-\d{2}-\d{2}/
-/\d{2}:\d{2}:\d{2}/
+[regex1]
+regex: 0x[0-9a-fA-F]+
+replace: 0xADDRESS
 
-# Memory addresses (hex addresses in any context)
-/0x[0-9a-fA-F]+/
+[regex2]
+regex: <matplotlib\..*at 0x[0-9a-fA-F]+>
+replace: <matplotlib.OBJECT at 0xADDRESS>
 
-# Matplotlib object representations (complete line match)
-regex:<matplotlib\..*at 0x[0-9a-fA-F]+>
+[regex3]
+regex: \d+\.\d{8,}
+replace: FLOAT
 
-# Floating point numbers with high precision (3+ decimals)
-# Matches: 142.65943650100814, 7.124508738558338, etc.
-regex:\d+\.\d{3,}
+[regex4]
+regex: \d{4}-\d{2}-\d{2}
+replace: DATE-STAMP
 
-# Scientific notation
-regex:\d+\.?\d*e[+-]?\d+
+[regex5]
+regex: \d{2}:\d{2}:\d{2}
+replace: TIME-STAMP
 
-# Step output with floating point loss values
-# Matches: "Step: 0 - Loss 142.65943650100814"
-regex:Step:\s*\d+\s*-\s*Loss\s+\d+\.\d+
+[regex6]
+regex: \d+\.?\d*e[+-]?\d+
+replace: SCIENTIFIC
 
-# JAX/NumPy array output variations
-/DeviceArray/
-/Array/
-
-# Matplotlib/plotting artifacts
-/<Figure size/
-/<Axes:/
-/<AxesImage/
-/<matplotlib/
-
-# Progress bars and timing
-/\[.*\]/.*s
-/ETA:/
-/\d+it\/s/
-/\d+\.\d+s/
-
-# Python object representations
-/<.*object at 0x/
-/<function.*at 0x/
-
-# Warning messages that vary
-/UserWarning/
-/DeprecationWarning/
-/FutureWarning/
-
-# Jax platform info
-/Platform 'METAL'/
-/Platform 'CPU'/
-/Platform 'GPU'/
-
-# Random seeds and random state
-/RandomState/
-/PRNGKey/
+[regex7]
+regex: DeviceArray
+replace: Array
