@@ -5,11 +5,22 @@
 /\d{4}-\d{2}-\d{2}/
 /\d{2}:\d{2}:\d{2}/
 
-# Memory addresses
+# Memory addresses (hex addresses in any context)
 /0x[0-9a-fA-F]+/
 
-# Floating point variations (small numerical differences)
-/\d+\.\d{10,}/
+# Matplotlib object representations (complete line match)
+regex:<matplotlib\..*at 0x[0-9a-fA-F]+>
+
+# Floating point numbers with high precision (3+ decimals)
+# Matches: 142.65943650100814, 7.124508738558338, etc.
+regex:\d+\.\d{3,}
+
+# Scientific notation
+regex:\d+\.?\d*e[+-]?\d+
+
+# Step output with floating point loss values
+# Matches: "Step: 0 - Loss 142.65943650100814"
+regex:Step:\s*\d+\s*-\s*Loss\s+\d+\.\d+
 
 # JAX/NumPy array output variations
 /DeviceArray/
@@ -18,6 +29,7 @@
 # Matplotlib/plotting artifacts
 /<Figure size/
 /<Axes:/
+/<AxesImage/
 /<matplotlib/
 
 # Progress bars and timing
