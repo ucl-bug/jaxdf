@@ -34,11 +34,11 @@ def get_notebook_name(notebook_path):
 
 
 @pytest.mark.parametrize("notebook", NOTEBOOKS, ids=get_notebook_name)
-def test_notebook_execution(notebook, tmp_path):
+def test_notebook_execution(notebook, tmp_path, request):
   """Execute notebook and verify it runs without errors."""
   # Apply slow marker if needed
   if notebook.name in SLOW_NOTEBOOKS:
-    pytest.mark.slow()
+    request.applymarker(pytest.mark.slow)
 
   output_path = tmp_path / f"executed_{notebook.name}"
 
@@ -102,7 +102,7 @@ def test_all_notebooks_different_outputs():
 
 @pytest.mark.nbval
 @pytest.mark.parametrize("notebook", NOTEBOOKS, ids=get_notebook_name)
-def test_notebook_output_regression(notebook):
+def test_notebook_output_regression(notebook, request):
   """
     Compare notebook outputs against reference values.
 
@@ -120,8 +120,7 @@ def test_notebook_output_regression(notebook):
     """
   # Mark slow notebooks
   if notebook.name in SLOW_NOTEBOOKS:
-    pytest.mark.slow()
+    request.applymarker(pytest.mark.slow)
 
   # nbval plugin handles the actual comparison automatically
   # This test just provides the parametrization and documentation
-  pass

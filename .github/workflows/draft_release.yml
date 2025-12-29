@@ -32,7 +32,8 @@ jobs:
             # It's a specific version number
             uv run bump-my-version bump patch --new-version "$version_input"
           fi
-          version=$(uv run bump-my-version show current_version 2>/dev/null)
+          # Read version directly from pyproject.toml for reliability
+          version=$(grep -oP 'current_version = "\K[^"]+' pyproject.toml)
           echo ::set-output name="version::$version"
       - name: Update changelog
         id: changelog

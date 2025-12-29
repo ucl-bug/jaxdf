@@ -47,7 +47,7 @@ def __add__(x: Continuous, y: ArrayLike, *, params=None):
 # __bool__
 @operator    # type: ignore
 def __bool__(x: OnGrid, *, params=None):
-  new_params = tree.map(lambda x: bool(x), x.params)
+  new_params = tree.map(bool, x.params)
   return x.replace_params(new_params)
 
 

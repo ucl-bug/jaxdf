@@ -117,7 +117,7 @@ allow_dirty = false
 commit = false
 message = "Bump version: {current_version} → {new_version}"
 
-[[tool.bumpversion.files]]
+[[tool.bump_my_version.files]]
 filename = "jaxdf/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
