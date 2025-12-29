@@ -88,7 +88,6 @@ indent_width = 2
 
 [tool.pytest.ini_options]
 addopts = """\
-    --doctest-modules \
     --nbval-lax \
     --nbval-sanitize-with=.nbval_ignore \
 """

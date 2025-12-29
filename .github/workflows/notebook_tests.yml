@@ -34,10 +34,6 @@ jobs:
       - name: Setup Python + uv environment
         uses: ./.github/actions/python-uv-env
 
-      - name: Install notebook dependencies
-        run: |
-          pip install nbconvert nbformat ipykernel
-
       - name: Execute notebook (current branch)
         id: execute_current
         run: |
@@ -84,15 +80,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install uv
         run: |
-          pip install nbconvert nbformat ipykernel uv
+          pip install uv
 
       - name: Test notebooks on base branch
         id: base_test
         run: |
           cd base
-          uv sync
+          uv sync --all-groups
           for notebook in docs/notebooks/*.ipynb; do
             echo "Testing $(basename $notebook) on base branch..."
             JAX_PLATFORMS=cpu jupyter nbconvert \
@@ -108,7 +104,7 @@ jobs:
         id: pr_test
         run: |
           cd current
-          uv sync
+          uv sync --all-groups
           for notebook in docs/notebooks/*.ipynb; do
             echo "Testing $(basename $notebook) on PR branch..."
             JAX_PLATFORMS=cpu jupyter nbconvert \
