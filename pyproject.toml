@@ -130,6 +130,7 @@ dev = [
     "ipykernel>=6.31.0,<7.0.0",
     "isort>=5.13.2,<6.0.0",
     "jupyterlab>=4.5.1,<5.0.0",
+    "matplotlib>=3.10.8",
     "mkdocs-autorefs>=0.5.0,<0.6.0",
     "mkdocs-jupyter>=0.24.8,<0.25.0",
     "mkdocs-macros-plugin>=1.5.0,<2.0.0",
@@ -147,4 +148,5 @@ dev = [
     "pymdown-extensions>=10.19.1,<11.0",
     "pytest>=7.4.4,<8.0.0",
     "python-kacl>=0.4.7,<0.5.0",
+    "tqdm>=4.67.1",
 ]
