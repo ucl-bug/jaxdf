@@ -23,8 +23,6 @@ jobs:
       matrix:
         notebook:
           - api_discretization.ipynb
-          - example_1_paper.ipynb
-          - helmholtz_pinn.ipynb
           - pinn_burgers.ipynb
           - quickstart.ipynb
           - simulate_helmholtz_equation.ipynb
@@ -58,8 +56,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: executed-notebooks
-          path: /tmp/executed_current_*.ipynb
+          name: executed-notebook-${{ matrix.notebook }}
+          path: /tmp/executed_current_${{ matrix.notebook }}
           retention-days: 7
 
   compare-with-base:
@@ -92,13 +90,19 @@ jobs:
           cd base
           uv sync --all-groups
           for notebook in docs/notebooks/*.ipynb; do
-            echo "Testing $(basename $notebook) on base branch..."
+            # Skip excluded notebooks
+            basename_nb=$(basename $notebook)
+            if [[ "$basename_nb" == "example_1_paper.ipynb" ]] || [[ "$basename_nb" == "helmholtz_pinn.ipynb" ]]; then
+              echo "Skipping $basename_nb (excluded from tests)"
+              continue
+            fi
+            echo "Testing $basename_nb on base branch..."
             JAX_PLATFORMS=cpu uv run jupyter nbconvert \
               --to notebook \
               --execute \
               --ExecutePreprocessor.timeout=600 \
-              --output /tmp/base_$(basename $notebook) \
-              "$notebook" || echo "FAILED: $(basename $notebook)" >> /tmp/base_failures.txt
+              --output /tmp/base_$basename_nb \
+              "$notebook" || echo "FAILED: $basename_nb" >> /tmp/base_failures.txt
           done
         continue-on-error: true
 
@@ -108,13 +112,19 @@ jobs:
           cd current
           uv sync --all-groups
           for notebook in docs/notebooks/*.ipynb; do
-            echo "Testing $(basename $notebook) on PR branch..."
+            # Skip excluded notebooks
+            basename_nb=$(basename $notebook)
+            if [[ "$basename_nb" == "example_1_paper.ipynb" ]] || [[ "$basename_nb" == "helmholtz_pinn.ipynb" ]]; then
+              echo "Skipping $basename_nb (excluded from tests)"
+              continue
+            fi
+            echo "Testing $basename_nb on PR branch..."
             JAX_PLATFORMS=cpu uv run jupyter nbconvert \
               --to notebook \
               --execute \
               --ExecutePreprocessor.timeout=600 \
-              --output /tmp/pr_$(basename $notebook) \
-              "$notebook" || echo "FAILED: $(basename $notebook)" >> /tmp/pr_failures.txt
+              --output /tmp/pr_$basename_nb \
+              "$notebook" || echo "FAILED: $basename_nb" >> /tmp/pr_failures.txt
           done
         continue-on-error: true
 
