@@ -132,7 +132,7 @@ def shift_operator(x: Continuous, *, dx: object, params=None) -> Continuous:
 
     Args:
       x: The field to shift
-      dx: The shift to apply
+      dx: The shift to apply as a coordinate offset (scalar or array).
 
     Returns:
       A new field corresponding to the shifted input field.
@@ -167,9 +167,14 @@ def fd_shift_kernels(x: FiniteDifferences, dx: List[float], *args, **kwargs):
     # kernel = kernel / x.domain.dx[axis]
     return kernel
 
-  stagger = dx[0] / x.domain.dx[0]
+  # Broadcast dx to match domain dimensions (consistent with FourierSeries)
+  if len(dx) == 1 and len(x.domain.N) != 1:
+    dx = dx * len(x.domain.N)
+
+  # Compute component-specific staggers
   params = []
   for i in range(x.domain.ndim):
+    stagger = dx[i] / x.domain.dx[i]
     params.append(single_kernel(axis=i, stagger=stagger))
 
   return params
@@ -184,7 +189,11 @@ def shift_operator(x: FiniteDifferences,
 
     Args:
       x: The field to shift
-      dx: The shift to apply. It is ignored if the `params` argument is not `None`.
+      dx: The shift to apply. If a single-element list is provided for a
+        multi-dimensional domain, it will be broadcast to all dimensions
+        (e.g., dx=[1.0] becomes dx=[1.0, 1.0] for 2D).
+        Component i is shifted by dx[i] in direction i.
+        Ignored if the `params` argument is not `None`.
 
     Returns:
       A new field corresponding to the shifted input field.
@@ -205,12 +214,18 @@ def shift_operator(x: FiniteDifferences,
 
 @operator(
     init_params=lambda x, *, dx: {"k_vec": x._freq_axis})    # type: ignore
-def shift_operator(x: FourierSeries, *, dx=[0], params=None) -> FourierSeries:
+def shift_operator(x: FourierSeries,
+                   *,
+                   dx=[0.0],
+                   params=None) -> FourierSeries:
   r"""Shifts the field by `dx` using the shift theorem in Fourier space.
 
     Args:
       x: The field to shift
-      dx: The shift to apply
+      dx: The shift to apply. If a single-element list is provided for a
+        multi-dimensional domain, it will be broadcast to all dimensions
+        (e.g., dx=[1.0] becomes dx=[1.0, 1.0] for 2D).
+        Component i is shifted by dx[i] in direction i.
 
     Returns:
       A new field corresponding to the shifted input field.

@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - Fixed bug in `Continuous.replace_params` where deprecated `self.get_field` was used instead of `self.get_fun`
+- Inconsistent shift_operator between FourierSeries and FiniteDifferences (#146)
 
 ## [0.2.8] - 2024-09-17
 
