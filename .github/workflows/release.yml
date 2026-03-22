@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: "3.11"
           test-script: |
-            python -c "import jaxdf; print(jaxdf.__version__)"
+            uv run --no-sync python -c "import jaxdf; print(jaxdf.__version__)"
           pypi-token: ${{ secrets.PYPI_TOKEN }}
           github-user: ucl-bug
           github-token: ${{ github.token }}
