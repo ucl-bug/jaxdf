@@ -14,15 +14,14 @@ jobs:
         with:
           python-version: "3.11"
           test-script: |
-            # Verify changelog has an entry for this version
-            version=$(python -c "import tomllib; print(tomllib.load(open('${{ github.workspace }}/pyproject.toml','rb'))['project']['version'])")
-            if ! grep -q "\[${version}\]" ${{ github.workspace }}/CHANGELOG.md; then
-              echo "ERROR: CHANGELOG.md has no entry for version ${version}. Run: kacl-cli release ${version} --modify --auto-link"
+            WORKSPACE="${{ github.workspace }}"
+            version=$(sed -n 's/^version = "\(.*\)"/\1/p' "$WORKSPACE/pyproject.toml")
+            if ! grep -q "\[$version\]" "$WORKSPACE/CHANGELOG.md"; then
+              echo "ERROR: CHANGELOG.md has no entry for version $version"
               exit 1
             fi
-            # Run tests
-            cp -r ${{ github.workspace }}/tests ./tests
-            cp ${{ github.workspace }}/pyproject.toml ./pyproject.toml
+            cp -r "$WORKSPACE/tests" ./tests
+            cp "$WORKSPACE/pyproject.toml" ./pyproject.toml
             uv sync --dev --no-install-project --inexact
             uv pip install "jax[cpu]"
             JAX_PLATFORMS=cpu uv run --no-sync pytest tests/ -x --ignore=tests/test_module_params.py -p no:nbval
