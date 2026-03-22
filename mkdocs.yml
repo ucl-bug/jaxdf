@@ -54,6 +54,7 @@ nav:
   - Home: index.md
   - Tutorials:
     - Quick start: notebooks/quickstart.ipynb
+    - Operator params guide: notebooks/operator_params_guide.ipynb
     - Physics informed neural networks: notebooks/pinn_burgers.ipynb
     - Optimize acoustic simulations: notebooks/simulate_helmholtz_equation.ipynb
     - How discretizations work: notebooks/api_discretization.ipynb

@@ -13,6 +13,7 @@ from jaxdf.discretization import (    # isort:skip
 from jaxdf.core import Field    # isort:skip
 
 from jaxdf import util, geometry, mods, operators    # isort:skip
+from jaxdf.util import get_implementations, has_implementation    # isort:skip
 
 # Must be imported after discretization
 from jaxdf.operators.magic import *    # isort:skip
@@ -35,4 +36,6 @@ __all__ = [
     'Linear',
     'Module',
     'OnGrid',
+    'get_implementations',
+    'has_implementation',
 ]

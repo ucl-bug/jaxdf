@@ -4,6 +4,7 @@ repos:
     hooks:
       - id: check-ast
       - id: check-added-large-files
+        args: ['--maxkb=10000']  # 10MB limit — notebooks with plots are commonly several MB
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: check-yaml

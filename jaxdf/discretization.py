@@ -20,6 +20,8 @@ class Linear(Field):
   domain: Domain
 
   def __eq__(self, other):
+    if not isinstance(other, Linear):
+      return False
     return tree_equal(self, other) * (self.domain == other.domain)
 
   @property

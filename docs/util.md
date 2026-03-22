@@ -2,7 +2,7 @@
     handler: python
     selection:
         filters:
-            - "__init__$"
+            - "!^_"
     rendering:
         show_root_heading: true
         show_source: false
