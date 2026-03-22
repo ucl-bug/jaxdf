@@ -35,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed bug in `Continuous.replace_params` where deprecated `self.get_field` was used instead of `self.get_fun`
 - Inconsistent shift_operator between FourierSeries and FiniteDifferences (#146)
 - Linear.__eq__ no longer crashes when compared with non-Linear types (fixes #145)
+- FiniteDifferences.replace_params now preserves the accuracy field (fixes ucl-bug/jwave#224)
 
 ## [0.2.8] - 2024-09-17
 

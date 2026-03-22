@@ -1,7 +1,7 @@
 import pytest
 from jax import numpy as jnp
 
-from jaxdf.discretization import Linear
+from jaxdf.discretization import FiniteDifferences, Linear
 from jaxdf.geometry import Domain
 
 
@@ -41,3 +41,31 @@ def test_equality_with_type():
   a = Linear(jnp.asarray([1.0]), domain)
   assert (a == Linear) == False
   assert (a == int) == False
+
+
+@pytest.mark.parametrize("accuracy", [2, 4, 8, 16])
+def test_fd_replace_params_preserves_accuracy(accuracy):
+  """Regression test for jwave#224 — replace_params must preserve accuracy."""
+  domain = Domain((10, ), (1.0, ))
+  field = FiniteDifferences(jnp.zeros(10), domain, accuracy=accuracy)
+  new_field = field.replace_params(jnp.ones(10))
+  assert new_field.accuracy == accuracy
+  assert jnp.allclose(new_field.params, jnp.ones(10))
+
+
+def test_fd_replace_params_in_scan():
+  """Regression test for jwave#224 — lax.scan must not fail when replace_params
+  is used on FiniteDifferences with non-default accuracy, since the carry
+  pytree metadata (accuracy) must stay consistent between iterations."""
+  import jax
+
+  domain = Domain((10, ), (1.0, ))
+  field = FiniteDifferences(jnp.zeros(10), domain, accuracy=4)
+
+  def scan_fn(carry, _):
+    new_carry = carry.replace_params(carry.params + 1.0)
+    return new_carry, None
+
+  result, _ = jax.lax.scan(scan_fn, field, jnp.arange(3))
+  assert result.accuracy == 4
+  assert jnp.allclose(result.params, jnp.full(10, 3.0))
