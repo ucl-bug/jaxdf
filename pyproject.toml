@@ -114,7 +114,7 @@ tag = false
 sign_tags = false
 tag_name = "v{new_version}"
 tag_message = "Bump version: {current_version} → {new_version}"
-allow_dirty = false
+allow_dirty = true
 commit = false
 message = "Bump version: {current_version} → {new_version}"
 
