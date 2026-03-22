@@ -49,3 +49,47 @@ def get_implemented(f):
   instances = set(instances)
   for instance in instances:
     print(" ─ " + instance)
+
+
+def get_implementations(f):
+  """Returns the implemented type signatures for an operator.
+
+    Args:
+        f: An operator function registered via @operator.
+
+    Returns:
+        list[tuple[str, ...]]: List of type signature tuples for each
+        implementation.
+
+    Example:
+        >>> from jaxdf.operators import gradient
+        >>> get_implementations(gradient)
+        [('Continuous',), ('FiniteDifferences',), ('FourierSeries',)]
+    """
+  instances = []
+  for f_instance in f.methods:
+    types = f_instance.signature.types
+    type_names = tuple(t.__name__ for t in types)
+    if type_names not in instances:
+      instances.append(type_names)
+  return sorted(instances)
+
+
+def has_implementation(f, *types):
+  """Check if an operator has an implementation for the given types.
+
+    Args:
+        f: An operator function registered via @operator.
+        *types: The types to check for.
+
+    Returns:
+        bool: True if an implementation exists for the given types.
+
+    Example:
+        >>> from jaxdf.operators import gradient
+        >>> from jaxdf.discretization import FourierSeries
+        >>> has_implementation(gradient, FourierSeries)
+        True
+    """
+  type_names = tuple(t.__name__ for t in types)
+  return type_names in get_implementations(f)

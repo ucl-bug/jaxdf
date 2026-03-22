@@ -33,3 +33,11 @@ def test_equality():
 
   d = Linear(jnp.asarray([1.0]), Domain((2, ), (1.0, )))
   assert a != d
+
+
+def test_equality_with_type():
+  """Regression test for jaxdf#145 — __eq__ should not crash when compared with a type."""
+  domain = Domain((1, ), (1.0, ))
+  a = Linear(jnp.asarray([1.0]), domain)
+  assert (a == Linear) == False
+  assert (a == int) == False

@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Added comprehensive notebook development guidelines in `docs/notebooks/README.md`
+- get_implementations() and has_implementation() for operator dispatch introspection
+- Operator params guide tutorial covering inspection, override, shared params, eqx.Module as params, NN-generated stencils, and learned gradient correction
 
 ### Changed
 
@@ -32,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed bug in `Continuous.replace_params` where deprecated `self.get_field` was used instead of `self.get_fun`
 - Inconsistent shift_operator between FourierSeries and FiniteDifferences (#146)
+- Linear.__eq__ no longer crashes when compared with non-Linear types (fixes #145)
 
 ## [0.2.8] - 2024-09-17
 
