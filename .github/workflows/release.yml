@@ -1,13 +1,15 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
 
@@ -25,11 +27,7 @@ jobs:
           python-version: "3.11"
           checkout: false
           test-script: |
-            cp -r ${{ github.workspace }}/tests ./tests
-            cp ${{ github.workspace }}/pyproject.toml ./pyproject.toml
-            uv sync --dev --no-install-project --inexact
-            uv pip install jax[cpu]
-            JAX_PLATFORMS=cpu uv run --no-sync pytest tests/ -x --ignore=tests/test_module_params.py -o addopts=
+            python -c "import jaxdf; print(jaxdf.__version__)"
           pypi-token: ${{ secrets.PYPI_TOKEN }}
           github-user: ucl-bug
           github-token: ${{ github.token }}
