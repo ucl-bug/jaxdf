@@ -1,5 +1,5 @@
 # nopycln: file
-__version__ = "0.2.8"
+__version__ = "0.3.0"
 
 from jaxdf import conv, logger
 from jaxdf.core import constants, operator

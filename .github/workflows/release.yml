@@ -1,16 +1,41 @@
 name: Release
 
 on:
-  release:
-    types: [ published ]
+  push:
+    branches:
+      - main
 
 jobs:
-  build-and-publish:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Release
+        uses: patrick-kidger/action_update_python_project@v8
+        with:
+          python-version: "3.11"
+          test-script: |
+            # Verify changelog has an entry for this version
+            version=$(python -c "import tomllib; print(tomllib.load(open('${{ github.workspace }}/pyproject.toml','rb'))['project']['version'])")
+            if ! grep -q "\[${version}\]" ${{ github.workspace }}/CHANGELOG.md; then
+              echo "ERROR: CHANGELOG.md has no entry for version ${version}. Run: kacl-cli release ${version} --modify --auto-link"
+              exit 1
+            fi
+            # Run tests
+            cp -r ${{ github.workspace }}/tests ./tests
+            cp ${{ github.workspace }}/pyproject.toml ./pyproject.toml
+            uv sync --dev --no-install-project --inexact
+            uv pip install "jax[cpu]"
+            JAX_PLATFORMS=cpu uv run --no-sync pytest tests/ -x --ignore=tests/test_module_params.py -p no:nbval
+          pypi-token: ${{ secrets.PYPI_TOKEN }}
+          github-user: ucl-bug
+          github-token: ${{ github.token }}
+
+  docs:
+    runs-on: ubuntu-latest
+    needs: release
+    if: success()
+    steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/python-uv-env
-      - name: Publish to pypi
-        run: uv publish --token ${{ secrets.PYPI_TOKEN }}
       - name: Deploy docs
         run: uv run mkdocs gh-deploy --force

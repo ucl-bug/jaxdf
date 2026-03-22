@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jaxdf"
-dynamic = ["version"]
+version = "0.3.0"
 description = "A JAX-based research framework for writing differentiable numerical simulators with arbitrary discretizations"
 authors = [
   { name = "Antonio Stanziola", email = "a.stanziola@ucl.ac.uk" },
@@ -50,9 +50,6 @@ Homepage = "https://ucl-bug.github.io/jaxdf"
 Repository = "https://github.com/ucl-bug/jaxdf"
 "Bug Tracker" = "https://github.com/ucl-bug/jaxdf/issues"
 Support = "https://discord.gg/VtUb4fFznt"
-
-[tool.hatch.version]
-path = "jaxdf/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["jaxdf"]
@@ -102,30 +99,8 @@ exclude_lines = [
     'pragma: no cover'
 ]
 
-[tool.bumpversion]
-current_version = "0.2.8"
-parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
-serialize = ["{major}.{minor}.{patch}"]
-search = "{current_version}"
-replace = "{new_version}"
-regex = false
-ignore_missing_version = false
-tag = false
-sign_tags = false
-tag_name = "v{new_version}"
-tag_message = "Bump version: {current_version} → {new_version}"
-allow_dirty = true
-commit = false
-message = "Bump version: {current_version} → {new_version}"
-
-[[tool.bumpversion.files]]
-filename = "jaxdf/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
 [dependency-groups]
 dev = [
-    "bump-my-version>=1.2.0,<2.0.0",
     "coverage>=7.13.0,<8.0.0",
     "diffrax>=0.7.0,<0.8.0",
     "isort>=7.0.0,<8.0.0",
