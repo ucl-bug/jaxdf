@@ -1,9 +1,19 @@
 import pytest
-from plum.resolver import NotFoundLookupError
+from plum import NotFoundLookupError
 
-from jaxdf.operators import (derivative, diag_jacobian, dot_product, dummy,
-                             get_component, gradient, heterog_laplacian,
-                             laplacian, shift_operator, sum_over_dims, yummy)
+from jaxdf.operators import (
+    derivative,
+    diag_jacobian,
+    dot_product,
+    dummy,
+    get_component,
+    gradient,
+    heterog_laplacian,
+    laplacian,
+    shift_operator,
+    sum_over_dims,
+    yummy,
+)
 
 unary_operators = [
     derivative,
