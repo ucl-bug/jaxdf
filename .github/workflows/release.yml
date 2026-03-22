@@ -27,7 +27,7 @@ jobs:
           python-version: "3.11"
           checkout: false
           test-script: |
-            python -c "import jaxdf; print(jaxdf.__version__)"
+            python -c 'import jaxdf; print(jaxdf.__version__)'
           pypi-token: ${{ secrets.PYPI_TOKEN }}
           github-user: ucl-bug
           github-token: ${{ github.token }}
