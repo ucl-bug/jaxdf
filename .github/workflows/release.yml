@@ -1,33 +1,20 @@
 name: Release
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main]
+  push:
+    branches:
+      - main
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Check changelog on version bump
-        shell: bash
-        run: |
-          version=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
-          if ! grep -q "\[$version\]" CHANGELOG.md; then
-            echo "::warning::CHANGELOG.md has no entry for version $version"
-          fi
-
       - name: Release
-        uses: patrick-kidger/action_update_python_project@v8
+        uses: astanziola/action_update_python_project@v9
         with:
           python-version: "3.11"
-          checkout: false
           test-script: |
-            python -c 'import jaxdf; print(jaxdf.__version__)'
+            python -c "import jaxdf; print(jaxdf.__version__)"
           pypi-token: ${{ secrets.PYPI_TOKEN }}
           github-user: ucl-bug
           github-token: ${{ github.token }}
