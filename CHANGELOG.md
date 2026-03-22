@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-22
+
 ### Added
 
 - Added comprehensive notebook development guidelines in `docs/notebooks/README.md`
@@ -116,7 +118,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Renamed ode variable update, removed wrong test in utils
 - Updated support/packaging files
 
-[Unreleased]: https://github.com/ucl-bug/jaxdf/compare/0.2.8...master
+[Unreleased]: https://github.com/ucl-bug/jaxdf/compare/0.3.0...master
+[0.3.0]: https://github.com/ucl-bug/jaxdf/compare/0.2.8...0.3.0
 [0.2.8]: https://github.com/ucl-bug/jaxdf/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/ucl-bug/jaxdf/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/ucl-bug/jaxdf/compare/0.2.5...0.2.6
