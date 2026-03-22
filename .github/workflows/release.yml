@@ -18,13 +18,3 @@ jobs:
           pypi-token: ${{ secrets.PYPI_TOKEN }}
           github-user: ucl-bug
           github-token: ${{ github.token }}
-
-  docs:
-    runs-on: ubuntu-latest
-    needs: release
-    if: success()
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/python-uv-env
-      - name: Deploy docs
-        run: uv run mkdocs gh-deploy --force
