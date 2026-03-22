@@ -8,17 +8,16 @@ on:
         required: true
         default: 'patch'
 
+permissions:
+  contents: write
+
 jobs:
   draft-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up SSH agent
-        uses: webfactory/ssh-agent@v0.5.0
+      - uses: actions/checkout@v4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - uses: actions/checkout@v6
-        with:
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          persist-credentials: true
       - uses: ./.github/actions/python-uv-env
       - name: Update version
         id: updated_version
@@ -26,15 +25,12 @@ jobs:
         run: |
           version_input="${{ github.event.inputs.version }}"
           if [[ "$version_input" =~ ^(patch|minor|major|prepatch|preminor|premajor|prerelease)$ ]]; then
-            # It's a bump rule - bump the specified version part
             uv run bump-my-version bump "$version_input"
           else
-            # It's a specific version number - set it explicitly
             uv run bump-my-version bump --new-version "$version_input"
           fi
-          # Read version directly from pyproject.toml for reliability
           version=$(grep -oP 'current_version = "\K[^"]+' pyproject.toml)
-          echo ::set-output name="version::$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Update changelog
         id: changelog
         shell: bash
@@ -42,12 +38,11 @@ jobs:
           uv run kacl-cli release ${{ steps.updated_version.outputs.version }} --modify --auto-link
           echo "" >> CHANGELOG.md
           body=$(uv run kacl-cli get ${{ steps.updated_version.outputs.version }})
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
-          echo ::set-output name="body::$body"
+          echo "body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$body" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
       - name: Commit changes
-        uses: EndBug/add-and-commit@v7
+        uses: EndBug/add-and-commit@v9
         with:
           add: 'CHANGELOG.md jaxdf/__init__.py pyproject.toml'
           message: 'Release ${{ steps.updated_version.outputs.version }}'
@@ -56,11 +51,9 @@ jobs:
           git tag ${{ steps.updated_version.outputs.version }}
           git push --tags
       - name: Create a draft release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.updated_version.outputs.version }}
-          release_name: Release ${{ steps.updated_version.outputs.version }}
+          name: Release ${{ steps.updated_version.outputs.version }}
           body: ${{ steps.changelog.outputs.body }}
           draft: true
