@@ -29,7 +29,7 @@ jobs:
             cp ${{ github.workspace }}/pyproject.toml ./pyproject.toml
             uv sync --dev --no-install-project --inexact
             uv pip install jax[cpu]
-            JAX_PLATFORMS=cpu uv run --no-sync pytest tests/ -x --ignore=tests/test_module_params.py -p no:nbval
+            JAX_PLATFORMS=cpu uv run --no-sync pytest tests/ -x --ignore=tests/test_module_params.py -o addopts=
           pypi-token: ${{ secrets.PYPI_TOKEN }}
           github-user: ucl-bug
           github-token: ${{ github.token }}
