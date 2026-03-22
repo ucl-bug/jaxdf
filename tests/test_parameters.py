@@ -1,7 +1,7 @@
 import jax
 from jax import grad, jit, make_jaxpr
 from jax import numpy as jnp
-from plum.function import NotFoundLookupError
+from plum import NotFoundLookupError
 from pytest import mark, raises
 
 from jaxdf import *
