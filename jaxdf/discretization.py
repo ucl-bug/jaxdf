@@ -335,3 +335,15 @@ class FiniteDifferences(OnGrid):
   params: PyTree
   domain: Domain
   accuracy: int = eqx.field(default=8, static=True)
+
+  def replace_params(self, new_params):
+    r"""Replaces the parameters of the discretization with new ones,
+        preserving the accuracy setting.
+
+        Args:
+          new_params (PyTree): The new parameters of the discretization.
+
+        Returns:
+          FiniteDifferences: A new field with the new parameters.
+        """
+    return self.__class__(new_params, self.domain, accuracy=self.accuracy)
