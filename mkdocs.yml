@@ -92,7 +92,7 @@ plugins:
       default_handler: python
       handlers:
         python:
-          rendering:
+          options:
             show_source: false
   - search
   - mermaid2
